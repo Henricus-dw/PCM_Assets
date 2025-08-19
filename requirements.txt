@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+sqlalchemy
+mysql-connector-python
+jinja2
+python-multipart  # For form handling

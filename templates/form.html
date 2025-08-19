@@ -1,0 +1,113 @@
+<head>
+    <title>Vodacom Subscription Form</title>
+    <link rel="stylesheet" href="/static/styles.css?v={{ time }}">
+</head>
+
+<body>
+    <!-- Sidebar navigation -->
+    <div class="sidebar">
+        <a href="/" class="{{ 'active' if section == 'form' else '' }}">Vodacom Subscription Form</a>
+        <a href="/dashboard" class="{{ 'active' if section == 'dashboard' else '' }}">Dashboard</a>
+    </div>
+
+    <!-- Main content area with 3 columns -->
+    <div class="content">
+        <!-- Block 1: The form -->
+        <div class="contentInner">
+
+            <div class="boxTopHeader">Vodacom Subscription Form</div>
+
+            {% if message %}
+            <p style="color: green;">{{ message }}</p>
+            {% endif %}
+
+            <form method="post" action="/submit">
+
+                <label for="Name_">Name:</label>
+                <input type="text" id="Name_" name="Name_" required>
+
+                <label for="Surname_">Surname:</label>
+                <input type="text" id="Surname_" name="Surname_" required>
+
+                <label for="Personnel_nr">Personnel Number:</label>
+                <input type="text" id="Personnel_nr" name="Personnel_nr" required>
+
+                <label for="Company">Company:</label>
+                <select id="Company" name="Company" required>
+                    <option>PCM</option>
+                    <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
+                    <option>PAS/PAC</option>
+                    <option>INT</option>
+                    <option>PSSS</option>
+                    <option>POLYGRAPH</option>
+                </select>
+
+                <label for="Client_Division">Client Division:</label>
+                <select id="Client_Division" name="Client_Division" required>
+                    <option>N/A</option>
+                    <option>VECTOR LOG</option>
+                    <option>CRUSADER</option>
+                    <option>SG</option>
+                    <option>WOOLWORTHS</option>
+                </select>
+
+                <label for="Contract_Type">Contract Type:</label>
+                <select id="Contract_Type" name="Contract_Type" required>
+                    <option>AIRTIME</option>
+                    <option>DATA</option>
+                </select>
+
+                <label for="Monthly_Costs">Monthly Costs:</label>
+                <input type="text" id="Monthly_Costs" name="Monthly_Costs" required>
+
+                <label>Contract Term:</label>
+                <div class="radioDiv">
+                    <label for="term12">12 Months</label>
+                    <input class="inputRadio" type="radio" id="term12" name="Contract_Term" value="12 Months" required>
+                </div>
+                <div class="radioDiv">
+                    <label for="term24">24 Months</label>
+                    <input class="inputRadio" type="radio" id="term24" name="Contract_Term" value="24 Months" required>
+                </div>
+                <div class="radioDiv">
+                    <label for="term36">36 Months</label>
+                    <input class="inputRadio" type="radio" id="term36" name="Contract_Term" value="36 Months" required>
+                </div>
+
+                <label for="Sim_Card_Number">SIM Card Number:</label>
+                <input type="text" id="Sim_Card_Number" name="Sim_Card_Number" required>
+
+                <label for="Inception_Date">Inception Date:</label>
+                <input type="date" id="Inception_Date" name="Inception_Date" required>
+
+                <label for="Termination_Date">Termination Date:</label>
+                <input type="date" id="Termination_Date" name="Termination_Date" required>
+
+                <button type="submit">Submit</button>
+            </form>
+        </div>
+
+        <!-- Block 2: Blank for now -->
+        <div class="contentInner">
+            <div class="boxTopHeader">Future Content</div>
+            <button type="submit">Submit</button>
+        </div>
+
+        <!-- Block 3: Blank for now -->
+
+
+        <div class="contentInner">
+            <button class="button1 marB20">
+                <div class="button1Inner">PLACEHOLDER TEXT
+                    <div class="button1InnerTiny tiny1"></div>
+                    <div class="button1InnerTiny tiny2"></div>
+                    <div class="button1InnerTiny tiny3"></div>
+                    <div class="button1InnerTiny tiny4"></div>
+                </div>
+            </button>
+
+        </div>
+    </div>
+</body>
+
+</html>

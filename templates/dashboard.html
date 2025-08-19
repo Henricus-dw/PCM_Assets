@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="/static/styles.css?v={{ time }}">
+    <style>
+        /* Ensure table can scroll horizontally if it overflows */
+        .table-wrapper {
+            overflow-x: auto;
+            overflow-y: visible;
+            width: 100%;
+        }
+
+        /* Optional: Style the horizontal scrollbar */
+        .table-wrapper::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .table-wrapper::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+        .table-wrapper::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+
+</head>
+
+<body>
+    <!-- Sidebar navigation -->
+    <div class="sidebar">
+        <a href="/" class="{{ 'active' if section == 'form' else '' }}">Vodacom Subscription Form</a>
+        <a href="/dashboard" class="{{ 'active' if section == 'dashboard' else '' }}">Dashboard</a>
+    </div>
+
+    <!-- Main content -->
+    <div class="content">
+        <div class="contentInner dashboardContent">
+
+            {% if records %}
+
+            <table>
+                <thead>
+                    <tr class="header-row">
+                        <th>Name</th>
+                        <th>Surname</th>
+                        <th>Personnel Number</th>
+                        <th>Company</th>
+                        <th>Client Division</th>
+                        <th>Contract Type</th>
+                        <th>Monthly Costs</th>
+                        <th>Contract Term</th>
+                        <th>Inception Date</th>
+                        <th>Termination Date</th>
+                        <th>SIM Card Number</th>
+                    </tr>
+                    <!-- Search Inputs Row -->
+                    <tr class="search-row">
+                        <th><input type="text" onkeyup="filterTable(0)" placeholder="Search Name"></th>
+                        <th><input type="text" onkeyup="filterTable(1)" placeholder="Search Surname"></th>
+                        <th><input type="text" onkeyup="filterTable(2)" placeholder="Search Personnel #"></th>
+                        <th><input type="text" onkeyup="filterTable(3)" placeholder="Search Company"></th>
+                        <th><input type="text" onkeyup="filterTable(4)" placeholder="Search Client Division"></th>
+                        <th><input type="text" onkeyup="filterTable(5)" placeholder="Search Contract Type"></th>
+                        <th><input type="text" onkeyup="filterTable(6)" placeholder="Search Monthly Costs"></th>
+                        <th><input type="text" onkeyup="filterTable(7)" placeholder="Search Contract Term"></th>
+                        <th><input type="text" onkeyup="filterTable(8)" placeholder="Search Inception Date"></th>
+                        <th><input type="text" onkeyup="filterTable(9)" placeholder="Search Termination Date"></th>
+                        <th><input type="text" onkeyup="filterTable(10)" placeholder="Search SIM Card #"></th>
+                    </tr>
+
+                    <!-- Column Headers -->
+
+                </thead>
+                <tbody>
+                    {% for sub in records %}
+                    <tr>
+                        <td>{{ sub.Name_ }}</td>
+                        <td>{{ sub.Surname_ }}</td>
+                        <td>{{ sub.Personnel_nr }}</td>
+                        <td>{{ sub.Company }}</td>
+                        <td>{{ sub.Client_Division }}</td>
+                        <td>{{ sub.Contract_Type }}</td>
+                        <td>{{ sub.Monthly_Costs }}</td>
+                        <td>{{ sub.Contract_Term }}</td>
+                        <td>{{ sub.Inception_Date }}</td>
+                        <td>{{ sub.Termination_Date }}</td>
+                        <td>{{ sub.Sim_Card_Number }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            {% else %}
+            <p>No records found.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- JavaScript filter function -->
+    <script>
+        function filterTable(colIndex) {
+            const input = document.getElementsByClassName("search-row")[0].getElementsByTagName("input")[colIndex];
+            const filter = input.value.toUpperCase();
+            const table = document.querySelector("table");
+            const rows = table.getElementsByTagName("tbody")[0].getElementsByTagName("tr");
+
+            for (let i = 0; i < rows.length; i++) {
+                const cell = rows[i].getElementsByTagName("td")[colIndex];
+                if (cell) {
+                    const txtValue = cell.textContent || cell.innerText;
+                    rows[i].style.display = txtValue.toUpperCase().indexOf(filter) > -1 ? "" : "none";
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>
