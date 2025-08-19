@@ -61,6 +61,7 @@ body {
 }
 
 .boxTopHeader {
+    text-align: center;
     background-color: #1c2833;
     color: white;
     padding: 16px 24px;
