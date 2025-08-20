@@ -41,19 +41,99 @@
             {% if records %}
             <table class="sticky">
                 <thead>
+
                     <tr class="header-row">
-                        <th>Name</th>
-                        <th>Surname</th>
-                        <th>Personnel Number</th>
-                        <th>Company</th>
-                        <th>Client Division</th>
-                        <th>Contract Type</th>
-                        <th>Monthly Costs</th>
-                        <th>Contract Term</th>
-                        <th>Inception Date</th>
-                        <th>Termination Date</th>
-                        <th>SIM Card Number</th>
+                        <th data-col="0">
+                            <span class="header-label">Name &nbsp; ⌕</span>
+                            <input type="text" class="header-filter" data-col="0" style="display:none;" />
+                            <button class="filter-toggle" data-col="0" aria-label="Search"
+                                style="font-size: 18px; color: rgb(255, 255, 255); background: none; border: none; ">
+
+                            </button>
+                        </th>
+                        <th data-col="1">
+                            <span class="header-label">Surname &nbsp; ⌕</span>
+                            <input type="text" class="header-filter" data-col="1" style="display:none;" />
+                            <button class="filter-toggle" data-col="1" aria-label="Search"
+                                style="font-size: 18px; color: rgb(255, 255, 255); background: none; border: none; cursor: pointer;">
+
+                            </button>
+                        </th>
+                        <th data-col="2">
+                            <span class="header-label">Personnel Number &nbsp; ⌕</span>
+                            <input type="text" class="header-filter" data-col="2" style="display:none;" />
+                            <button class="filter-toggle" data-col="2" aria-label="Search"
+                                style="font-size: 18px; color: rgb(255, 255, 255); background: none; border: none; cursor: pointer;">
+
+                            </button>
+                        </th>
+                        <th data-col="3">
+                            <span class="header-label">Company &nbsp; ⌕</span>
+                            <input type="text" class="header-filter" data-col="3" style="display:none;" />
+                            <button class="filter-toggle" data-col="3" aria-label="Search"
+                                style="font-size: 18px; color: rgb(255, 255, 255); background: none; border: none; cursor: pointer;">
+
+                            </button>
+                        </th>
+                        <th data-col="4">
+                            <span class="header-label">Client Division &nbsp; ⌕</span>
+                            <input type="text" class="header-filter" data-col="4" style="display:none;" />
+                            <button class="filter-toggle" data-col="4" aria-label="Search"
+                                style="font-size: 18px; color: rgb(255, 255, 255); background: none; border: none; cursor: pointer;">
+
+                            </button>
+                        </th>
+                        <th data-col="5">
+                            <span class="header-label">Contract Type &nbsp; ⌕</span>
+                            <input type="text" class="header-filter" data-col="5" style="display:none;" />
+                            <button class="filter-toggle" data-col="5" aria-label="Search"
+                                style="font-size: 18px; color: rgb(255, 255, 255); background: none; border: none; cursor: pointer;">
+
+                            </button>
+                        </th>
+                        <th data-col="6">
+                            <span class="header-label">Monthly Costs &nbsp; ⌕</span>
+                            <input type="text" class="header-filter" data-col="6" style="display:none;" />
+                            <button class="filter-toggle" data-col="6" aria-label="Search"
+                                style="font-size: 18px; color: rgb(255, 255, 255); background: none; border: none; cursor: pointer;">
+
+                            </button>
+                        </th>
+                        <th data-col="7">
+                            <span class="header-label">Contract Term &nbsp; ⌕</span>
+                            <input type="text" class="header-filter" data-col="7" style="display:none;" />
+                            <button class="filter-toggle" data-col="7" aria-label="Search"
+                                style="font-size: 18px; color: rgb(255, 255, 255); background: none; border: none; cursor: pointer;">
+
+                            </button>
+                        </th>
+                        <th data-col="8">
+                            <span class="header-label">Inception Date &nbsp; ⌕</span>
+                            <input type="text" class="header-filter" data-col="8" style="display:none;" />
+                            <button class="filter-toggle" data-col="8" aria-label="Search"
+                                style="font-size: 18px; color: rgb(255, 255, 255); background: none; border: none; cursor: pointer;">
+
+                            </button>
+                        </th>
+                        <th data-col="9">
+                            <span class="header-label">Termination Date &nbsp; ⌕</span>
+                            <input type="text" class="header-filter" data-col="9" style="display:none;" />
+                            <button class="filter-toggle" data-col="9" aria-label="Search"
+                                style="font-size: 18px; color: rgb(255, 255, 255); background: none; border: none; cursor: pointer;">
+
+                            </button>
+                        </th>
+                        <th data-col="10">
+                            <span class="header-label">SIM Card Number &nbsp; ⌕</span>
+                            <input type="text" class="header-filter" data-col="10" style="display:none;" />
+                            <button class="filter-toggle" data-col="10" aria-label="Search"
+                                style="font-size: 18px; color: rgb(255, 255, 255); background: none; border: none; cursor: pointer;">
+
+                            </button>
+                        </th>
                     </tr>
+
+
                 </thead>
                 <tbody>
                     {% for sub in records %}
@@ -78,6 +158,71 @@
             {% endif %}
         </div>
     </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const filterButtons = document.querySelectorAll(".filter-toggle");
+            const table = document.querySelector("table.sticky");
+            const tbody = table.querySelector("tbody");
+            const rows = Array.from(tbody.querySelectorAll("tr"));
+
+            const filters = {};
+
+            filterButtons.forEach(btn => {
+                const col = btn.dataset.col;
+                const th = btn.closest("th");
+                const label = th.querySelector(".header-label");
+                const input = th.querySelector(".header-filter");
+
+                btn.addEventListener("click", () => {
+                    // Toggle visibility
+                    label.style.display = "none";
+                    input.style.display = "inline-block";
+                    input.focus();
+                });
+
+                input.addEventListener("input", () => {
+                    filters[col] = input.value.toLowerCase().trim();
+                    applyFilters();
+                });
+
+                input.addEventListener("blur", () => {
+                    // Hide input if empty
+                    if (!input.value.trim()) {
+                        input.style.display = "none";
+                        label.style.display = "inline";
+                    }
+                });
+
+                input.addEventListener("keydown", (e) => {
+                    if (e.key === "Escape") {
+                        input.value = "";
+                        filters[col] = "";
+                        input.style.display = "none";
+                        label.style.display = "inline";
+                        applyFilters();
+                    }
+                });
+            });
+
+            function applyFilters() {
+                rows.forEach(row => {
+                    let visible = true;
+                    for (let col in filters) {
+                        const val = filters[col];
+                        const cellText = row.cells[col].textContent.toLowerCase().trim();
+                        if (val && !cellText.includes(val)) {
+                            visible = false;
+                            break;
+                        }
+                    }
+                    row.style.display = visible ? "" : "none";
+                });
+            }
+        });
+    </script>
+
+
 </body>
 
 
