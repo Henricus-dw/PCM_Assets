@@ -36,12 +36,10 @@
     </div>
 
     <!-- Main content -->
-    <div class="content">
-        <div class="contentInner dashboardContent">
-
+    <div class="content2">
+        <div class="contentInner2 ">
             {% if records %}
-
-            <table class -=".sticky">
+            <table class="sticky">
                 <thead>
                     <tr class="header-row">
                         <th>Name</th>
@@ -56,23 +54,6 @@
                         <th>Termination Date</th>
                         <th>SIM Card Number</th>
                     </tr>
-                    <!-- Search Inputs Row -->
-                    <tr class="search-row">
-                        <th><input type="text" onkeyup="filterTable(0)" placeholder="Search Name"></th>
-                        <th><input type="text" onkeyup="filterTable(1)" placeholder="Search Surname"></th>
-                        <th><input type="text" onkeyup="filterTable(2)" placeholder="Search Personnel #"></th>
-                        <th><input type="text" onkeyup="filterTable(3)" placeholder="Search Company"></th>
-                        <th><input type="text" onkeyup="filterTable(4)" placeholder="Search Client Division"></th>
-                        <th><input type="text" onkeyup="filterTable(5)" placeholder="Search Contract Type"></th>
-                        <th><input type="text" onkeyup="filterTable(6)" placeholder="Search Monthly Costs"></th>
-                        <th><input type="text" onkeyup="filterTable(7)" placeholder="Search Contract Term"></th>
-                        <th><input type="text" onkeyup="filterTable(8)" placeholder="Search Inception Date"></th>
-                        <th><input type="text" onkeyup="filterTable(9)" placeholder="Search Termination Date"></th>
-                        <th><input type="text" onkeyup="filterTable(10)" placeholder="Search SIM Card #"></th>
-                    </tr>
-
-                    <!-- Column Headers -->
-
                 </thead>
                 <tbody>
                     {% for sub in records %}
@@ -92,30 +73,12 @@
                     {% endfor %}
                 </tbody>
             </table>
-
             {% else %}
             <p>No records found.</p>
             {% endif %}
         </div>
     </div>
-
-    <!-- JavaScript filter function -->
-    <script>
-        function filterTable(colIndex) {
-            const input = document.getElementsByClassName("search-row")[0].getElementsByTagName("input")[colIndex];
-            const filter = input.value.toUpperCase();
-            const table = document.querySelector("table");
-            const rows = table.getElementsByTagName("tbody")[0].getElementsByTagName("tr");
-
-            for (let i = 0; i < rows.length; i++) {
-                const cell = rows[i].getElementsByTagName("td")[colIndex];
-                if (cell) {
-                    const txtValue = cell.textContent || cell.innerText;
-                    rows[i].style.display = txtValue.toUpperCase().indexOf(filter) > -1 ? "" : "none";
-                }
-            }
-        }
-    </script>
 </body>
+
 
 </html>

@@ -1,12 +1,21 @@
-/* Reset and base styles */
+/* =======================================
+   1. RESET & BASE STYLES
+======================================= */
+html,
 body {
     margin: 0;
+    padding: 0;
+    height: 100%;
     font-family: Arial, sans-serif;
     background: linear-gradient(to right, #f0f2f5, #e6ecf0);
-    height: 100vh;
+    overflow: hidden;
+    /* Prevent background scroll */
+    box-sizing: border-box;
 }
 
-/* Sidebar styles */
+/* =======================================
+   2. SIDEBAR STYLES
+======================================= */
 .sidebar {
     position: fixed;
     top: 0;
@@ -16,14 +25,13 @@ body {
     background-color: #1c2833;
     color: white;
     padding-top: 20px;
-    box-sizing: border-box;
     overflow-y: auto;
 }
 
 .sidebar a {
     display: block;
-    color: white;
     padding: 12px 20px;
+    color: white;
     text-decoration: none;
     font-weight: bold;
     transition: background-color 0.2s ease;
@@ -34,91 +42,95 @@ body {
     background-color: #34495e;
 }
 
-/* Content area */
+/* =======================================
+   3. MAIN CONTENT LAYOUT
+======================================= */
 .content {
     margin: 40px 40px 40px 240px;
     display: flex;
     gap: 20px;
     align-items: stretch;
-    /* Stretch children to equal height */
 }
 
-/* Form blocks / panels */
+.content2 {
+    margin: 40px 40px 40px 240px;
+    display: flex;
+    gap: 20px;
+    align-items: stretch;
+}
+
 .contentInner {
     background-color: #ffffff;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
     border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
     display: flex;
     flex-direction: column;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
-    border-radius: 8px;
-    box-sizing: border-box;
     width: 100%;
     max-width: 500px;
     height: calc(100vh - 70px);
-    /* Adjust height to fit screen */
     overflow-y: auto;
 }
 
+.contentInner2 {
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: calc(100vh - 70px);
+    overflow-y: auto;
+    position: relative;
+    max-height: 800px
+}
+
+
+/* Content header inside contentInner */
 .boxTopHeader {
-    text-align: center;
     background-color: #1c2833;
     color: white;
+    text-align: center;
     padding: 16px 24px;
     font-size: 1.2em;
     font-weight: bold;
     border-top-left-radius: 8px;
     border-top-right-radius: 8px;
-    box-sizing: border-box;
     flex-shrink: 0;
-    /* Don't shrink */
     z-index: 1;
 }
 
-
-
-.contentInner form {
-    overflow-y: auto;
-    flex: 1;
-    padding: 24px;
-    /* Optional spacing */
-}
-
-
-
-/* Form styling */
+/* =======================================
+   4. FORM STYLES
+======================================= */
 form {
     background-color: #fafafa;
     padding: 30px;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    flex: 1;
+    overflow-y: auto;
 }
 
 label {
+    display: block;
     font-weight: bold;
     color: #333;
     margin-top: 15px;
-    display: block;
 }
 
 input,
 select,
 button {
     display: block;
-    margin-bottom: 15px;
-    padding: 10px;
     width: 100%;
     max-width: 400px;
-    box-sizing: border-box;
+    padding: 10px;
     font-size: 1em;
+    margin-bottom: 15px;
+    box-sizing: border-box;
 }
 
 /* Radio buttons */
-.inputRadio {
-    width: auto;
-    margin-left: 10px;
-}
-
 .radioDiv {
     display: flex;
     align-items: center;
@@ -129,51 +141,53 @@ button {
     margin-right: 10px;
 }
 
-/* Button styling */
+.inputRadio {
+    width: auto;
+    margin-left: 10px;
+}
+
+/* =======================================
+   5. BUTTON STYLES
+======================================= */
+button {
+    cursor: pointer;
+    background-color: #c0392b;
+    border: none;
+    color: white;
+    font-weight: bold;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #a93226;
+}
+
+/* Fancy Button */
+.button1 {
+    display: inline-block;
+    width: auto;
+    height: auto;
+    padding: 0;
+    background: linear-gradient(to bottom, #FFFFFF 0%, #F6FDFF 100%);
+    border: 2px solid #51B1C7;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 20px;
+    color: #6FAFBE;
+    border-radius: 1px;
+    transition: all 150ms ease-out;
+}
 
 .button1:hover {
     border: 2px solid #6F9FAA;
     color: #d65b80;
 }
 
-button {
-    cursor: pointer;
-    background-color: #c0392b;
-    border: none;
-    color: white;
-    transition: background-color 0.3s ease;
-    border-radius: 4px;
-    font-weight: bold;
-}
-
-.button1 {
-    display: inline-block;
-    /* instead of block, so it shrinks to content */
-    width: auto;
-    /* don't force width */
-    height: auto;
-    /* let content decide height */
-    border: 2px solid #51B1C7;
-    font-family: 'Orbitron', sans-serif;
-    font-weight: bold;
-    font-size: 20px;
-    padding: 0;
-    /* keep padding inside .button1Inner */
-    color: #6FAFBE;
-    cursor: pointer;
-    border-radius: 1px;
-    background: linear-gradient(to bottom, #FFFFFF 0%, #F6FDFF 100%);
-    transition: all 150ms ease-out;
-}
-
 .button1Inner {
+    padding: 0px 10px;
+    line-height: 31px;
     border: 1px solid #C3F1FB;
     position: relative;
-    margin: 2px;
-    padding: 0px 10px;
-    /* this is what defines the “correct” spacing */
-    line-height: 31px;
-    vertical-align: middle;
     transition: border 250ms ease-out;
 }
 
@@ -181,133 +195,111 @@ button {
     border: 1px solid #f0d0d0;
 }
 
+/* Tiny corners animation */
 .button1InnerTiny {
     width: 3px;
     height: 3px;
     position: absolute;
-}
-
-.button1InnerTiny.tiny1 {
-    left: 0px;
-    top: 0px;
-    border-right: 1px solid #51B1C7;
-    border-bottom: 1px solid #51B1C7;
-    border-left: 0px solid transparent;
-    border-top: 0px solid transparent;
     transition: all 150ms ease-out;
 }
 
-.button1:hover .button1InnerTiny.tiny1 {
-    border: 1px solid #c75151;
-    left: -10px;
-    top: -10px;
+.tiny1 {
+    left: 0;
+    top: 0;
+    border-right: 1px solid #51B1C7;
+    border-bottom: 1px solid #51B1C7;
 }
 
-.button1InnerTiny.tiny2 {
-    right: 0px;
-    top: 0px;
+.button1:hover .tiny1 {
+    left: -10px;
+    top: -10px;
+    border: 1px solid #c75151;
+}
+
+.tiny2 {
+    right: 0;
+    top: 0;
     border-left: 1px solid #51B1C7;
     border-bottom: 1px solid #51B1C7;
-    border-top: 0px solid transparent;
-    border-right: 0px solid transparent;
-    transition: all 150ms ease-out 240ms;
+    transition-delay: 240ms;
 }
 
-.button1:hover .button1InnerTiny.tiny2 {
-    border: 1px solid #c75151;
+.button1:hover .tiny2 {
     right: -10px;
     top: -10px;
+    border: 1px solid #c75151;
 }
 
-.button1InnerTiny.tiny3 {
-    bottom: 0px;
-    right: 0px;
+.tiny3 {
+    bottom: 0;
+    right: 0;
     border-top: 1px solid #51B1C7;
     border-left: 1px solid #51B1C7;
-    border-right: 0px solid transparent;
-    border-bottom: 0px solid transparent;
-    transition: all 150ms ease-out 80ms;
+    transition-delay: 80ms;
 }
 
-.button1:hover .button1InnerTiny.tiny3 {
-    border: 1px solid #c75151;
+.button1:hover .tiny3 {
     bottom: -10px;
     right: -10px;
+    border: 1px solid #c75151;
 }
 
-.button1InnerTiny.tiny4 {
-    left: 0px;
-    bottom: 0px;
+.tiny4 {
+    left: 0;
+    bottom: 0;
     border-top: 1px solid #51B1C7;
     border-right: 1px solid #51B1C7;
-    border-bottom: 0px solid transparent;
-    border-left: 0px solid transparent;
-    transition: all 150ms ease-out 160ms;
+    transition-delay: 160ms;
 }
 
-.button1:hover .button1InnerTiny.tiny4 {
-    border: 1px solid #c75151;
-    left: -10px;
+.button1:hover .tiny4 {
     bottom: -10px;
+    left: -10px;
+    border: 1px solid #c75151;
 }
 
-button:hover {
-    background-color: #a93226;
-}
-
-/* Table styles */
+/* =======================================
+   6. TABLE STYLES
+======================================= */
 table {
     border-collapse: collapse;
-    width: 100%;
+    width: auto;
     background-color: white;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     border-radius: 6px;
     overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    height: calc(100vh - 70px);
+    overflow-y: auto;
 }
 
-.sticky th {
+.sticky-header th {
     position: sticky;
-    top: 0;
-
+    top: 10;
+    background: #1c2833;
+    color: white;
+    z-index: 10;
+    text-align: left;
 }
 
 th,
 td {
     border: 1px solid #ddd;
-    padding: 10px;
+    padding: 12px 8px;
     text-align: left;
 }
 
 th {
     background-color: #1c2833;
-    /* sticky color */
     color: white;
-    font-weight: bold
+    font-weight: bold;
 }
 
 tbody tr:nth-child(even) {
     background-color: #f9f9f9;
 }
 
-/* Search row inputs */
-.search-row input {
-    width: 100%;
-    padding: 8px;
-    box-sizing: border-box;
-    border: 1px solid #ccc;
-}
-
-.dashboardContent {
-    max-width: none;
-    width: 100%;
-    height: calc(100vh - 70px);
-    overflow: auto;
-    overflow-y: auto;
-    padding: 0 0 20px 0;
-    position: relative
-        /* ✅ Enable both vertical and horizontal scrolling */
-}
-
+/* Sticky headers and filters */
+.sticky th,
 .header-row th {
     position: sticky;
     top: 0;
@@ -316,91 +308,82 @@ tbody tr:nth-child(even) {
     z-index: 3;
 }
 
-/* Make the search row sticky below the header */
-.search-row th {
-    position: sticky;
-    top: 40px;
-    /* Adjust this based on header height */
-    background-color: #f4f6f8;
-    z-index: 2;
-}
-
-/* Sticky table headers and search row */
-table thead tr:first-child {
+table.sticky th {
     position: sticky;
     top: 0;
     background-color: #1c2833;
-    /* same as sidebar */
     color: white;
+    z-index: 10;
+    padding: 8px 12px;
+    border-bottom: 2px solid #444;
+}
+
+.header-row th {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+}
+
+.search-row th {
+    position: sticky;
+    top: 40px;
+    /* Adjust if needed */
+    background-color: #f4f6f8;
     z-index: 2;
 }
 
-table thead tr:nth-child(2) {
-    position: sticky;
-    top: 42px;
-    /* Adjust based on header height */
-    background-color: #f4f6f8;
-    /* Keep it light like other headers */
-    z-index: 1;
+.search-row input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
 }
 
-
-
-/* Prevent background/page scrolling */
-html,
-body {
-    height: 100%;
-    overflow: hidden;
-    /* disables scroll on background */
-}
-
-/* Custom scrollbars for content boxes */
+/* =======================================
+   7. SCROLLBARS
+======================================= */
 .contentInner::-webkit-scrollbar,
 .dashboardContent::-webkit-scrollbar {
     width: 8px;
-    /* thinner scrollbar */
 }
 
 .contentInner::-webkit-scrollbar-track,
 .dashboardContent::-webkit-scrollbar-track {
     background: transparent;
-    /* no background behind track */
     border-radius: 8px;
-    /* follows box bevel */
 }
 
 .contentInner::-webkit-scrollbar-thumb,
 .dashboardContent::-webkit-scrollbar-thumb {
     background: rgba(0, 0, 0, 0.2);
-    /* subtle thumb */
     border-radius: 8px;
-    /* rounded edges */
 }
 
 .contentInner::-webkit-scrollbar-thumb:hover,
 .dashboardContent::-webkit-scrollbar-thumb:hover {
     background: rgba(0, 0, 0, 0.35);
-    /* darker on hover */
 }
 
 .dashboardContent::-webkit-scrollbar:horizontal {
     height: 8px;
 }
 
+/* =======================================
+   8. DASHBOARD CONTAINER
+======================================= */
+.dashboardContent {
+    width: 100%;
+    height: calc(100vh - 70px);
+    overflow: auto;
+    padding-bottom: 20px;
+    position: relative;
+}
+
+/* =======================================
+   9. COMMENTED / UNUSED STYLES
+======================================= */
+/*
 .dashboard-box {
     width: 100%;
     height: 300px;
-    /* or whatever height you want */
-    padding: 20px;
-    background: #f5f5f5;
-    /* your box color */
-    border-radius: 10px;
-
-    overflow-x: auto;
-    /* horizontal scroll */
-    overflow-y: hidden;
-    /* optional, prevents vertical scroll if not needed */
-
-    box-sizing: border-box;
-    /* ensures padding doesn’t break width */
-}
+   
