@@ -6,7 +6,7 @@
 <body>
     <!-- Sidebar navigation -->
     <div class="sidebar">
-        <a href="/" class="{{ 'active' if section == 'form' else '' }}">Vodacom Subscription Form</a>
+        <a href="/" class="{{ 'active' if section == 'form' else '' }}">Capturing Form</a>
         <a href="/dashboard" class="{{ 'active' if section == 'dashboard' else '' }}">Dashboard</a>
     </div>
 
@@ -57,8 +57,14 @@
                     <option>DATA</option>
                 </select>
 
-                <label for="Monthly_Costs">Monthly Costs:</label>
+                <label for="Monthly_Costs">Monthly Costs (Excl VAT):</label>
                 <input type="text" id="Monthly_Costs" name="Monthly_Costs" required>
+
+                <label for="VAT">VAT (15%):</label>
+                <input type="text" id="VAT" name="VAT" readonly>
+
+                <label for="Monthly_Cost_Excl_VAT">Monthly Cost (Excl VAT):</label>
+                <input type="text" id="Monthly_Cost_Excl_VAT" name="Monthly_Cost_Excl_VAT" readonly>
 
                 <label>Contract Term:</label>
                 <div class="radioDiv">
@@ -81,7 +87,7 @@
                 <input type="date" id="Inception_Date" name="Inception_Date" required>
 
                 <label for="Termination_Date">Termination Date:</label>
-                <input type="date" id="Termination_Date" name="Termination_Date" required>
+                <input type="date" id="Termination_Date" name="Termination_Date" readonly>
 
                 <button type="submit">Submit</button>
             </form>
@@ -89,25 +95,124 @@
 
         <!-- Block 2: Blank for now -->
         <div class="contentInner">
-            <div class="boxTopHeader">Asset Capturing Form</div>
+            <div class="boxTopHeader">Device Capturing Form</div>
+            {% if message %}
+            <p style="color: green;">{{ message }}</p>
+            {% endif %}
 
+            <form method="post" action="/submit">
+
+                <label for="AName_">Name of Device Owner:</label>
+                <input type="text" id="AName_" name="AName_" required>
+
+                <label for="ASurname_">Surname Device Owner:</label>
+                <input type="text" id="ASurname_" name="ASurname_" required>
+
+                <label for="APersonnel_nr">Personnel Number Of Device Owner:</label>
+                <input type="text" id="APersonnel_nr" name="APersonnel_nr" required>
+
+                <label for="ACompany">Company:</label>
+                <select id="ACompany" name="ACompany" required>
+                    <option>PCM</option>
+                    <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
+                    <option>PAS/PAC</option>
+                    <option>INT</option>
+                    <option>PSSS</option>
+                    <option>POLYGRAPH</option>
+                </select>
+                <label for="AClient_Division">Client Division:</label>
+                <select id="AClient_Division" name="AClient_Division" required>
+                    <option>N/A</option>
+                    <option>VECTOR LOG</option>
+                    <option>CRUSADER</option>
+                    <option>SG</option>
+                    <option>WOOLWORTHS</option>
+                </select>
+                <label for="Serial_Number">Serial Number:</label>
+                <input type="text" id="Serial_Number" name="Serial_Number" required>
+
+                <label for="Device_Description">Device Description:</label>
+                <select id="Device_Description" name="Device_Description" required>
+                    <option>Laptop</option>
+                    <option>Tablet</option>
+                    <option>Cell-Phone</option>
+                    <option>Monitor-Screen</option>
+                    <option>Desktop</option>
+                    <option>Other</option>
+                </select>
+                <label>Does this device have insurance?:</label>
+                <div class="radioDiv">
+                    <label for="Yes">Yes</label>
+                    <input class="inputRadio" type="radio" id="Yes" name="Insurance" value="Yes" required>
+                </div>
+                <div class="radioDiv">
+                    <label for="No">No</label>
+                    <input class="inputRadio" type="radio" id="No" name="Insurance" value="No" required>
+                </div>
+            </form>
         </div>
 
         <!-- Block 3: Blank for now -->
 
 
         <div class="contentInner">
-            <button class="button1 marB20">
-                <div class="button1Inner">PLACEHOLDER TEXT
-                    <div class="button1InnerTiny tiny1"></div>
-                    <div class="button1InnerTiny tiny2"></div>
-                    <div class="button1InnerTiny tiny3"></div>
-                    <div class="button1InnerTiny tiny4"></div>
-                </div>
-            </button>
+            <div class="boxTopHeader">Transferral Form</div>
 
         </div>
     </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const costInput = document.getElementById("Monthly_Costs");
+            const vatInput = document.getElementById("VAT");
+            const exclInput = document.getElementById("Monthly_Cost_Excl_VAT");
+
+            function calculateVAT() {
+                const cost = parseFloat(costInput.value);
+                if (isNaN(cost)) {
+                    vatInput.value = '';
+                    exclInput.value = '';
+                    return;
+                }
+
+                const vat = +(cost * 0.15).toFixed(2);
+                const excl = +(cost - vat).toFixed(2);
+
+                vatInput.value = vat;
+                exclInput.value = excl;
+            }
+
+            costInput.addEventListener("input", calculateVAT);
+        });
+        document.addEventListener('DOMContentLoaded', () => {
+            const inceptionInput = document.getElementById('Inception_Date');
+            const terminationInput = document.getElementById('Termination_Date');
+            const contractRadios = document.querySelectorAll('input[name="Contract_Term"]');
+
+            function calculateTerminationDate() {
+                const inceptionDate = new Date(inceptionInput.value);
+                if (isNaN(inceptionDate.getTime())) return;
+
+                const selectedTerm = document.querySelector('input[name="Contract_Term"]:checked');
+                if (!selectedTerm) return;
+
+                const termValue = parseInt(selectedTerm.value); // e.g., "12 Months" → 12
+                const terminationDate = new Date(inceptionDate);
+                terminationDate.setMonth(terminationDate.getMonth() + termValue);
+
+                // Format as yyyy-mm-dd
+                const formatted = terminationDate.toISOString().split('T')[0];
+                terminationInput.value = formatted;
+            }
+
+            // Trigger on change
+            inceptionInput.addEventListener('change', calculateTerminationDate);
+            contractRadios.forEach(radio => {
+                radio.addEventListener('change', calculateTerminationDate);
+            });
+        });
+    </script>
+
 </body>
 
 </html>

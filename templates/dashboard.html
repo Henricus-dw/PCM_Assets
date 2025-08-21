@@ -31,14 +31,20 @@
 <body>
     <!-- Sidebar navigation -->
     <div class="sidebar">
-        <a href="/" class="{{ 'active' if section == 'form' else '' }}">Vodacom Subscription Form</a>
+        <a href="/" class="{{ 'active' if section == 'form' else '' }}">Capturing Form</a>
         <a href="/dashboard" class="{{ 'active' if section == 'dashboard' else '' }}">Dashboard</a>
     </div>
 
     <!-- Main content -->
+    <div class="content3">
+        <div class="boxTopHeader2">Vodacom Contracts Dashboard</div>
+    </div>
     <div class="content2">
+
         <div class="contentInner2 ">
+
             {% if records %}
+            <div class="table-mask"></div>
             <table class="sticky">
                 <thead>
 
@@ -97,10 +103,10 @@
                             <button class="filter-toggle" data-col="6" aria-label="Search"
                                 style="font-size: 18px; color: rgb(255, 255, 255); background: none; border: none; cursor: pointer;">
 
+
                             </button>
-                        </th>
                         <th data-col="7">
-                            <span class="header-label">Contract Term &nbsp; ⌕</span>
+                            <span class="header-label">VAT &nbsp; ⌕</span>
                             <input type="text" class="header-filter" data-col="7" style="display:none;" />
                             <button class="filter-toggle" data-col="7" aria-label="Search"
                                 style="font-size: 18px; color: rgb(255, 255, 255); background: none; border: none; cursor: pointer;">
@@ -108,15 +114,16 @@
                             </button>
                         </th>
                         <th data-col="8">
-                            <span class="header-label">Inception Date &nbsp; ⌕</span>
+                            <span class="header-label">Monthly Cost (Excl VAT) &nbsp; ⌕</span>
                             <input type="text" class="header-filter" data-col="8" style="display:none;" />
                             <button class="filter-toggle" data-col="8" aria-label="Search"
                                 style="font-size: 18px; color: rgb(255, 255, 255); background: none; border: none; cursor: pointer;">
 
                             </button>
                         </th>
+                        </th>
                         <th data-col="9">
-                            <span class="header-label">Termination Date &nbsp; ⌕</span>
+                            <span class="header-label">Contract Term &nbsp; ⌕</span>
                             <input type="text" class="header-filter" data-col="9" style="display:none;" />
                             <button class="filter-toggle" data-col="9" aria-label="Search"
                                 style="font-size: 18px; color: rgb(255, 255, 255); background: none; border: none; cursor: pointer;">
@@ -124,13 +131,28 @@
                             </button>
                         </th>
                         <th data-col="10">
-                            <span class="header-label">SIM Card Number &nbsp; ⌕</span>
+                            <span class="header-label">Inception Date &nbsp; ⌕</span>
                             <input type="text" class="header-filter" data-col="10" style="display:none;" />
                             <button class="filter-toggle" data-col="10" aria-label="Search"
                                 style="font-size: 18px; color: rgb(255, 255, 255); background: none; border: none; cursor: pointer;">
 
                             </button>
                         </th>
+                        <th data-col="11">
+                            <span class="header-label">Termination Date &nbsp; ⌕</span>
+                            <input type="text" class="header-filter" data-col="11" style="display:none;" />
+                            <button class="filter-toggle" data-col="11" aria-label="Search"
+                                style="font-size: 18px; color: rgb(255, 255, 255); background: none; border: none; cursor: pointer;">
+
+                            </button>
+                        </th>
+                        <th data-col="12">
+                            <span class="header-label">SIM Card Number &nbsp; ⌕</span>
+                            <input type="text" class="header-filter" data-col="12" style="display:none;" />
+                            <button class="filter-toggle" data-col="12" aria-label="Search"
+                                style="font-size: 18px; color: rgb(255, 255, 255); background: none; border: none; cursor: pointer;">
+
+                            </button>
                     </tr>
 
 
@@ -145,6 +167,8 @@
                         <td>{{ sub.Client_Division }}</td>
                         <td>{{ sub.Contract_Type }}</td>
                         <td>{{ sub.Monthly_Costs }}</td>
+                        <td>{{ sub.VAT }}</td>
+                        <td>{{ sub.Monthly_Cost_Excl_VAT }}</td>
                         <td>{{ sub.Contract_Term }}</td>
                         <td>{{ sub.Inception_Date }}</td>
                         <td>{{ sub.Termination_Date }}</td>
