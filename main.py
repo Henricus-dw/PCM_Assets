@@ -91,7 +91,9 @@ def submit_form(
 @app.get("/dashboard", response_class=HTMLResponse)
 def dashboard(request: Request):
     db = SessionLocal()
-    records = db.query(VodacomSubscription).all()
+    records = db.query(VodacomSubscription).order_by(
+        VodacomSubscription.id.desc()).all()
+
     db.close()
     return templates.TemplateResponse(
         "dashboard.html",

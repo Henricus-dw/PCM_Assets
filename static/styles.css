@@ -86,7 +86,7 @@ body {
     /* No top-left or top-right bevel */
 
     box-shadow:
-        0 12px 20px rgba(0, 0, 0, 0.1);
+        0 12px 20px rgba(0, 0, 0, 0.05);
 
     display: flex;
     flex-direction: column;
@@ -147,6 +147,143 @@ body {
     z-index: 2;
 }
 
+.sort-overlay {
+    position: fixed;
+    top: 48px;
+    left: 250px;
+    background-color: #f0e6d2;
+    padding: 6px 12px;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    color: #333;
+
+    height: 32px;
+    width: 200px;
+
+}
+
+.sort-overlay label {
+    font-size: 12px;
+    padding: 0;
+    position: relative;
+    top: -2px;
+    margin: 0;
+    white-space: nowrap;
+}
+
+/* Style the select dropdown */
+.sort-overlay select {
+    font-size: 14px;
+    padding: 4px 8px;
+    border: 1px solid #a59b83;
+    border-radius: 4px;
+    background-color: #f0e6d2;
+    color: #333;
+    cursor: pointer;
+    width: 140px;
+    /* make it wide enough */
+    transition: border-color 1s ease;
+    margin-left: 13px;
+    position: relative;
+    top: 6px;
+}
+
+.sort-overlay select:hover,
+.sort-overlay select:focus {
+    border-color: #7a6d5f;
+    background-color: #d8cbb8;
+    /* slightly darker on hover/focus */
+    outline: none;
+}
+
+.sort-overlay2 {
+    position: fixed;
+    top: 48px;
+    right: 50px;
+    background-color: #f0e6d2;
+    padding: 6px 12px;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    color: #333;
+
+    height: 32px;
+    width: 200px;
+
+}
+
+.sort-overlay2 label {
+    font-size: 12px;
+    padding: 0;
+    position: relative;
+    top: -2px;
+    margin: 0;
+    white-space: nowrap;
+}
+
+.export-button {
+    background-color: #f0e6d2;
+    /* Excel green */
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.3s ease;
+    position: relative;
+    top: 6px;
+    width: 40px
+}
+
+.export-button:hover {
+    background-color: #1e5e3e;
+}
+
+#export-pdf-btn:hover {
+    background-color: #9b1010;
+}
+
+.excel-icon {
+    height: 16px;
+    width: 16px;
+}
+
+.pdf-icon {
+    height: 18px;
+    vertical-align: middle;
+    margin-right: 6px;
+}
+
+#export-pdf-btn {
+    background-color: #f0e6d2;
+    /* Excel green */
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.3s ease;
+    position: relative;
+    top: 6px;
+    width: 40px
+}
 
 /* =======================================
    4. FORM STYLES
@@ -328,7 +465,7 @@ table {
 
     overflow: hidden;
     box-shadow:
-        0 12px 20px rgba(0, 0, 0, 0.1);
+        0 12px 20px rgba(0, 0, 0, 0.05);
 
     overflow-y: auto;
     table-layout: fixed;
@@ -357,7 +494,6 @@ table {
     white-space: nowrap;
     min-width: 150px;
     max-width: 300px;
-    margin-left: 3px;
     z-index: 20;
     align-items: center;
     justify-content: space-between;
@@ -375,7 +511,6 @@ table {
 thead {
     z-index: 5;
     position: relative;
-    margin-left: 3px;
 }
 
 .header-label {
@@ -385,26 +520,22 @@ thead {
     display: inline-block;
 }
 
-.header-row th input.header-filter {
-    width: 100%;
+
+
+/* Or consolidate into one selector */
+.header-filter {
+    display: none;
     box-sizing: border-box;
     padding: 4px 6px;
     font-size: 14px;
+    background: #f0e6d2;
     border: 1px solid #ccc;
     border-radius: 4px;
+    margin-top: 4px;
+    vertical-align: top;
+    font-family: Monaco, 'Courier New', monospace;
+    /* this forces it to show below the label */
 }
-
-
-.header-filter {
-    display: none;
-    width: 5px;
-    background: white;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    padding: 4px 6px;
-    font-size: 14px;
-}
-
 
 
 .search-row th {
@@ -424,21 +555,21 @@ thead {
 
 
 .filter-toggle {
-    position: absolute;
-    background: none;
-    border: none;
+    font-size: 16px;
+    color: #333;
+    background-color: #f0e6d2;
+    border: 1px solid #a59b83;
+    padding: 4px 8px;
+    border-radius: 4px;
     cursor: pointer;
-    color: white;
-    font-size: 18px;
-    z-index: 2;
-    top: 4px;
-    right: 4px;
+    transition: background-color 0.2s ease;
 }
 
+.filter-toggle:hover,
 .filter-toggle.active {
-    color: #fff;
+    background-color: #d8cbb8;
+    color: black;
 }
-
 
 th,
 td {
@@ -468,13 +599,17 @@ tr>th:last-child {
     border-right: none;
 }
 
+tbody tr {
+    transition: all 250ms ease-out;
+}
+
 tbody tr:nth-child(even) {
     background-color: #fffdfa;
 }
 
 tbody tr:hover {
     background-color: #e7dbcd;
-    transition: background-color 0.2s ease;
+
 }
 
 /* Sticky headers and filters */
@@ -496,6 +631,8 @@ table.sticky th {
     color: black;
     z-index: 5;
     box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.1);
+    font-family: Monaco, 'Courier New', monospace;
+    font-weight: 900;
 
 
 }
