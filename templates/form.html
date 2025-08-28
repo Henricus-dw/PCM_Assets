@@ -13,156 +13,190 @@
     <!-- Main content area with 3 columns -->
     <div class="content">
         <!-- Block 1: The form -->
-        <div class="contentInner">
+        <div id="formGroupWrapper">
+            <div class="contentInner" id="form1">
 
-            <div class="boxTopHeader">Vodacom Subscription Form</div>
+                <div class="boxTopHeader">Vodacom Subscription Form</div>
 
-            {% if message %}
-            <p style="color: green;">{{ message }}</p>
-            {% endif %}
+                {% if message %}
+                <p style="color: green;">{{ message }}</p>
+                {% endif %}
 
-            <form method="post" action="/submit">
+                <form id="vodacomForm" method="post" action="/submit">
+                    <div class="deviceCheckContainer">
+                        <label for="hasDevices">Does this contract have devices?</label>
+                        <input type="checkbox" id="hasDevices">
 
-                <label for="Name_">Name:</label>
-                <input type="text" id="Name_" name="Name_" required>
+                        <div id="deviceCountContainer" style="display: none; margin-top: 10px;">
+                            <label for="deviceCount">How many devices?</label>
+                            <input type="number" id="deviceCount" min="1">
+                        </div>
+                    </div>
+                    <label for="Name_">Name:</label>
+                    <input type="text" id="Name_" name="Name_" required>
 
-                <label for="Surname_">Surname:</label>
-                <input type="text" id="Surname_" name="Surname_" required>
+                    <label for="Surname_">Surname:</label>
+                    <input type="text" id="Surname_" name="Surname_" required>
 
-                <label for="Personnel_nr">Personnel Number:</label>
-                <input type="text" id="Personnel_nr" name="Personnel_nr" required>
+                    <label for="Personnel_nr">Personnel Number:</label>
+                    <input type="text" id="Personnel_nr" name="Personnel_nr" required>
 
-                <label for="Company">Company:</label>
-                <select id="Company" name="Company" required>
-                    <option>PCM</option>
-                    <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
-                    <option>PAS/PAC</option>
-                    <option>INT</option>
-                    <option>PSSS</option>
-                    <option>POLYGRAPH</option>
-                </select>
+                    <label for="Company">Company:</label>
+                    <select id="Company" name="Company" required>
+                        <option>PCM</option>
+                        <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
+                        <option>PAS/PAC</option>
+                        <option>INT</option>
+                        <option>PSSS</option>
+                        <option>POLYGRAPH</option>
+                    </select>
 
-                <label for="Client_Division">Client Division:</label>
-                <select id="Client_Division" name="Client_Division" required>
-                    <option>N/A</option>
-                    <option>VECTOR LOG</option>
-                    <option>CRUSADER</option>
-                    <option>SG</option>
-                    <option>WOOLWORTHS</option>
-                </select>
+                    <label for="Client_Division">Client Division:</label>
+                    <select id="Client_Division" name="Client_Division" required>
+                        <option>N/A</option>
+                        <option>VECTOR LOG</option>
+                        <option>CRUSADER</option>
+                        <option>SG</option>
+                        <option>WOOLWORTHS</option>
+                    </select>
 
-                <label for="Contract_Type">Contract Type:</label>
-                <select id="Contract_Type" name="Contract_Type" required>
-                    <option>AIRTIME</option>
-                    <option>DATA</option>
-                </select>
+                    <label for="Contract_Type">Contract Type:</label>
+                    <select id="Contract_Type" name="Contract_Type" required>
+                        <option>AIRTIME</option>
+                        <option>DATA</option>
+                    </select>
 
-                <label for="Monthly_Costs">Monthly Costs (Excl VAT):</label>
-                <input type="text" id="Monthly_Costs" name="Monthly_Costs" required>
+                    <label for="Monthly_Costs">Monthly Costs (Excl VAT):</label>
+                    <input type="text" id="Monthly_Costs" name="Monthly_Costs" required>
 
-                <label for="VAT">VAT (15%):</label>
-                <input type="text" id="VAT" name="VAT" readonly>
+                    <label for="VAT">VAT (15%):</label>
+                    <input type="text" id="VAT" name="VAT" readonly>
 
-                <label for="Monthly_Cost_Excl_VAT">Monthly Cost (Excl VAT):</label>
-                <input type="text" id="Monthly_Cost_Excl_VAT" name="Monthly_Cost_Excl_VAT" readonly>
+                    <label for="Monthly_Cost_Excl_VAT">Monthly Cost (Excl VAT):</label>
+                    <input type="text" id="Monthly_Cost_Excl_VAT" name="Monthly_Cost_Excl_VAT" readonly>
 
-                <label>Contract Term:</label>
-                <div class="radioDiv">
-                    <label for="term12">12 Months</label>
-                    <input class="inputRadio" type="radio" id="term12" name="Contract_Term" value="12 Months" required>
-                </div>
-                <div class="radioDiv">
-                    <label for="term24">24 Months</label>
-                    <input class="inputRadio" type="radio" id="term24" name="Contract_Term" value="24 Months" required>
-                </div>
-                <div class="radioDiv">
-                    <label for="term36">36 Months</label>
-                    <input class="inputRadio" type="radio" id="term36" name="Contract_Term" value="36 Months" required>
-                </div>
+                    <label>Contract Term:</label>
+                    <div class="radioDiv">
+                        <label for="term12">12 Months</label>
+                        <input class="inputRadio" type="radio" id="term12" name="Contract_Term" value="12 Months"
+                            required>
+                    </div>
+                    <div class="radioDiv">
+                        <label for="term24">24 Months</label>
+                        <input class="inputRadio" type="radio" id="term24" name="Contract_Term" value="24 Months"
+                            required>
+                    </div>
+                    <div class="radioDiv">
+                        <label for="term36">36 Months</label>
+                        <input class="inputRadio" type="radio" id="term36" name="Contract_Term" value="36 Months"
+                            required>
+                    </div>
 
-                <label for="Sim_Card_Number">SIM Card Number:</label>
-                <input type="text" id="Sim_Card_Number" name="Sim_Card_Number" required>
+                    <label for="Sim_Card_Number">SIM Card Number:</label>
+                    <input type="text" id="Sim_Card_Number" name="Sim_Card_Number" required>
 
-                <label for="Inception_Date">Inception Date:</label>
-                <input type="date" id="Inception_Date" name="Inception_Date" required>
+                    <label for="Inception_Date">Inception Date:</label>
+                    <input type="date" id="Inception_Date" name="Inception_Date" required>
 
-                <label for="Termination_Date">Termination Date:</label>
-                <input type="date" id="Termination_Date" name="Termination_Date" readonly>
+                    <label for="Termination_Date">Termination Date:</label>
+                    <input type="date" id="Termination_Date" name="Termination_Date" readonly>
 
-                <button type="submit">Submit</button>
-            </form>
+                    <button type="submit" id="vodacomSubmitBtn">Submit</button>
+                </form>
+            </div>
+
+            <!-- Block 2: Blank for now -->
+            <div class="contentInner" id="form2">
+                <div class="boxTopHeader">Device Capturing Form</div>
+                {% if message %}
+                <p style="color: green;">{{ message }}</p>
+                {% endif %}
+
+                <form id="deviceForm" method="post" action="/submit_device">
+                    <!-- Do NOT add name to this checkbox -->
+                    <div class="deviceCheckContainer">
+                        <label for="deviceIsVodacom">Is this device on a Vodacom contract?</label>
+                        <input type="checkbox" id="deviceIsVodacom">
+                    </div>
+
+                    <!-- This hidden field will connect the device to a Vodacom subscription -->
+
+
+                    <label for="AName_">Name of Device Owner:</label>
+                    <input type="text" id="AName_" name="AName_" required>
+
+                    <label for="ASurname_">Surname Device Owner:</label>
+                    <input type="text" id="ASurname_" name="ASurname_" required>
+
+                    <label for="APersonnel_nr">Personnel Number Of Device Owner:</label>
+                    <input type="text" id="APersonnel_nr" name="APersonnel_nr" required>
+
+                    <label for="ACompany">Company:</label>
+                    <select id="ACompany" name="ACompany" required>
+                        <option>PCM</option>
+                        <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
+                        <option>PAS/PAC</option>
+                        <option>INT</option>
+                        <option>PSSS</option>
+                        <option>POLYGRAPH</option>
+                    </select>
+
+                    <label for="AClient_Division">Client Division:</label>
+                    <select id="AClient_Division" name="AClient_Division" required>
+                        <option>N/A</option>
+                        <option>VECTOR LOG</option>
+                        <option>CRUSADER</option>
+                        <option>SG</option>
+                        <option>WOOLWORTHS</option>
+                    </select>
+
+                    <label for="Device_Name">Device Name:</label>
+                    <input type="text" id="Device_Name" name="Device_Name" required>
+
+                    <label for="Serial_Number">Serial Number:</label>
+                    <input type="text" id="Serial_Number" name="Serial_Number" required>
+
+                    <label for="Device_Description">Device Description:</label>
+                    <select id="Device_Description" name="Device_Description" required>
+                        <option>Laptop</option>
+                        <option>Tablet</option>
+                        <option>Cell-Phone</option>
+                        <option>Monitor-Screen</option>
+                        <option>Desktop</option>
+                        <option>Other</option>
+                    </select>
+
+                    <label>Does this device have insurance?:</label>
+                    <div class="radioDiv">
+                        <label for="Yes">Yes</label>
+                        <input class="inputRadio" type="radio" id="Yes" name="insurance" value="Yes" required>
+                    </div>
+                    <div class="radioDiv">
+                        <label for="No">No</label>
+                        <input class="inputRadio" type="radio" id="No" name="insurance" value="No" required>
+                    </div>
+
+                    <button type="submit" id="deviceSubmitBtn">Submit</button>
+                </form>
+            </div>
+
+
+
+            <div id="universalSubmitWrapper" style="text-align: right; padding: 20px 30px; display: none;">
+                <button id="submitAllBtn" type="button">Submit Both Forms</button>
+            </div>
         </div>
-
-        <!-- Block 2: Blank for now -->
-        <div class="contentInner">
-            <div class="boxTopHeader">Device Capturing Form</div>
-            {% if message %}
-            <p style="color: green;">{{ message }}</p>
-            {% endif %}
-
-            <form method="post" action="/submit">
-
-                <label for="AName_">Name of Device Owner:</label>
-                <input type="text" id="AName_" name="AName_" required>
-
-                <label for="ASurname_">Surname Device Owner:</label>
-                <input type="text" id="ASurname_" name="ASurname_" required>
-
-                <label for="APersonnel_nr">Personnel Number Of Device Owner:</label>
-                <input type="text" id="APersonnel_nr" name="APersonnel_nr" required>
-
-                <label for="ACompany">Company:</label>
-                <select id="ACompany" name="ACompany" required>
-                    <option>PCM</option>
-                    <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
-                    <option>PAS/PAC</option>
-                    <option>INT</option>
-                    <option>PSSS</option>
-                    <option>POLYGRAPH</option>
-                </select>
-                <label for="AClient_Division">Client Division:</label>
-                <select id="AClient_Division" name="AClient_Division" required>
-                    <option>N/A</option>
-                    <option>VECTOR LOG</option>
-                    <option>CRUSADER</option>
-                    <option>SG</option>
-                    <option>WOOLWORTHS</option>
-                </select>
-                <label for="Serial_Number">Serial Number:</label>
-                <input type="text" id="Serial_Number" name="Serial_Number" required>
-
-                <label for="Device_Description">Device Description:</label>
-                <select id="Device_Description" name="Device_Description" required>
-                    <option>Laptop</option>
-                    <option>Tablet</option>
-                    <option>Cell-Phone</option>
-                    <option>Monitor-Screen</option>
-                    <option>Desktop</option>
-                    <option>Other</option>
-                </select>
-                <label>Does this device have insurance?:</label>
-                <div class="radioDiv">
-                    <label for="Yes">Yes</label>
-                    <input class="inputRadio" type="radio" id="Yes" name="Insurance" value="Yes" required>
-                </div>
-                <div class="radioDiv">
-                    <label for="No">No</label>
-                    <input class="inputRadio" type="radio" id="No" name="Insurance" value="No" required>
-                </div>
-            </form>
-        </div>
-
-        <!-- Block 3: Blank for now -->
-
-
         <div class="contentInner">
             <div class="boxTopHeader">Transferral Form</div>
 
         </div>
+
     </div>
+
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
+            // VAT Calculation Logic (unchanged)
             const costInput = document.getElementById("Monthly_Costs");
             const vatInput = document.getElementById("VAT");
             const exclInput = document.getElementById("Monthly_Cost_Excl_VAT");
@@ -183,8 +217,8 @@
             }
 
             costInput.addEventListener("input", calculateVAT);
-        });
-        document.addEventListener('DOMContentLoaded', () => {
+
+            // Contract Term / Termination Date Logic (unchanged)
             const inceptionInput = document.getElementById('Inception_Date');
             const terminationInput = document.getElementById('Termination_Date');
             const contractRadios = document.querySelectorAll('input[name="Contract_Term"]');
@@ -196,22 +230,106 @@
                 const selectedTerm = document.querySelector('input[name="Contract_Term"]:checked');
                 if (!selectedTerm) return;
 
-                const termValue = parseInt(selectedTerm.value); // e.g., "12 Months" → 12
+                const termValue = parseInt(selectedTerm.value);
                 const terminationDate = new Date(inceptionDate);
                 terminationDate.setMonth(terminationDate.getMonth() + termValue);
 
-                // Format as yyyy-mm-dd
                 const formatted = terminationDate.toISOString().split('T')[0];
                 terminationInput.value = formatted;
             }
 
-            // Trigger on change
             inceptionInput.addEventListener('change', calculateTerminationDate);
             contractRadios.forEach(radio => {
                 radio.addEventListener('change', calculateTerminationDate);
             });
+
+            // Sync Checkboxes Logic (NEW)
+            const hasDevicesCheckbox = document.getElementById("hasDevices");
+            const deviceIsVodacomCheckbox = document.getElementById("deviceIsVodacom");
+
+            function syncCheckboxes(e) {
+                const isChecked = e.target.checked;
+                if (e.target === hasDevicesCheckbox) {
+                    deviceIsVodacomCheckbox.checked = isChecked;
+                } else {
+                    hasDevicesCheckbox.checked = isChecked;
+                }
+                toggleSubmitButtons(); // Keep submit buttons toggled correctly when synced
+            }
+
+            hasDevicesCheckbox.addEventListener("change", syncCheckboxes);
+            deviceIsVodacomCheckbox.addEventListener("change", syncCheckboxes);
+
+            // Submit Buttons Toggle Logic (unchanged)
+            const vodacomForm = document.getElementById("vodacomForm");
+            const deviceForm = document.getElementById("deviceForm");
+
+            const vodacomSubmitBtn = document.getElementById("vodacomSubmitBtn");
+            const deviceSubmitBtn = document.getElementById("deviceSubmitBtn");
+            const universalSubmitWrapper = document.getElementById("universalSubmitWrapper");
+
+            const formGroupWrapper = document.getElementById("formGroupWrapper");
+
+            function toggleSubmitButtons() {
+                const showUniversal = hasDevicesCheckbox.checked || deviceIsVodacomCheckbox.checked;
+
+                vodacomSubmitBtn.style.display = showUniversal ? "none" : "inline-block";
+                deviceSubmitBtn.style.display = showUniversal ? "none" : "inline-block";
+                universalSubmitWrapper.style.display = showUniversal ? "block" : "none";
+
+                if (showUniversal) {
+                    formGroupWrapper.classList.add("formGroupHighlight");
+                } else {
+                    formGroupWrapper.classList.remove("formGroupHighlight");
+                }
+            }
+
+            // Initialize buttons visibility
+            toggleSubmitButtons();
+
+            // Universal Submit Button Logic (unchanged)
+            const submitAllBtn = document.getElementById("submitAllBtn");
+
+            submitAllBtn.addEventListener("click", () => {
+                const vodacomValid = vodacomForm.checkValidity();
+                const deviceValid = deviceForm.checkValidity();
+
+                if (!vodacomValid || !deviceValid) {
+                    alert("Please complete both forms before submitting.");
+                    vodacomForm.reportValidity();
+                    deviceForm.reportValidity();
+                    return;
+                }
+
+                const vodacomData = new FormData(vodacomForm);
+                const deviceData = new FormData(deviceForm);
+                const combined = new FormData();
+
+                for (const [key, value] of vodacomData.entries()) {
+                    combined.append(key, value);
+                }
+                for (const [key, value] of deviceData.entries()) {
+                    combined.append(key, value);
+                }
+
+                fetch("/submit_all", {
+                    method: "POST",
+                    body: combined
+                }).then(response => {
+                    if (response.ok) {
+                        alert("Submission successful!");
+                        window.location.reload();
+                    } else {
+                        alert("There was a problem with submission.");
+                    }
+                }).catch(err => {
+                    alert("Network error.");
+                    console.error(err);
+                });
+            });
         });
     </script>
+
 
 </body>
 

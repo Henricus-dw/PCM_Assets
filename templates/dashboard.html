@@ -50,63 +50,62 @@
 
                     <tr class="header-row">
                         <th data-col="0">
-                            <div class="header-label">Name.</div><br>
-                            <button class="filter-toggle" data-col="0" aria-label="Search"> ⌕ </button>
+                            <div class="header-label">Inception Date.</div><br>
                             <input type="text" class="header-filter" data-col="0" style="display:none;" />
+                            <button class="filter-toggle" data-col="0" aria-label="Search"> ⌕ </button>
                         </th>
                         <th data-col="1">
-                            <div class="header-label">Surname.</div><br>
-                            <button class="filter-toggle" data-col="1" aria-label="Search"> ⌕ </button>
+                            <div class="header-label">Termination Date.</div><br>
                             <input type="text" class="header-filter" data-col="1" style="display:none;" />
+                            <button class="filter-toggle" data-col="1" aria-label="Search"> ⌕ </button>
                         </th>
                         <th data-col="2">
-                            <div class="header-label">Personnel Number.</div><br>
-                            <input type="text" class="header-filter" data-col="2" style="display:none;" />
+                            <div class="header-label">Name.</div><br>
                             <button class="filter-toggle" data-col="2" aria-label="Search"> ⌕ </button>
+                            <input type="text" class="header-filter" data-col="2" style="display:none;" />
                         </th>
                         <th data-col="3">
-                            <div class="header-label">Company.</div><br>
-                            <input type="text" class="header-filter" data-col="3" style="display:none;" />
+                            <div class="header-label">Surname.</div><br>
                             <button class="filter-toggle" data-col="3" aria-label="Search"> ⌕ </button>
+                            <input type="text" class="header-filter" data-col="3" style="display:none;" />
                         </th>
                         <th data-col="4">
-                            <div class="header-label">Client Division.</div><br>
+                            <div class="header-label">Personnel Number.</div><br>
                             <input type="text" class="header-filter" data-col="4" style="display:none;" />
                             <button class="filter-toggle" data-col="4" aria-label="Search"> ⌕ </button>
                         </th>
                         <th data-col="5">
-                            <div class="header-label">Contract Type.</div><br>
+                            <div class="header-label">Company.</div><br>
                             <input type="text" class="header-filter" data-col="5" style="display:none;" />
                             <button class="filter-toggle" data-col="5" aria-label="Search"> ⌕ </button>
                         </th>
                         <th data-col="6">
-                            <div class="header-label">Monthly Costs.</div><br>
+                            <div class="header-label">Client Division.</div><br>
                             <input type="text" class="header-filter" data-col="6" style="display:none;" />
                             <button class="filter-toggle" data-col="6" aria-label="Search"> ⌕ </button>
+                        </th>
                         <th data-col="7">
-                            <div class="header-label">VAT.</div><br>
+                            <div class="header-label">Contract Type.</div><br>
                             <input type="text" class="header-filter" data-col="7" style="display:none;" />
                             <button class="filter-toggle" data-col="7" aria-label="Search"> ⌕ </button>
                         </th>
                         <th data-col="8">
-                            <div class="header-label">Monthly Cost.(Excl.VAT)</div><br>
+                            <div class="header-label">Monthly Costs.</div><br>
                             <input type="text" class="header-filter" data-col="8" style="display:none;" />
                             <button class="filter-toggle" data-col="8" aria-label="Search"> ⌕ </button>
                         </th>
-                        </th>
                         <th data-col="9">
-                            <div class="header-label">Contract Term.</div><br>
+                            <div class="header-label">VAT.</div><br>
                             <input type="text" class="header-filter" data-col="9" style="display:none;" />
                             <button class="filter-toggle" data-col="9" aria-label="Search"> ⌕ </button>
                         </th>
                         <th data-col="10">
-                            <div class="header-label">Inception Date.</div><br>
+                            <div class="header-label">Monthly Cost.(Excl.VAT)</div><br>
                             <input type="text" class="header-filter" data-col="10" style="display:none;" />
                             <button class="filter-toggle" data-col="10" aria-label="Search"> ⌕ </button>
-
                         </th>
                         <th data-col="11">
-                            <div class="header-label">Termination Date.</div><br>
+                            <div class="header-label">Contract Term.</div><br>
                             <input type="text" class="header-filter" data-col="11" style="display:none;" />
                             <button class="filter-toggle" data-col="11" aria-label="Search"> ⌕ </button>
                         </th>
@@ -114,6 +113,7 @@
                             <div class="header-label">SIM Card Number.</div><br>
                             <input type="text" class="header-filter" data-col="12" style="display:none;" />
                             <button class="filter-toggle" data-col="12" aria-label="Search"> ⌕ </button>
+                        </th>
                     </tr>
 
 
@@ -121,6 +121,8 @@
                 <tbody>
                     {% for sub in records %}
                     <tr>
+                        <td>{{ sub.Inception_Date.strftime('%Y-%m-%d') if sub.Inception_Date else '' }}</td>
+                        <td>{{ sub.Termination_Date.strftime('%Y-%m-%d') if sub.Termination_Date else '' }}</td>
                         <td>{{ sub.Name_ }}</td>
                         <td>{{ sub.Surname_ }}</td>
                         <td>{{ sub.Personnel_nr }}</td>
@@ -131,8 +133,8 @@
                         <td>{{ sub.VAT }}</td>
                         <td>{{ sub.Monthly_Cost_Excl_VAT }}</td>
                         <td>{{ sub.Contract_Term }}</td>
-                        <td>{{ sub.Inception_Date }}</td>
-                        <td>{{ sub.Termination_Date }}</td>
+
+
                         <td>{{ sub.Sim_Card_Number }}</td>
                     </tr>
                     {% endfor %}
@@ -235,7 +237,7 @@
                         if (isDate) {
                             valA = new Date(valA);
                             valB = new Date(valB);
-                            return valB - valA;
+                            return valA - valB;
                         } else {
                             valA = parseFloat(valA) || 0;
                             valB = parseFloat(valB) || 0;

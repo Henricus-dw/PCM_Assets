@@ -49,7 +49,7 @@ body {
 .content {
     margin: 40px 40px 40px 240px;
     display: flex;
-    gap: 20px;
+    gap: 30px;
     align-items: stretch;
     border-radius: 8px;
 
@@ -72,11 +72,11 @@ body {
         0 8px 16px rgba(0, 0, 0, 0.12);
     display: flex;
     flex-direction: column;
-    width: 100%;
+
     max-width: 500px;
     height: calc(100vh - 70px);
     overflow-y: auto;
-
+    flex: 1
 }
 
 .contentInner2 {
@@ -101,6 +101,72 @@ body {
 
 
 /* Content header inside contentInner */
+
+
+.contentInner.connected {
+    border: none;
+    background-color: transparent;
+}
+
+#formGroupWrapper {
+    display: flex;
+    flex: 2
+        /* spacing between form blocks */
+}
+
+#form1 {
+    margin-right: 60px;
+}
+
+.formGroupHighlight {
+    border: 2px solid #4CAF50;
+    background-color: #f3fff3;
+    border-radius: 6px;
+    padding: 20px;
+    margin-bottom: 8px;
+    position: relative
+}
+
+#universalSubmitWrapper {
+    position: absolute;
+    bottom: 20px;
+    right: 30px;
+    z-index: 10;
+    display: none;
+    /* Hidden by default */
+}
+
+#submitAllBtn {
+    padding: 10px 20px;
+    background-color: #0077cc;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    transition: background-color 0.3s;
+}
+
+#submitAllBtn:hover {
+    background-color: #005fa3;
+}
+
+.deviceCheckContainer {
+    display: inline-flex;
+    align-items: center;
+    /* ✅ Aligns label and checkbox vertically */
+    gap: 10px;
+    margin-bottom: 15px;
+    white-space: nowrap;
+}
+
+.deviceCheckContainer input[type="checkbox"] {
+    transform: translateY(15px);
+    /* Fine-tune vertical position */
+}
+
+
+
 .boxTopHeader {
     background-color: #4b5e70;
     color: white;
