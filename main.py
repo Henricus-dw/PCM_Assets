@@ -1,14 +1,15 @@
-from fastapi import FastAPI, Request, Form, Depends, status
+from fastapi import FastAPI, Request, Form, Depends, status, APIRouter
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from datetime import datetime
-
+from typing import List, Optional
 from models import VodacomSubscription
 from models import Device
 from database import SessionLocal, engine, Base
-
+from pydantic import BaseModel
+from datetime import date
 # Create all tables (only needed once)
 Base.metadata.create_all(bind=engine)
 
@@ -89,16 +90,46 @@ def submit_form(
     return templates.TemplateResponse("form.html", {"request": request, "message": "Form submitted successfully!", "section": "form"})
 
 
-@app.get("/dashboard", response_class=HTMLResponse)
-def dashboard(request: Request):
-    db = SessionLocal()
+@app.get("/dashboard/vodacom", response_class=HTMLResponse)
+def dashboard_vodacom(request: Request):
+    db: Session = SessionLocal()
+
+    # Get all subscriptions
     records = db.query(VodacomSubscription).order_by(
         VodacomSubscription.id.desc()).all()
 
+    # Attach devices to each subscription
+    for record in records:
+        record.devices = db.query(Device).filter(
+            Device.vd_id == record.id).all()
+
     db.close()
+
     return templates.TemplateResponse(
-        "dashboard.html",
-        {"request": request, "records": records, "section": "dashboard"}
+        "dashboard_vodacom.html",
+        {"request": request, "records": records, "section": "vodacom"}
+    )
+
+
+@app.get("/dashboard/devices", response_class=HTMLResponse)
+def dashboard_devices(request: Request):
+    db: Session = SessionLocal()
+
+    devices = db.query(Device).order_by(Device.id.desc()).all()
+
+    db.close()
+
+    return templates.TemplateResponse(
+        "dashboard_devices.html",
+        {"request": request, "devices": devices, "section": "devices"}
+    )
+
+
+@app.get("/dashboard", response_class=HTMLResponse)
+def dashboard_home(request: Request):
+    return templates.TemplateResponse(
+        "dashboard_home.html",
+        {"request": request, "section": "home"}
     )
 
 
@@ -203,3 +234,53 @@ def submit_all_forms(
     db.commit()
 
     return RedirectResponse("/", status_code=303)
+
+
+class DeviceOut(BaseModel):
+    Name_: str
+    Surname_: str
+    Personnel_nr: str
+    Company: str
+    Client_Division: str
+    Device_Name: str
+    Serial_Number: str
+    Device_Description: str
+    insurance: str
+
+    class Config:
+        from_attributes = True
+
+
+@app.get("/contracts/{contract_id}/devices", response_model=List[DeviceOut])
+def get_devices_for_contract(contract_id: int, db: Session = Depends(get_db)):
+    return db.query(Device).filter(Device.vd_id == contract_id).all()
+
+
+class ContractOut(BaseModel):
+    # list only the fields you want to show
+    Name_: str
+    Surname_: str
+    Personnel_nr: str
+    Company: str
+    Client_Division: str
+    Contract_Type: str
+    Monthly_Costs: float
+    VAT: float
+    Monthly_Cost_Excl_VAT: float
+    Contract_Term: str
+    Inception_Date: str
+    Inception_Date: Optional[date]
+    Termination_Date: Optional[date]
+
+    class Config:
+        from_attributes = True  # using Pydantic v2
+
+
+@app.get("/devices/{device_id}/contract", response_model=ContractOut)
+def get_contract_for_device(device_id: int, db: Session = Depends(get_db)):
+    device = db.query(Device).filter(Device.id == device_id).first()
+    if not device or not device.vd_id:
+        return None  # no contract linked
+    contract = db.query(VodacomSubscription).filter(
+        VodacomSubscription.id == device.vd_id).first()
+    return contract

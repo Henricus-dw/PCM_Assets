@@ -7,7 +7,9 @@
     <!-- Sidebar navigation -->
     <div class="sidebar">
         <a href="/" class="{{ 'active' if section == 'form' else '' }}">Capturing Form</a>
-        <a href="/dashboard" class="{{ 'active' if section == 'dashboard' else '' }}">Dashboard</a>
+        <a href="/dashboard" class="{{ 'active' if section == 'home' else '' }}">Dashboard</a>
+        <a href="/dashboard/vodacom" class="{{ 'active' if section == 'vodacom' else '' }}">Vodacom Dashboard</a>
+        <a href="/dashboard/devices" class="{{ 'active' if section == 'devices' else '' }}">Devices Dashboard</a>
     </div>
 
     <!-- Main content area with 3 columns -->
@@ -29,7 +31,7 @@
 
                         <div id="deviceCountContainer" style="display: none; margin-top: 10px;">
                             <label for="deviceCount">How many devices?</label>
-                            <input type="number" id="deviceCount" min="1">
+                            <input type="number" id="deviceCount" min="1" value="1">
                         </div>
                     </div>
                     <label for="Name_">Name:</label>
@@ -196,7 +198,7 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-            // VAT Calculation Logic (unchanged)
+            // --- VAT Calculation Logic ---
             const costInput = document.getElementById("Monthly_Costs");
             const vatInput = document.getElementById("VAT");
             const exclInput = document.getElementById("Monthly_Cost_Excl_VAT");
@@ -218,7 +220,7 @@
 
             costInput.addEventListener("input", calculateVAT);
 
-            // Contract Term / Termination Date Logic (unchanged)
+            // --- Termination Date Calculation Logic ---
             const inceptionInput = document.getElementById('Inception_Date');
             const terminationInput = document.getElementById('Termination_Date');
             const contractRadios = document.querySelectorAll('input[name="Contract_Term"]');
@@ -243,9 +245,10 @@
                 radio.addEventListener('change', calculateTerminationDate);
             });
 
-            // Sync Checkboxes Logic (NEW)
+            // --- Checkbox Sync Logic ---
             const hasDevicesCheckbox = document.getElementById("hasDevices");
             const deviceIsVodacomCheckbox = document.getElementById("deviceIsVodacom");
+            const deviceCountContainer = document.getElementById("deviceCountContainer");
 
             function syncCheckboxes(e) {
                 const isChecked = e.target.checked;
@@ -254,13 +257,29 @@
                 } else {
                     hasDevicesCheckbox.checked = isChecked;
                 }
-                toggleSubmitButtons(); // Keep submit buttons toggled correctly when synced
             }
 
-            hasDevicesCheckbox.addEventListener("change", syncCheckboxes);
-            deviceIsVodacomCheckbox.addEventListener("change", syncCheckboxes);
+            function toggleDeviceCountVisibility() {
+                if (hasDevicesCheckbox.checked) {
+                    deviceCountContainer.style.display = "block";
+                } else {
+                    deviceCountContainer.style.display = "none";
+                }
+            }
 
-            // Submit Buttons Toggle Logic (unchanged)
+            // Event listeners for both checkboxes
+            hasDevicesCheckbox.addEventListener("change", () => {
+                syncCheckboxes({ target: hasDevicesCheckbox });
+                toggleDeviceCountVisibility();
+                toggleSubmitButtons();
+            });
+
+            deviceIsVodacomCheckbox.addEventListener("change", () => {
+                syncCheckboxes({ target: deviceIsVodacomCheckbox });
+                toggleSubmitButtons();
+            });
+
+            // --- Submit Button Logic ---
             const vodacomForm = document.getElementById("vodacomForm");
             const deviceForm = document.getElementById("deviceForm");
 
@@ -284,10 +303,11 @@
                 }
             }
 
-            // Initialize buttons visibility
+            // Initial button & device count field visibility
             toggleSubmitButtons();
+            toggleDeviceCountVisibility();
 
-            // Universal Submit Button Logic (unchanged)
+            // --- Universal Submit Button ---
             const submitAllBtn = document.getElementById("submitAllBtn");
 
             submitAllBtn.addEventListener("click", () => {
@@ -329,6 +349,7 @@
             });
         });
     </script>
+
 
 
 </body>

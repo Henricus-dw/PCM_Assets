@@ -12,12 +12,15 @@
     <!-- Sidebar navigation -->
     <div class="sidebar">
         <a href="/" class="{{ 'active' if section == 'form' else '' }}">Capturing Form</a>
-        <a href="/dashboard" class="{{ 'active' if section == 'dashboard' else '' }}">Dashboard</a>
+        <a href="/dashboard" class="{{ 'active' if section == 'home' else '' }}">Dashboard</a>
+        <a href="/dashboard/vodacom" class="{{ 'active' if section == 'vodacom' else '' }}">Vodacom Dashboard</a>
+        <a href="/dashboard/devices" class="{{ 'active' if section == 'devices' else '' }}">Devices Dashboard</a>
     </div>
+
 
     <!-- Main content -->
     <div class="content3">
-        <div class="boxTopHeader2">Vodacom Contracts Dashboard</div>
+        <div class="boxTopHeader2">Devices Dashboard</div>
 
     </div>
     <div class="sort-overlay">
@@ -31,120 +34,143 @@
     </div>
     <div class="sort-overlay2"><label>Export:</label>
         <button id="export-btn" class="export-button">
-            <img src="static/excel-document.svg" alt="Excel" class="excel-icon">
+            <img src="/static/excel-document.svg" alt="Excel" class="excel-icon">
         </button>
         <button id="export-pdf-btn">
-            <img src="static/download.svg" alt="PDF Icon" class="pdf-icon">
+            <img src="/static/download.svg" alt="PDF Icon" class="pdf-icon">
 
         </button>
 
     </div>
     <div class="content2">
-
-        <div class="contentInner2 ">
-
-            {% if records %}
+        <div class="contentInner2">
+            {% if devices %}
             <div class="table-mask"></div>
             <table class="sticky">
                 <thead>
-
                     <tr class="header-row">
                         <th data-col="0">
-                            <div class="header-label">Inception Date.</div><br>
+                            <div class="header-label">Name</div><br>
                             <input type="text" class="header-filter" data-col="0" style="display:none;" />
                             <button class="filter-toggle" data-col="0" aria-label="Search"> ⌕ </button>
                         </th>
                         <th data-col="1">
-                            <div class="header-label">Termination Date.</div><br>
+                            <div class="header-label">Surname</div><br>
                             <input type="text" class="header-filter" data-col="1" style="display:none;" />
                             <button class="filter-toggle" data-col="1" aria-label="Search"> ⌕ </button>
                         </th>
                         <th data-col="2">
-                            <div class="header-label">Name.</div><br>
-                            <button class="filter-toggle" data-col="2" aria-label="Search"> ⌕ </button>
+                            <div class="header-label">Personnel Number</div><br>
                             <input type="text" class="header-filter" data-col="2" style="display:none;" />
+                            <button class="filter-toggle" data-col="2" aria-label="Search"> ⌕ </button>
                         </th>
                         <th data-col="3">
-                            <div class="header-label">Surname.</div><br>
-                            <button class="filter-toggle" data-col="3" aria-label="Search"> ⌕ </button>
+                            <div class="header-label">Company</div><br>
                             <input type="text" class="header-filter" data-col="3" style="display:none;" />
+                            <button class="filter-toggle" data-col="3" aria-label="Search"> ⌕ </button>
                         </th>
                         <th data-col="4">
-                            <div class="header-label">Personnel Number.</div><br>
+                            <div class="header-label">Client Division</div><br>
                             <input type="text" class="header-filter" data-col="4" style="display:none;" />
                             <button class="filter-toggle" data-col="4" aria-label="Search"> ⌕ </button>
                         </th>
                         <th data-col="5">
-                            <div class="header-label">Company.</div><br>
+                            <div class="header-label">Vodacom Contract</div><br>
                             <input type="text" class="header-filter" data-col="5" style="display:none;" />
-                            <button class="filter-toggle" data-col="5" aria-label="Search"> ⌕ </button>
+                            <button class="filter-toggle" data-col="5" aria-label="Search">⌕</button>
                         </th>
+
                         <th data-col="6">
-                            <div class="header-label">Client Division.</div><br>
+                            <div class="header-label">Device Name</div><br>
                             <input type="text" class="header-filter" data-col="6" style="display:none;" />
                             <button class="filter-toggle" data-col="6" aria-label="Search"> ⌕ </button>
                         </th>
                         <th data-col="7">
-                            <div class="header-label">Contract Type.</div><br>
+                            <div class="header-label">Serial Number</div><br>
                             <input type="text" class="header-filter" data-col="7" style="display:none;" />
                             <button class="filter-toggle" data-col="7" aria-label="Search"> ⌕ </button>
                         </th>
                         <th data-col="8">
-                            <div class="header-label">Monthly Costs.</div><br>
+                            <div class="header-label">Description</div><br>
                             <input type="text" class="header-filter" data-col="8" style="display:none;" />
                             <button class="filter-toggle" data-col="8" aria-label="Search"> ⌕ </button>
                         </th>
                         <th data-col="9">
-                            <div class="header-label">VAT.</div><br>
+                            <div class="header-label">Insurance</div><br>
                             <input type="text" class="header-filter" data-col="9" style="display:none;" />
                             <button class="filter-toggle" data-col="9" aria-label="Search"> ⌕ </button>
                         </th>
-                        <th data-col="10">
-                            <div class="header-label">Monthly Cost.(Excl.VAT)</div><br>
-                            <input type="text" class="header-filter" data-col="10" style="display:none;" />
-                            <button class="filter-toggle" data-col="10" aria-label="Search"> ⌕ </button>
-                        </th>
-                        <th data-col="11">
-                            <div class="header-label">Contract Term.</div><br>
-                            <input type="text" class="header-filter" data-col="11" style="display:none;" />
-                            <button class="filter-toggle" data-col="11" aria-label="Search"> ⌕ </button>
-                        </th>
-                        <th data-col="12">
-                            <div class="header-label">SIM Card Number.</div><br>
-                            <input type="text" class="header-filter" data-col="12" style="display:none;" />
-                            <button class="filter-toggle" data-col="12" aria-label="Search"> ⌕ </button>
-                        </th>
                     </tr>
-
-
                 </thead>
                 <tbody>
-                    {% for sub in records %}
+                    {% for device in devices %}
                     <tr>
-                        <td>{{ sub.Inception_Date.strftime('%Y-%m-%d') if sub.Inception_Date else '' }}</td>
-                        <td>{{ sub.Termination_Date.strftime('%Y-%m-%d') if sub.Termination_Date else '' }}</td>
-                        <td>{{ sub.Name_ }}</td>
-                        <td>{{ sub.Surname_ }}</td>
-                        <td>{{ sub.Personnel_nr }}</td>
-                        <td>{{ sub.Company }}</td>
-                        <td>{{ sub.Client_Division }}</td>
-                        <td>{{ sub.Contract_Type }}</td>
-                        <td>{{ sub.Monthly_Costs }}</td>
-                        <td>{{ sub.VAT }}</td>
-                        <td>{{ sub.Monthly_Cost_Excl_VAT }}</td>
-                        <td>{{ sub.Contract_Term }}</td>
+                        <td>{{ device.Name_ }}</td>
+                        <td>{{ device.Surname_ }}</td>
+                        <td>{{ device.Personnel_nr }}</td>
+                        <td>{{ device.Company }}</td>
+                        <td>{{ device.Client_Division }}</td>
+                        <td>
+                            {% if device.vd_id %}
+                            <button onclick="showContractsModal('{{ device.id }}')">View Contracts</button>
+                            {% else %}
+                            No contract linked to this device
+                            {% endif %}
+                        </td>
 
-
-                        <td>{{ sub.Sim_Card_Number }}</td>
+                        <td>{{ device.Device_Name }}</td>
+                        <td>{{ device.Serial_Number }}</td>
+                        <td>{{ device.Device_Description }}</td>
+                        <td>{{ device.insurance }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
             {% else %}
-            <p>No records found.</p>
+            <p>No devices found.</p>
             {% endif %}
         </div>
+
+
     </div>
+    <div id="deviceModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeDevicesModal()">&times;</span>
+            <h2>Linked Devices</h2>
+            <div id="deviceModalBody">
+                <!-- device list will go here -->
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .modal {
+            position: fixed;
+            z-index: 999;
+            padding-top: 100px;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            margin: auto;
+            width: 60%;
+            border-radius: 6px;
+        }
+
+        .close {
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
@@ -216,19 +242,20 @@
 
                     switch (sortBy) {
                         case "inception_date":
-                            colIndex = 10;
+                            colIndex = 0;
                             isDate = true;
                             break;
                         case "termination_date":
-                            colIndex = 11;
+                            colIndex = 1;
                             isDate = true;
                             break;
                         case "monthly_costs":
-                            colIndex = 6;
+                            colIndex = 5;
                             break;
                         default:
-                            return; // Don't sort if option is unrecognized
+                            return;
                     }
+
 
                     rowsArray.sort((a, b) => {
                         let valA = a.cells[colIndex].textContent.trim();
@@ -337,7 +364,55 @@
                 });
             }
         });
+
+        function showContractsModal(deviceId) {
+            fetch(`/devices/${deviceId}/contract`)
+                .then(res => res.json())
+                .then(contract => {
+                    const body = document.getElementById("deviceModalBody"); // ✅ FIXED ID
+                    if (!contract || Object.keys(contract).length === 0) {
+                        body.innerHTML = "<p>No contract linked to this device.</p>";
+                    } else {
+                        body.innerHTML = `
+                    <table border="1" width="100%" cellpadding="5">
+                        <thead>
+                            <tr>
+                                <th>Name</th><th>Surname</th><th>Personnel #</th><th>Company</th>
+                                <th>Client Division</th><th>Contract Type</th><th>Monthly Costs</th>
+                                <th>VAT</th><th>Cost (Excl. VAT)</th><th>Term</th>
+                                <th>Inception</th><th>Termination</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>${contract.Name_}</td>
+                                <td>${contract.Surname_}</td>
+                                <td>${contract.Personnel_nr}</td>
+                                <td>${contract.Company}</td>
+                                <td>${contract.Client_Division}</td>
+                                <td>${contract.Contract_Type}</td>
+                                <td>${contract.Monthly_Costs}</td>
+                                <td>${contract.VAT}</td>
+                                <td>${contract.Monthly_Cost_Excl_VAT}</td>
+                                <td>${contract.Contract_Term}</td>
+                                <td>${contract.Inception_Date || ''}</td>
+                                <td>${contract.Termination_Date || ''}</td>
+                            </tr>
+                        </tbody>
+                    </table>`;
+                    }
+                    document.getElementById("deviceModal").style.display = "block"; // ✅ FIXED ID
+                });
+        }
+
+
+
+        function closeDevicesModal() {
+            document.getElementById("deviceModal").style.display = "none";
+        }
     </script>
+
+
 
 
 

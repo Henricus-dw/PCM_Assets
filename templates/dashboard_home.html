@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="/static/styles.css?v={{ time }}">
+
+</head>
+
+
+<body>
+    <div class="sidebar">
+        <a href="/" class="{{ 'active' if section == 'form' else '' }}">Capturing Form</a>
+        <a href="/dashboard" class="{{ 'active' if section == 'home' else '' }}">Dashboard</a>
+        <a href="/dashboard/vodacom" class="{{ 'active' if section == 'vodacom' else '' }}">Vodacom Dashboard</a>
+        <a href="/dashboard/devices" class="{{ 'active' if section == 'devices' else '' }}">Devices Dashboard</a>
+    </div>
+</body>
