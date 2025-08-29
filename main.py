@@ -1,3 +1,5 @@
+from fastapi import Form
+from typing import Optional
 from fastapi import FastAPI, Request, Form, Depends, status, APIRouter
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -168,7 +170,7 @@ def submit_device(
 @app.post("/submit_all", response_class=RedirectResponse)
 def submit_all_forms(
     request: Request,
-    # --- Vodacom Subscription fields ---
+    # Vodacom Subscription fields
     Name_: str = Form(...),
     Surname_: str = Form(...),
     Personnel_nr: str = Form(...),
@@ -183,21 +185,121 @@ def submit_all_forms(
     Termination_Date: str = Form(...),
     Sim_Card_Number: str = Form(...),
 
-    # --- Device form fields ---
-    Device_Name: str = Form(...),
-    Serial_Number: str = Form(...),
-    Device_Description: str = Form(...),
-    insurance: str = Form(...),
-    # Duplicate info reused
-    AName_: str = Form(...),
-    ASurname_: str = Form(...),
-    APersonnel_nr: str = Form(...),
-    ACompany: str = Form(...),
-    AClient_Division: str = Form(...),
+    # Device 1 fields (required)
+    AName_1: str = Form(...),
+    ASurname_1: str = Form(...),
+    APersonnel_nr_1: str = Form(...),
+    ACompany_1: str = Form(...),
+    AClient_Division_1: str = Form(...),
+    Device_Name_1: str = Form(...),
+    Serial_Number_1: str = Form(...),
+    Device_Description_1: str = Form(...),
+    insurance_1: str = Form(...),
+
+    # Device 2 fields (optional)
+    AName_2: Optional[str] = Form(None),
+    ASurname_2: Optional[str] = Form(None),
+    APersonnel_nr_2: Optional[str] = Form(None),
+    ACompany_2: Optional[str] = Form(None),
+    AClient_Division_2: Optional[str] = Form(None),
+    Device_Name_2: Optional[str] = Form(None),
+    Serial_Number_2: Optional[str] = Form(None),
+    Device_Description_2: Optional[str] = Form(None),
+    insurance_2: Optional[str] = Form(None),
+
+    # Device 3 fields (optional)
+    AName_3: Optional[str] = Form(None),
+    ASurname_3: Optional[str] = Form(None),
+    APersonnel_nr_3: Optional[str] = Form(None),
+    ACompany_3: Optional[str] = Form(None),
+    AClient_Division_3: Optional[str] = Form(None),
+    Device_Name_3: Optional[str] = Form(None),
+    Serial_Number_3: Optional[str] = Form(None),
+    Device_Description_3: Optional[str] = Form(None),
+    insurance_3: Optional[str] = Form(None),
+
+    # Device 4 fields (optional)
+    AName_4: Optional[str] = Form(None),
+    ASurname_4: Optional[str] = Form(None),
+    APersonnel_nr_4: Optional[str] = Form(None),
+    ACompany_4: Optional[str] = Form(None),
+    AClient_Division_4: Optional[str] = Form(None),
+    Device_Name_4: Optional[str] = Form(None),
+    Serial_Number_4: Optional[str] = Form(None),
+    Device_Description_4: Optional[str] = Form(None),
+    insurance_4: Optional[str] = Form(None),
+
+    # Device 5 fields (optional)
+    AName_5: Optional[str] = Form(None),
+    ASurname_5: Optional[str] = Form(None),
+    APersonnel_nr_5: Optional[str] = Form(None),
+    ACompany_5: Optional[str] = Form(None),
+    AClient_Division_5: Optional[str] = Form(None),
+    Device_Name_5: Optional[str] = Form(None),
+    Serial_Number_5: Optional[str] = Form(None),
+    Device_Description_5: Optional[str] = Form(None),
+    insurance_5: Optional[str] = Form(None),
+
+    # Device 6 fields (optional)
+    AName_6: Optional[str] = Form(None),
+    ASurname_6: Optional[str] = Form(None),
+    APersonnel_nr_6: Optional[str] = Form(None),
+    ACompany_6: Optional[str] = Form(None),
+    AClient_Division_6: Optional[str] = Form(None),
+    Device_Name_6: Optional[str] = Form(None),
+    Serial_Number_6: Optional[str] = Form(None),
+    Device_Description_6: Optional[str] = Form(None),
+    insurance_6: Optional[str] = Form(None),
+
+    # Device 7 fields (optional)
+    AName_7: Optional[str] = Form(None),
+    ASurname_7: Optional[str] = Form(None),
+    APersonnel_nr_7: Optional[str] = Form(None),
+    ACompany_7: Optional[str] = Form(None),
+    AClient_Division_7: Optional[str] = Form(None),
+    Device_Name_7: Optional[str] = Form(None),
+    Serial_Number_7: Optional[str] = Form(None),
+    Device_Description_7: Optional[str] = Form(None),
+    insurance_7: Optional[str] = Form(None),
+
+    # Device 8 fields (optional)
+    AName_8: Optional[str] = Form(None),
+    ASurname_8: Optional[str] = Form(None),
+    APersonnel_nr_8: Optional[str] = Form(None),
+    ACompany_8: Optional[str] = Form(None),
+    AClient_Division_8: Optional[str] = Form(None),
+    Device_Name_8: Optional[str] = Form(None),
+    Serial_Number_8: Optional[str] = Form(None),
+    Device_Description_8: Optional[str] = Form(None),
+    insurance_8: Optional[str] = Form(None),
+
+    # Device 9 fields (optional)
+    AName_9: Optional[str] = Form(None),
+    ASurname_9: Optional[str] = Form(None),
+    APersonnel_nr_9: Optional[str] = Form(None),
+    ACompany_9: Optional[str] = Form(None),
+    AClient_Division_9: Optional[str] = Form(None),
+    Device_Name_9: Optional[str] = Form(None),
+    Serial_Number_9: Optional[str] = Form(None),
+    Device_Description_9: Optional[str] = Form(None),
+    insurance_9: Optional[str] = Form(None),
+
+    # Device 10 fields (optional)
+    AName_10: Optional[str] = Form(None),
+    ASurname_10: Optional[str] = Form(None),
+    APersonnel_nr_10: Optional[str] = Form(None),
+    ACompany_10: Optional[str] = Form(None),
+    AClient_Division_10: Optional[str] = Form(None),
+    Device_Name_10: Optional[str] = Form(None),
+    Serial_Number_10: Optional[str] = Form(None),
+    Device_Description_10: Optional[str] = Form(None),
+    insurance_10: Optional[str] = Form(None),
 
     db: Session = Depends(get_db)
 ):
-    # Step 1: Save the VodacomSubscription
+    from datetime import datetime
+
+    # Save VodacomSubscription
     subscription = VodacomSubscription(
         Name_=Name_,
         Surname_=Surname_,
@@ -215,22 +317,168 @@ def submit_all_forms(
     )
     db.add(subscription)
     db.commit()
-    db.refresh(subscription)  # 💡 Gets the generated ID
+    db.refresh(subscription)  # Get generated id
 
-    # Step 2: Save the Device
-    device = Device(
-        vd_id=subscription.id,  # Link to the subscription ID
-        Name_=AName_,
-        Surname_=ASurname_,
-        Personnel_nr=APersonnel_nr,
-        Company=ACompany,
-        Client_Division=AClient_Division,
-        Device_Name=Device_Name,
-        Serial_Number=Serial_Number,
-        Device_Description=Device_Description,
-        insurance=insurance
+    # Device 1 (required)
+    device_1 = Device(
+        vd_id=subscription.id,
+        Name_=AName_1,
+        Surname_=ASurname_1,
+        Personnel_nr=APersonnel_nr_1,
+        Company=ACompany_1,
+        Client_Division=AClient_Division_1,
+        Device_Name=Device_Name_1,
+        Serial_Number=Serial_Number_1,
+        Device_Description=Device_Description_1,
+        insurance=insurance_1
     )
-    db.add(device)
+    db.add(device_1)
+
+    # Device 2 (optional)
+    if AName_2:
+        device_2 = Device(
+            vd_id=subscription.id,
+            Name_=AName_2,
+            Surname_=ASurname_2,
+            Personnel_nr=APersonnel_nr_2,
+            Company=ACompany_2,
+            Client_Division=AClient_Division_2,
+            Device_Name=Device_Name_2,
+            Serial_Number=Serial_Number_2,
+            Device_Description=Device_Description_2,
+            insurance=insurance_2
+        )
+        db.add(device_2)
+
+    # Device 3 (optional)
+    if AName_3:
+        device_3 = Device(
+            vd_id=subscription.id,
+            Name_=AName_3,
+            Surname_=ASurname_3,
+            Personnel_nr=APersonnel_nr_3,
+            Company=ACompany_3,
+            Client_Division=AClient_Division_3,
+            Device_Name=Device_Name_3,
+            Serial_Number=Serial_Number_3,
+            Device_Description=Device_Description_3,
+            insurance=insurance_3
+        )
+        db.add(device_3)
+
+    # Device 4 (optional)
+    if AName_4:
+        device_4 = Device(
+            vd_id=subscription.id,
+            Name_=AName_4,
+            Surname_=ASurname_4,
+            Personnel_nr=APersonnel_nr_4,
+            Company=ACompany_4,
+            Client_Division=AClient_Division_4,
+            Device_Name=Device_Name_4,
+            Serial_Number=Serial_Number_4,
+            Device_Description=Device_Description_4,
+            insurance=insurance_4
+        )
+        db.add(device_4)
+
+    # Device 5 (optional)
+    if AName_5:
+        device_5 = Device(
+            vd_id=subscription.id,
+            Name_=AName_5,
+            Surname_=ASurname_5,
+            Personnel_nr=APersonnel_nr_5,
+            Company=ACompany_5,
+            Client_Division=AClient_Division_5,
+            Device_Name=Device_Name_5,
+            Serial_Number=Serial_Number_5,
+            Device_Description=Device_Description_5,
+            insurance=insurance_5
+        )
+        db.add(device_5)
+
+    # Device 6 (optional)
+    if AName_6:
+        device_6 = Device(
+            vd_id=subscription.id,
+            Name_=AName_6,
+            Surname_=ASurname_6,
+            Personnel_nr=APersonnel_nr_6,
+            Company=ACompany_6,
+            Client_Division=AClient_Division_6,
+            Device_Name=Device_Name_6,
+            Serial_Number=Serial_Number_6,
+            Device_Description=Device_Description_6,
+            insurance=insurance_6
+        )
+        db.add(device_6)
+
+    # Device 7 (optional)
+    if AName_7:
+        device_7 = Device(
+            vd_id=subscription.id,
+            Name_=AName_7,
+            Surname_=ASurname_7,
+            Personnel_nr=APersonnel_nr_7,
+            Company=ACompany_7,
+            Client_Division=AClient_Division_7,
+            Device_Name=Device_Name_7,
+            Serial_Number=Serial_Number_7,
+            Device_Description=Device_Description_7,
+            insurance=insurance_7
+        )
+        db.add(device_7)
+
+    # Device 8 (optional)
+    if AName_8:
+        device_8 = Device(
+            vd_id=subscription.id,
+            Name_=AName_8,
+            Surname_=ASurname_8,
+            Personnel_nr=APersonnel_nr_8,
+            Company=ACompany_8,
+            Client_Division=AClient_Division_8,
+            Device_Name=Device_Name_8,
+            Serial_Number=Serial_Number_8,
+            Device_Description=Device_Description_8,
+            insurance=insurance_8
+        )
+        db.add(device_8)
+
+    # Device 9 (optional)
+    if AName_9:
+        device_9 = Device(
+            vd_id=subscription.id,
+            Name_=AName_9,
+            Surname_=ASurname_9,
+            Personnel_nr=APersonnel_nr_9,
+            Company=ACompany_9,
+            Client_Division=AClient_Division_9,
+            Device_Name=Device_Name_9,
+            Serial_Number=Serial_Number_9,
+            Device_Description=Device_Description_9,
+            insurance=insurance_9
+        )
+        db.add(device_9)
+
+    # Device 10 (optional)
+    if AName_10:
+        device_10 = Device(
+            vd_id=subscription.id,
+            Name_=AName_10,
+            Surname_=ASurname_10,
+            Personnel_nr=APersonnel_nr_10,
+            Company=ACompany_10,
+            Client_Division=AClient_Division_10,
+            Device_Name=Device_Name_10,
+            Serial_Number=Serial_Number_10,
+            Device_Description=Device_Description_10,
+            insurance=insurance_10
+        )
+        db.add(device_10)
+
+    # Commit all device rows
     db.commit()
 
     return RedirectResponse("/", status_code=303)
