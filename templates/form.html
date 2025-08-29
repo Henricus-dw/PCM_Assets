@@ -31,7 +31,7 @@
 
                         <div id="deviceCountContainer" style="display: none; margin-top: 10px;">
                             <label for="deviceCount">How many devices?</label>
-                            <input type="number" id="deviceCount" min="1" value="1">
+                            <input type="number" id="deviceCount" min="1" max="10" value="1">
                         </div>
                     </div>
                     <label for="Name_">Name:</label>
@@ -107,80 +107,556 @@
                 </form>
             </div>
 
-            <!-- Block 2: Blank for now -->
+
             <div class="contentInner" id="form2">
                 <div class="boxTopHeader">Device Capturing Form</div>
                 {% if message %}
                 <p style="color: green;">{{ message }}</p>
                 {% endif %}
 
-                <form id="deviceForm" method="post" action="/submit_device">
-                    <!-- Do NOT add name to this checkbox -->
+                <form id="allDevicesForm" method="post" action="/submit_devices">
+
                     <div class="deviceCheckContainer">
                         <label for="deviceIsVodacom">Is this device on a Vodacom contract?</label>
-                        <input type="checkbox" id="deviceIsVodacom">
+                        <input type="checkbox" id="deviceIsVodacom" name="deviceIsVodacom">
+                    </div>
+                    <!-- Device Form 1 (original) -->
+                    <div class="device-form-wrapper" data-device-index="1"
+                        style="background:#f9f9f9; padding:15px; margin-bottom:20px; border:1px solid #ccc;">
+
+
+                        <label for="AName_1">Name of Device Owner:</label>
+                        <input type="text" id="AName_1" name="AName_1" required>
+                        <label for="ASurname_1">Surname Device Owner:</label>
+                        <input type="text" id="ASurname_1" name="ASurname_1" required>
+                        <label for="APersonnel_nr_1">Personnel Number Of Device Owner:</label>
+                        <input type="text" id="APersonnel_nr_1" name="APersonnel_nr_1" required>
+                        <label for="ACompany_1">Company:</label>
+                        <select id="ACompany_1" name="ACompany_1" required>
+                            <option>PCM</option>
+                            <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
+                            <option>PAS/PAC</option>
+                            <option>INT</option>
+                            <option>PSSS</option>
+                            <option>POLYGRAPH</option>
+                        </select>
+                        <label for="AClient_Division_1">Client Division:</label>
+                        <select id="AClient_Division_1" name="AClient_Division_1" required>
+                            <option>N/A</option>
+                            <option>VECTOR LOG</option>
+                            <option>CRUSADER</option>
+                            <option>SG</option>
+                            <option>WOOLWORTHS</option>
+                        </select>
+                        <label for="Device_Name_1">Device Name:</label>
+                        <input type="text" id="Device_Name_1" name="Device_Name_1" required>
+                        <label for="Serial_Number_1">Serial Number:</label>
+                        <input type="text" id="Serial_Number_1" name="Serial_Number_1" required>
+                        <label for="Device_Description_1">Device Description:</label>
+                        <select id="Device_Description_1" name="Device_Description_1" required>
+                            <option>Laptop</option>
+                            <option>Tablet</option>
+                            <option>Cell-Phone</option>
+                            <option>Monitor-Screen</option>
+                            <option>Desktop</option>
+                            <option>Other</option>
+                        </select>
+                        <label>Does this device have insurance?:</label>
+                        <div class="radioDiv">
+                            <label for="insuranceYes_1">Yes</label>
+                            <input class="inputRadio" type="radio" id="insuranceYes_1" name="insurance_1" value="Yes"
+                                required>
+                        </div>
+                        <div class="radioDiv">
+                            <label for="insuranceNo_1">No</label>
+                            <input class="inputRadio" type="radio" id="insuranceNo_1" name="insurance_1" value="No"
+                                required>
+                        </div>
                     </div>
 
-                    <!-- This hidden field will connect the device to a Vodacom subscription -->
+                    <!-- Device Forms 2 to 10 (hidden by default) -->
+                    <!-- For brevity, only device 2 shown, replicate similarly for devices 3 to 10 -->
+                    <div class="device-form-wrapper" data-device-index="2"
+                        style="display:none; background:#eee; padding:15px; margin-bottom:20px; border:1px solid #bbb;">
+                        <h3>Device 2</h3>
 
-
-                    <label for="AName_">Name of Device Owner:</label>
-                    <input type="text" id="AName_" name="AName_" required>
-
-                    <label for="ASurname_">Surname Device Owner:</label>
-                    <input type="text" id="ASurname_" name="ASurname_" required>
-
-                    <label for="APersonnel_nr">Personnel Number Of Device Owner:</label>
-                    <input type="text" id="APersonnel_nr" name="APersonnel_nr" required>
-
-                    <label for="ACompany">Company:</label>
-                    <select id="ACompany" name="ACompany" required>
-                        <option>PCM</option>
-                        <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
-                        <option>PAS/PAC</option>
-                        <option>INT</option>
-                        <option>PSSS</option>
-                        <option>POLYGRAPH</option>
-                    </select>
-
-                    <label for="AClient_Division">Client Division:</label>
-                    <select id="AClient_Division" name="AClient_Division" required>
-                        <option>N/A</option>
-                        <option>VECTOR LOG</option>
-                        <option>CRUSADER</option>
-                        <option>SG</option>
-                        <option>WOOLWORTHS</option>
-                    </select>
-
-                    <label for="Device_Name">Device Name:</label>
-                    <input type="text" id="Device_Name" name="Device_Name" required>
-
-                    <label for="Serial_Number">Serial Number:</label>
-                    <input type="text" id="Serial_Number" name="Serial_Number" required>
-
-                    <label for="Device_Description">Device Description:</label>
-                    <select id="Device_Description" name="Device_Description" required>
-                        <option>Laptop</option>
-                        <option>Tablet</option>
-                        <option>Cell-Phone</option>
-                        <option>Monitor-Screen</option>
-                        <option>Desktop</option>
-                        <option>Other</option>
-                    </select>
-
-                    <label>Does this device have insurance?:</label>
-                    <div class="radioDiv">
-                        <label for="Yes">Yes</label>
-                        <input class="inputRadio" type="radio" id="Yes" name="insurance" value="Yes" required>
+                        <label for="AName_2">Name of Device Owner:</label>
+                        <input type="text" id="AName_2" name="AName_2" required>
+                        <label for="ASurname_2">Surname Device Owner:</label>
+                        <input type="text" id="ASurname_2" name="ASurname_2" required>
+                        <label for="APersonnel_nr_2">Personnel Number Of Device Owner:</label>
+                        <input type="text" id="APersonnel_nr_2" name="APersonnel_nr_2" required>
+                        <label for="ACompany_2">Company:</label>
+                        <select id="ACompany_2" name="ACompany_2" required>
+                            <option>PCM</option>
+                            <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
+                            <option>PAS/PAC</option>
+                            <option>INT</option>
+                            <option>PSSS</option>
+                            <option>POLYGRAPH</option>
+                        </select>
+                        <label for="AClient_Division_2">Client Division:</label>
+                        <select id="AClient_Division_2" name="AClient_Division_2" required>
+                            <option>N/A</option>
+                            <option>VECTOR LOG</option>
+                            <option>CRUSADER</option>
+                            <option>SG</option>
+                            <option>WOOLWORTHS</option>
+                        </select>
+                        <label for="Device_Name_2">Device Name:</label>
+                        <input type="text" id="Device_Name_2" name="Device_Name_2" required>
+                        <label for="Serial_Number_2">Serial Number:</label>
+                        <input type="text" id="Serial_Number_2" name="Serial_Number_2" required>
+                        <label for="Device_Description_2">Device Description:</label>
+                        <select id="Device_Description_2" name="Device_Description_2" required>
+                            <option>Laptop</option>
+                            <option>Tablet</option>
+                            <option>Cell-Phone</option>
+                            <option>Monitor-Screen</option>
+                            <option>Desktop</option>
+                            <option>Other</option>
+                        </select>
+                        <label>Does this device have insurance?:</label>
+                        <div class="radioDiv">
+                            <label for="insuranceYes_2">Yes</label>
+                            <input class="inputRadio" type="radio" id="insuranceYes_2" name="insurance_2" value="Yes"
+                                required>
+                        </div>
+                        <div class="radioDiv">
+                            <label for="insuranceNo_2">No</label>
+                            <input class="inputRadio" type="radio" id="insuranceNo_2" name="insurance_2" value="No"
+                                required>
+                        </div>
                     </div>
-                    <div class="radioDiv">
-                        <label for="No">No</label>
-                        <input class="inputRadio" type="radio" id="No" name="insurance" value="No" required>
+                    <!-- Repeat for devices 3 to 10 similarly -->
+                    <div class="device-form-wrapper" data-device-index="3"
+                        style="display:none; background:#eee; padding:15px; margin-bottom:20px; border:1px solid #bbb;">
+                        <h3>Device 3</h3>
+
+                        <label for="AName_3">Name of Device Owner:</label>
+                        <input type="text" id="AName_3" name="AName_3" required>
+                        <label for="ASurname_3">Surname Device Owner:</label>
+                        <input type="text" id="ASurname_3" name="ASurname_3" required>
+                        <label for="APersonnel_nr_3">Personnel Number Of Device Owner:</label>
+                        <input type="text" id="APersonnel_nr_3" name="APersonnel_nr_3" required>
+                        <label for="ACompany_3">Company:</label>
+                        <select id="ACompany_3" name="ACompany_3" required>
+                            <option>PCM</option>
+                            <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
+                            <option>PAS/PAC</option>
+                            <option>INT</option>
+                            <option>PSSS</option>
+                            <option>POLYGRAPH</option>
+                        </select>
+                        <label for="AClient_Division_3">Client Division:</label>
+                        <select id="AClient_Division_3" name="AClient_Division_3" required>
+                            <option>N/A</option>
+                            <option>VECTOR LOG</option>
+                            <option>CRUSADER</option>
+                            <option>SG</option>
+                            <option>WOOLWORTHS</option>
+                        </select>
+                        <label for="Device_Name_3">Device Name:</label>
+                        <input type="text" id="Device_Name_3" name="Device_Name_3" required>
+                        <label for="Serial_Number_3">Serial Number:</label>
+                        <input type="text" id="Serial_Number_3" name="Serial_Number_3" required>
+                        <label for="Device_Description_3">Device Description:</label>
+                        <select id="Device_Description_3" name="Device_Description_3" required>
+                            <option>Laptop</option>
+                            <option>Tablet</option>
+                            <option>Cell-Phone</option>
+                            <option>Monitor-Screen</option>
+                            <option>Desktop</option>
+                            <option>Other</option>
+                        </select>
+                        <label>Does this device have insurance?:</label>
+                        <div class="radioDiv">
+                            <label for="insuranceYes_3">Yes</label>
+                            <input class="inputRadio" type="radio" id="insuranceYes_3" name="insurance_3" value="Yes"
+                                required>
+                        </div>
+                        <div class="radioDiv">
+                            <label for="insuranceNo_3">No</label>
+                            <input class="inputRadio" type="radio" id="insuranceNo_3" name="insurance_3" value="No"
+                                required>
+                        </div>
                     </div>
 
-                    <button type="submit" id="deviceSubmitBtn">Submit</button>
+                    <div class="device-form-wrapper" data-device-index="4"
+                        style="display:none; background:#eee; padding:15px; margin-bottom:20px; border:1px solid #bbb;">
+                        <h3>Device 4</h3>
+
+                        <label for="AName_4">Name of Device Owner:</label>
+                        <input type="text" id="AName_4" name="AName_4" required>
+                        <label for="ASurname_4">Surname Device Owner:</label>
+                        <input type="text" id="ASurname_4" name="ASurname_4" required>
+                        <label for="APersonnel_nr_4">Personnel Number Of Device Owner:</label>
+                        <input type="text" id="APersonnel_nr_4" name="APersonnel_nr_4" required>
+                        <label for="ACompany_4">Company:</label>
+                        <select id="ACompany_4" name="ACompany_4" required>
+                            <option>PCM</option>
+                            <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
+                            <option>PAS/PAC</option>
+                            <option>INT</option>
+                            <option>PSSS</option>
+                            <option>POLYGRAPH</option>
+                        </select>
+                        <label for="AClient_Division_4">Client Division:</label>
+                        <select id="AClient_Division_4" name="AClient_Division_4" required>
+                            <option>N/A</option>
+                            <option>VECTOR LOG</option>
+                            <option>CRUSADER</option>
+                            <option>SG</option>
+                            <option>WOOLWORTHS</option>
+                        </select>
+                        <label for="Device_Name_4">Device Name:</label>
+                        <input type="text" id="Device_Name_4" name="Device_Name_4" required>
+                        <label for="Serial_Number_4">Serial Number:</label>
+                        <input type="text" id="Serial_Number_4" name="Serial_Number_4" required>
+                        <label for="Device_Description_4">Device Description:</label>
+                        <select id="Device_Description_4" name="Device_Description_4" required>
+                            <option>Laptop</option>
+                            <option>Tablet</option>
+                            <option>Cell-Phone</option>
+                            <option>Monitor-Screen</option>
+                            <option>Desktop</option>
+                            <option>Other</option>
+                        </select>
+                        <label>Does this device have insurance?:</label>
+                        <div class="radioDiv">
+                            <label for="insuranceYes_4">Yes</label>
+                            <input class="inputRadio" type="radio" id="insuranceYes_4" name="insurance_4" value="Yes"
+                                required>
+                        </div>
+                        <div class="radioDiv">
+                            <label for="insuranceNo_4">No</label>
+                            <input class="inputRadio" type="radio" id="insuranceNo_4" name="insurance_4" value="No"
+                                required>
+                        </div>
+                    </div>
+
+                    <div class="device-form-wrapper" data-device-index="5"
+                        style="display:none; background:#eee; padding:15px; margin-bottom:20px; border:1px solid #bbb;">
+                        <h3>Device 5</h3>
+
+                        <label for="AName_5">Name of Device Owner:</label>
+                        <input type="text" id="AName_5" name="AName_5" required>
+                        <label for="ASurname_5">Surname Device Owner:</label>
+                        <input type="text" id="ASurname_5" name="ASurname_5" required>
+                        <label for="APersonnel_nr_5">Personnel Number Of Device Owner:</label>
+                        <input type="text" id="APersonnel_nr_5" name="APersonnel_nr_5" required>
+                        <label for="ACompany_5">Company:</label>
+                        <select id="ACompany_5" name="ACompany_5" required>
+                            <option>PCM</option>
+                            <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
+                            <option>PAS/PAC</option>
+                            <option>INT</option>
+                            <option>PSSS</option>
+                            <option>POLYGRAPH</option>
+                        </select>
+                        <label for="AClient_Division_5">Client Division:</label>
+                        <select id="AClient_Division_5" name="AClient_Division_5" required>
+                            <option>N/A</option>
+                            <option>VECTOR LOG</option>
+                            <option>CRUSADER</option>
+                            <option>SG</option>
+                            <option>WOOLWORTHS</option>
+                        </select>
+                        <label for="Device_Name_5">Device Name:</label>
+                        <input type="text" id="Device_Name_5" name="Device_Name_5" required>
+                        <label for="Serial_Number_5">Serial Number:</label>
+                        <input type="text" id="Serial_Number_5" name="Serial_Number_5" required>
+                        <label for="Device_Description_5">Device Description:</label>
+                        <select id="Device_Description_5" name="Device_Description_5" required>
+                            <option>Laptop</option>
+                            <option>Tablet</option>
+                            <option>Cell-Phone</option>
+                            <option>Monitor-Screen</option>
+                            <option>Desktop</option>
+                            <option>Other</option>
+                        </select>
+                        <label>Does this device have insurance?:</label>
+                        <div class="radioDiv">
+                            <label for="insuranceYes_5">Yes</label>
+                            <input class="inputRadio" type="radio" id="insuranceYes_5" name="insurance_5" value="Yes"
+                                required>
+                        </div>
+                        <div class="radioDiv">
+                            <label for="insuranceNo_5">No</label>
+                            <input class="inputRadio" type="radio" id="insuranceNo_5" name="insurance_5" value="No"
+                                required>
+                        </div>
+                    </div>
+
+                    <div class="device-form-wrapper" data-device-index="6"
+                        style="display:none; background:#eee; padding:15px; margin-bottom:20px; border:1px solid #bbb;">
+                        <h3>Device 6</h3>
+
+                        <label for="AName_6">Name of Device Owner:</label>
+                        <input type="text" id="AName_6" name="AName_6" required>
+                        <label for="ASurname_6">Surname Device Owner:</label>
+                        <input type="text" id="ASurname_6" name="ASurname_6" required>
+                        <label for="APersonnel_nr_6">Personnel Number Of Device Owner:</label>
+                        <input type="text" id="APersonnel_nr_6" name="APersonnel_nr_6" required>
+                        <label for="ACompany_6">Company:</label>
+                        <select id="ACompany_6" name="ACompany_6" required>
+                            <option>PCM</option>
+                            <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
+                            <option>PAS/PAC</option>
+                            <option>INT</option>
+                            <option>PSSS</option>
+                            <option>POLYGRAPH</option>
+                        </select>
+                        <label for="AClient_Division_6">Client Division:</label>
+                        <select id="AClient_Division_6" name="AClient_Division_6" required>
+                            <option>N/A</option>
+                            <option>VECTOR LOG</option>
+                            <option>CRUSADER</option>
+                            <option>SG</option>
+                            <option>WOOLWORTHS</option>
+                        </select>
+                        <label for="Device_Name_6">Device Name:</label>
+                        <input type="text" id="Device_Name_6" name="Device_Name_6" required>
+                        <label for="Serial_Number_6">Serial Number:</label>
+                        <input type="text" id="Serial_Number_6" name="Serial_Number_6" required>
+                        <label for="Device_Description_6">Device Description:</label>
+                        <select id="Device_Description_6" name="Device_Description_6" required>
+                            <option>Laptop</option>
+                            <option>Tablet</option>
+                            <option>Cell-Phone</option>
+                            <option>Monitor-Screen</option>
+                            <option>Desktop</option>
+                            <option>Other</option>
+                        </select>
+                        <label>Does this device have insurance?:</label>
+                        <div class="radioDiv">
+                            <label for="insuranceYes_6">Yes</label>
+                            <input class="inputRadio" type="radio" id="insuranceYes_6" name="insurance_6" value="Yes"
+                                required>
+                        </div>
+                        <div class="radioDiv">
+                            <label for="insuranceNo_6">No</label>
+                            <input class="inputRadio" type="radio" id="insuranceNo_6" name="insurance_6" value="No"
+                                required>
+                        </div>
+                    </div>
+
+                    <div class="device-form-wrapper" data-device-index="7"
+                        style="display:none; background:#eee; padding:15px; margin-bottom:20px; border:1px solid #bbb;">
+                        <h3>Device 7</h3>
+
+                        <label for="AName_7">Name of Device Owner:</label>
+                        <input type="text" id="AName_7" name="AName_7" required>
+                        <label for="ASurname_7">Surname Device Owner:</label>
+                        <input type="text" id="ASurname_7" name="ASurname_7" required>
+                        <label for="APersonnel_nr_7">Personnel Number Of Device Owner:</label>
+                        <input type="text" id="APersonnel_nr_7" name="APersonnel_nr_7" required>
+                        <label for="ACompany_7">Company:</label>
+                        <select id="ACompany_7" name="ACompany_7" required>
+                            <option>PCM</option>
+                            <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
+                            <option>PAS/PAC</option>
+                            <option>INT</option>
+                            <option>PSSS</option>
+                            <option>POLYGRAPH</option>
+                        </select>
+                        <label for="AClient_Division_7">Client Division:</label>
+                        <select id="AClient_Division_7" name="AClient_Division_7" required>
+                            <option>N/A</option>
+                            <option>VECTOR LOG</option>
+                            <option>CRUSADER</option>
+                            <option>SG</option>
+                            <option>WOOLWORTHS</option>
+                        </select>
+                        <label for="Device_Name_7">Device Name:</label>
+                        <input type="text" id="Device_Name_7" name="Device_Name_7" required>
+                        <label for="Serial_Number_7">Serial Number:</label>
+                        <input type="text" id="Serial_Number_7" name="Serial_Number_7" required>
+                        <label for="Device_Description_7">Device Description:</label>
+                        <select id="Device_Description_7" name="Device_Description_7" required>
+                            <option>Laptop</option>
+                            <option>Tablet</option>
+                            <option>Cell-Phone</option>
+                            <option>Monitor-Screen</option>
+                            <option>Desktop</option>
+                            <option>Other</option>
+                        </select>
+                        <label>Does this device have insurance?:</label>
+                        <div class="radioDiv">
+                            <label for="insuranceYes_7">Yes</label>
+                            <input class="inputRadio" type="radio" id="insuranceYes_7" name="insurance_7" value="Yes"
+                                required>
+                        </div>
+                        <div class="radioDiv">
+                            <label for="insuranceNo_7">No</label>
+                            <input class="inputRadio" type="radio" id="insuranceNo_7" name="insurance_7" value="No"
+                                required>
+                        </div>
+                    </div>
+
+                    <div class="device-form-wrapper" data-device-index="8"
+                        style="display:none; background:#eee; padding:15px; margin-bottom:20px; border:1px solid #bbb;">
+                        <h3>Device 8</h3>
+
+                        <label for="AName_8">Name of Device Owner:</label>
+                        <input type="text" id="AName_8" name="AName_8" required>
+                        <label for="ASurname_8">Surname Device Owner:</label>
+                        <input type="text" id="ASurname_8" name="ASurname_8" required>
+                        <label for="APersonnel_nr_8">Personnel Number Of Device Owner:</label>
+                        <input type="text" id="APersonnel_nr_8" name="APersonnel_nr_8" required>
+                        <label for="ACompany_8">Company:</label>
+                        <select id="ACompany_8" name="ACompany_8" required>
+                            <option>PCM</option>
+                            <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
+                            <option>PAS/PAC</option>
+                            <option>INT</option>
+                            <option>PSSS</option>
+                            <option>POLYGRAPH</option>
+                        </select>
+                        <label for="AClient_Division_8">Client Division:</label>
+                        <select id="AClient_Division_8" name="AClient_Division_8" required>
+                            <option>N/A</option>
+                            <option>VECTOR LOG</option>
+                            <option>CRUSADER</option>
+                            <option>SG</option>
+                            <option>WOOLWORTHS</option>
+                        </select>
+                        <label for="Device_Name_8">Device Name:</label>
+                        <input type="text" id="Device_Name_8" name="Device_Name_8" required>
+                        <label for="Serial_Number_8">Serial Number:</label>
+                        <input type="text" id="Serial_Number_8" name="Serial_Number_8" required>
+                        <label for="Device_Description_8">Device Description:</label>
+                        <select id="Device_Description_8" name="Device_Description_8" required>
+                            <option>Laptop</option>
+                            <option>Tablet</option>
+                            <option>Cell-Phone</option>
+                            <option>Monitor-Screen</option>
+                            <option>Desktop</option>
+                            <option>Other</option>
+                        </select>
+                        <label>Does this device have insurance?:</label>
+                        <div class="radioDiv">
+                            <label for="insuranceYes_8">Yes</label>
+                            <input class="inputRadio" type="radio" id="insuranceYes_8" name="insurance_8" value="Yes"
+                                required>
+                        </div>
+                        <div class="radioDiv">
+                            <label for="insuranceNo_8">No</label>
+                            <input class="inputRadio" type="radio" id="insuranceNo_8" name="insurance_8" value="No"
+                                required>
+                        </div>
+                    </div>
+
+                    <div class="device-form-wrapper" data-device-index="9"
+                        style="display:none; background:#eee; padding:15px; margin-bottom:20px; border:1px solid #bbb;">
+                        <h3>Device 9</h3>
+
+                        <label for="AName_9">Name of Device Owner:</label>
+                        <input type="text" id="AName_9" name="AName_9" required>
+                        <label for="ASurname_9">Surname Device Owner:</label>
+                        <input type="text" id="ASurname_9" name="ASurname_9" required>
+                        <label for="APersonnel_nr_9">Personnel Number Of Device Owner:</label>
+                        <input type="text" id="APersonnel_nr_9" name="APersonnel_nr_9" required>
+                        <label for="ACompany_9">Company:</label>
+                        <select id="ACompany_9" name="ACompany_9" required>
+                            <option>PCM</option>
+                            <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
+                            <option>PAS/PAC</option>
+                            <option>INT</option>
+                            <option>PSSS</option>
+                            <option>POLYGRAPH</option>
+                        </select>
+                        <label for="AClient_Division_9">Client Division:</label>
+                        <select id="AClient_Division_9" name="AClient_Division_9" required>
+                            <option>N/A</option>
+                            <option>VECTOR LOG</option>
+                            <option>CRUSADER</option>
+                            <option>SG</option>
+                            <option>WOOLWORTHS</option>
+                        </select>
+                        <label for="Device_Name_9">Device Name:</label>
+                        <input type="text" id="Device_Name_9" name="Device_Name_9" required>
+                        <label for="Serial_Number_9">Serial Number:</label>
+                        <input type="text" id="Serial_Number_9" name="Serial_Number_9" required>
+                        <label for="Device_Description_9">Device Description:</label>
+                        <select id="Device_Description_9" name="Device_Description_9" required>
+                            <option>Laptop</option>
+                            <option>Tablet</option>
+                            <option>Cell-Phone</option>
+                            <option>Monitor-Screen</option>
+                            <option>Desktop</option>
+                            <option>Other</option>
+                        </select>
+                        <label>Does this device have insurance?:</label>
+                        <div class="radioDiv">
+                            <label for="insuranceYes_9">Yes</label>
+                            <input class="inputRadio" type="radio" id="insuranceYes_9" name="insurance_9" value="Yes"
+                                required>
+                        </div>
+                        <div class="radioDiv">
+                            <label for="insuranceNo_9">No</label>
+                            <input class="inputRadio" type="radio" id="insuranceNo_9" name="insurance_9" value="No"
+                                required>
+                        </div>
+                    </div>
+
+                    <div class="device-form-wrapper" data-device-index="10"
+                        style="display:none; background:#eee; padding:15px; margin-bottom:20px; border:1px solid #bbb;">
+                        <h3>Device 10</h3>
+
+                        <label for="AName_10">Name of Device Owner:</label>
+                        <input type="text" id="AName_10" name="AName_10" required>
+                        <label for="ASurname_10">Surname Device Owner:</label>
+                        <input type="text" id="ASurname_10" name="ASurname_10" required>
+                        <label for="APersonnel_nr_10">Personnel Number Of Device Owner:</label>
+                        <input type="text" id="APersonnel_nr_10" name="APersonnel_nr_10" required>
+                        <label for="ACompany_10">Company:</label>
+                        <select id="ACompany_10" name="ACompany_10" required>
+                            <option>PCM</option>
+                            <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
+                            <option>PAS/PAC</option>
+                            <option>INT</option>
+                            <option>PSSS</option>
+                            <option>POLYGRAPH</option>
+                        </select>
+                        <label for="AClient_Division_10">Client Division:</label>
+                        <select id="AClient_Division_10" name="AClient_Division_10" required>
+                            <option>N/A</option>
+                            <option>VECTOR LOG</option>
+                            <option>CRUSADER</option>
+                            <option>SG</option>
+                            <option>WOOLWORTHS</option>
+                        </select>
+                        <label for="Device_Name_10">Device Name:</label>
+                        <input type="text" id="Device_Name_10" name="Device_Name_10" required>
+                        <label for="Serial_Number_10">Serial Number:</label>
+                        <input type="text" id="Serial_Number_10" name="Serial_Number_10" required>
+                        <label for="Device_Description_10">Device Description:</label>
+                        <select id="Device_Description_10" name="Device_Description_10" required>
+                            <option>Laptop</option>
+                            <option>Tablet</option>
+                            <option>Cell-Phone</option>
+                            <option>Monitor-Screen</option>
+                            <option>Desktop</option>
+                            <option>Other</option>
+                        </select>
+                        <label>Does this device have insurance?:</label>
+                        <div class="radioDiv">
+                            <label for="insuranceYes_10">Yes</label>
+                            <input class="inputRadio" type="radio" id="insuranceYes_10" name="insurance_10" value="Yes"
+                                required>
+                        </div>
+                        <div class="radioDiv">
+                            <label for="insuranceNo_10">No</label>
+                            <input class="inputRadio" type="radio" id="insuranceNo_10" name="insurance_10" value="No"
+                                required>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="deviceSubmitBtn">Submit All Devices</button>
                 </form>
             </div>
+
 
 
 
@@ -277,6 +753,7 @@
             deviceIsVodacomCheckbox.addEventListener("change", () => {
                 syncCheckboxes({ target: deviceIsVodacomCheckbox });
                 toggleSubmitButtons();
+                toggleDeviceCountVisibility();
             });
 
             // --- Submit Button Logic ---
@@ -348,6 +825,34 @@
                 });
             });
         });
+
+        // Device count input and device forms visibility
+        const deviceCountInput = document.getElementById("deviceCount");
+        const deviceForms = document.querySelectorAll("#allDevicesForm .device-form-wrapper");
+
+        function updateDeviceFormsVisibility() {
+            const count = parseInt(deviceCountInput.value) || 1; // default 1
+            deviceForms.forEach((formDiv, idx) => {
+                if (idx < count) {
+                    formDiv.style.display = "block";
+                    // Make inputs required only when visible
+                    formDiv.querySelectorAll("input, select").forEach(el => el.required = true);
+                } else {
+                    formDiv.style.display = "none";
+                    // Remove required attribute on hidden forms
+                    formDiv.querySelectorAll("input, select").forEach(el => el.required = false);
+                }
+            });
+        }
+
+        if (deviceCountInput) {
+            deviceCountInput.addEventListener("input", updateDeviceFormsVisibility);
+            // Run initially in case value preset
+            updateDeviceFormsVisibility();
+        }
+
+
+
     </script>
 
 
