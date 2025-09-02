@@ -539,21 +539,13 @@ table {
 
 }
 
-.sticky-header th {
-    position: sticky;
-    top: 10;
-    background: #a06a14;
-    color: black;
-    z-index: 10;
-    text-align: left;
-    margin-left: 3px;
-}
+
 
 .header-row th {
     position: sticky;
     top: 0;
     z-index: 5;
-    background-color: #c4b49a;
+
     color: white;
     height: 45px;
     text-align: left;
@@ -591,40 +583,32 @@ thead {
 /* Or consolidate into one selector */
 .header-filter {
     display: none;
-    box-sizing: border-box;
-    padding: 4px 6px;
-    font-size: 14px;
-    background: #f0e6d2;
-    border: 1px solid #ccc;
+
+    padding: 5px 9px;
+    /* match .filter-toggle */
+    font-size: 16px;
+    /* match .filter-toggle */
+    background: #f5eee0;
+
     border-radius: 4px;
-    margin-top: 4px;
-    vertical-align: top;
-    font-family: Monaco, 'Courier New', monospace;
-    /* this forces it to show below the label */
+    border: 1px solid #2d2b26;
+    /* optional: more visual match */
+    outline: none;
+    /* removes the thick blue focus outline */
+    box-shadow: none;
 }
 
 
-.search-row th {
-    position: sticky;
-    top: 40px;
-    /* height of header-row */
-    background-color: #f4f6f8;
-    padding: 4px 8px;
-    z-index: 9;
-}
 
-.search-row input {
-    width: 100%;
-    box-sizing: border-box;
-    padding: 4px;
-}
+
+
 
 
 .filter-toggle {
     font-size: 16px;
     color: #333;
     background-color: #f0e6d2;
-    border: 1px solid #a59b83;
+    border: 1px solid #2d2b26;
     padding: 4px 8px;
     border-radius: 4px;
     cursor: pointer;
@@ -679,46 +663,25 @@ tbody tr:hover {
 }
 
 /* Sticky headers and filters */
-.sticky th,
 
-.table-mask {
-    position: sticky;
-    top: 0;
-    height: 4px;
-    background-color: #94badd;
-    /* same as sticky header */
-    z-index: 4;
-}
 
 table.sticky th {
     position: sticky;
     top: 0;
-    background-color: #c4b49a;
+    background-color: #f0e6d2;
     color: black;
     z-index: 5;
     box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.1);
-    font-family: Monaco, 'Courier New', monospace;
-    font-weight: 900;
-
-
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    font-weight: 450;
+    /* Slightly bolder */
+    font-size: 1.15rem;
+    /* Slightly bigger */
 }
 
 
 
-.search-row th {
-    position: sticky;
-    top: 40px;
-    /* Adjust if needed */
-    background-color: #f4f6f8;
-    z-index: 2;
-}
 
-.search-row input {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ccc;
-    box-sizing: border-box;
-}
 
 /* =======================================
    7. SCROLLBARS
