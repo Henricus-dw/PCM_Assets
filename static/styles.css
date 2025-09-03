@@ -13,35 +13,87 @@ body {
     box-sizing: border-box;
 }
 
-/* =======================================
-   2. SIDEBAR STYLES
-======================================= */
 .sidebar {
     position: fixed;
     top: 0;
     left: 0;
-    width: 200px;
+    width: 220px;
     height: 100vh;
     background-color: #4b5e70;
-    color: white;
-    padding-top: 20px;
+    display: flex;
+    flex-direction: column;
     overflow-y: auto;
-    transition: background-color 0.2s ease, padding-left 0.2s ease;
+    padding-top: 20px;
 }
 
 .sidebar a {
+    position: relative;
     display: block;
+    width: 100%;
     padding: 12px 20px;
-    color: white;
     text-decoration: none;
-    font-weight: bold;
-    transition: background-color 0.2s ease;
+    background-color: #f0e6d2;
+    color: #4b5e70;
+    font-weight: 500;
+    overflow: hidden;
+    transition: color 0.4s ease;
 }
 
-.sidebar a:hover,
-.sidebar a.active {
-    background-color: #607991;
+.sidebar a::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 1.5px;
+    width: 100%;
+    background-color: #e7dbcd;
+    transition: background-color 0.4s ease;
 }
+
+.sidebar a span {
+    position: relative;
+    z-index: 2;
+    display: inline-block;
+    transition: transform 0.3s ease, color 0.4s ease;
+}
+
+.sidebar a:hover span {
+    transform: translateX(5px);
+}
+
+.sidebar a::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-color: #4b5e70;
+    transform: scaleX(0);
+    transform-origin: right;
+    /* background fills right-to-left */
+    transition: transform 0.4s ease;
+    z-index: 1;
+}
+
+.sidebar a.active::before {
+    transform: scaleX(1);
+}
+
+.sidebar a.active span {
+    color: #f0e6d2;
+    /* instant color change with background */
+}
+
+.sidebar a.active::after {
+    background-color: #f0e6d2;
+}
+
+.sidebar a:hover {
+    cursor: pointer;
+}
+
+
 
 /* =======================================
    3. MAIN CONTENT LAYOUT
@@ -79,6 +131,18 @@ body {
     flex: 1
 }
 
+.contentInner form {
+    flex: 1;
+    /* fill vertical space */
+    margin: 0;
+    /* remove default margins */
+    display: flex;
+    /* allow children to layout properly */
+    flex-direction: column;
+    overflow-y: auto;
+    /* scrolling if content exceeds */
+}
+
 .contentInner2 {
     background-color: #f5fafb;
 
@@ -108,24 +172,36 @@ body {
     background-color: transparent;
 }
 
-#formGroupWrapper {
-    display: flex;
-    flex: 2
-        /* spacing between form blocks */
-}
-
 #form1 {
     margin-right: 60px;
 }
 
+#formGroupWrapper {
+    display: flex;
+    flex: 2;
+    position: relative;
+    /* parent for absolute positioning */
+}
+
 .formGroupHighlight {
+    position: absolute;
+    /* remove from layout flow */
+    top: 0;
+    /* adjust as needed */
+    left: 0;
+    /* adjust as needed */
+    z-index: 10;
+    /* appear above other elements */
+    width: auto;
     border: 2px solid #4CAF50;
     background-color: #f3fff3;
     border-radius: 6px;
-    padding: 20px;
-    margin-bottom: 8px;
-    position: relative
+    padding: 10px 0 10px 10px;
+    /* or fixed width */
 }
+
+
+
 
 #universalSubmitWrapper {
     position: absolute;
@@ -137,18 +213,21 @@ body {
 }
 
 #submitAllBtn {
-    padding: 10px 20px;
-    background-color: #0077cc;
-    color: white;
-    border: none;
-    border-radius: 4px;
     cursor: pointer;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-    transition: background-color 0.3s;
+    background-color: #df5d4f;
+    border: none;
+    color: white;
+    font-weight: bold;
+
+    transition: background-color 0.3s ease;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 8px;
+    padding: 10px 0;
 }
 
 #submitAllBtn:hover {
-    background-color: #005fa3;
+    background-color: #a93226;
 }
 
 .deviceCheckContainer {
@@ -246,14 +325,14 @@ body {
 .sort-overlay select {
     font-size: 14px;
     padding: 4px 8px;
-    border: 1px solid #a59b83;
+    border: 1px solid #2d2b26;
     border-radius: 4px;
     background-color: #f0e6d2;
-    color: #333;
+    border: 1px solid #2d2b26;
     cursor: pointer;
     width: 140px;
     /* make it wide enough */
-    transition: border-color 1s ease;
+    transition: background-color 0.4s ease;
     margin-left: 13px;
     position: relative;
     top: 6px;
@@ -261,8 +340,8 @@ body {
 
 .sort-overlay select:hover,
 .sort-overlay select:focus {
-    border-color: #7a6d5f;
-    background-color: #d8cbb8;
+    background-color: #4b5e70;
+    color: white;
     /* slightly darker on hover/focus */
     outline: none;
 }
@@ -329,8 +408,8 @@ body {
 
 .pdf-icon {
     height: 18px;
-    vertical-align: middle;
-    margin-right: 6px;
+    width: 16px;
+
 }
 
 #export-pdf-btn {
@@ -361,7 +440,43 @@ form {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     flex: 1;
     overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #c0c0c0 transparent;
 }
+
+form::-webkit-scrollbar {
+    width: 6px;
+    /* thinner scrollbar */
+}
+
+form::-webkit-scrollbar-track {
+    background: transparent;
+    /* optional: track background */
+}
+
+form::-webkit-scrollbar-thumb {
+    background-color: #c0c0c0;
+    /* scrollbar color */
+    border-radius: 3px;
+    /* rounded edges */
+}
+
+/* Optional: reduce extra length if you want smaller thumb */
+form::-webkit-scrollbar-thumb {
+    min-height: 30px;
+    /* make the draggable part shorter */
+}
+
+
+.vodacom-form-wrapper {
+    background: #fcf7f0;
+    ;
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+}
+
+
 
 label {
     display: block;
@@ -382,6 +497,25 @@ button {
     box-sizing: border-box;
     transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
+
+.formSubmitButton {
+    background-color: #df5d4f;
+    color: white;
+    font-weight: bold;
+    width: 100%;
+    /* full width of container */
+    max-width: 440px;
+    /* optional: limit width */
+    border: none;
+    padding: 10px 0;
+    border-radius: 4px;
+    cursor: pointer;
+    display: block;
+    margin: 0 auto;
+    /* centers the button */
+}
+
+
 
 /* Radio buttons */
 .radioDiv {
@@ -412,113 +546,38 @@ button {
 /* =======================================
    5. BUTTON STYLES
 ======================================= */
-button {
-    cursor: pointer;
-    background-color: #c0392b;
-    border: none;
-    color: white;
-    font-weight: bold;
-    border-radius: 4px;
-    transition: background-color 0.3s ease;
-}
 
-button:hover {
-    background-color: #a93226;
-}
 
-/* Fancy Button */
-.button1 {
-    display: inline-block;
-    width: auto;
-    height: auto;
-    padding: 0;
-    background: linear-gradient(to bottom, #FFFFFF 0%, #F6FDFF 100%);
-    border: 2px solid #51B1C7;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 20px;
-    color: #4b5e70;
-    border-radius: 1px;
-    transition: all 150ms ease-out;
-}
 
-.button1:hover {
-    border: 2px solid #6F9FAA;
-    color: #d65b80;
-}
 
-.button1Inner {
-    padding: 0px 10px;
-    line-height: 31px;
-    border: 1px solid #C3F1FB;
-    position: relative;
-    transition: border 250ms ease-out;
-}
-
-.button1:hover .button1Inner {
-    border: 1px solid #f0d0d0;
-}
 
 /* Tiny corners animation */
-.button1InnerTiny {
-    width: 3px;
-    height: 3px;
-    position: absolute;
-    transition: all 150ms ease-out;
+
+
+
+
+
+
+
+
+.view-contracts-btn {
+    font-size: 16px;
+    height: 35px;
+    padding: 4px 10px;
+    background-color: #f0e6d2;
+    color: black;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    font-weight: 450;
+    border: 1px solid #2d2b26;
+    margin: 0;
 }
 
-.tiny1 {
-    left: 0;
-    top: 0;
-    border-right: 1px solid #51B1C7;
-    border-bottom: 1px solid #51B1C7;
-}
-
-.button1:hover .tiny1 {
-    left: -10px;
-    top: -10px;
-    border: 1px solid #c75151;
-}
-
-.tiny2 {
-    right: 0;
-    top: 0;
-    border-left: 1px solid #51B1C7;
-    border-bottom: 1px solid #51B1C7;
-    transition-delay: 240ms;
-}
-
-.button1:hover .tiny2 {
-    right: -10px;
-    top: -10px;
-    border: 1px solid #c75151;
-}
-
-.tiny3 {
-    bottom: 0;
-    right: 0;
-    border-top: 1px solid #51B1C7;
-    border-left: 1px solid #51B1C7;
-    transition-delay: 80ms;
-}
-
-.button1:hover .tiny3 {
-    bottom: -10px;
-    right: -10px;
-    border: 1px solid #c75151;
-}
-
-.tiny4 {
-    left: 0;
-    bottom: 0;
-    border-top: 1px solid #51B1C7;
-    border-right: 1px solid #51B1C7;
-    transition-delay: 160ms;
-}
-
-.button1:hover .tiny4 {
-    bottom: -10px;
-    left: -10px;
-    border: 1px solid #c75151;
+.view-contracts-btn:hover {
+    background-color: #4b5e70;
+    color: white;
 }
 
 /* =======================================
@@ -580,26 +639,65 @@ thead {
 
 
 
-/* Or consolidate into one selector */
+
 .header-filter {
     display: none;
 
     padding: 5px 9px;
-    /* match .filter-toggle */
+
     font-size: 16px;
-    /* match .filter-toggle */
+
     background: #f5eee0;
 
     border-radius: 4px;
     border: 1px solid #2d2b26;
-    /* optional: more visual match */
     outline: none;
-    /* removes the thick blue focus outline */
     box-shadow: none;
 }
 
 
 
+.button-group {
+    display: flex;
+    width: 100%;
+    max-width: 440px;
+}
+
+.transfer-btn {
+    flex: 1;
+    /* makes them both 50% of the container */
+    font-size: 16px;
+    color: #333;
+    background-color: #f0e6d2;
+    border: 1px solid #2d2b26;
+    padding: 4px 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    border-radius: 0;
+}
+
+/* First and last buttons get slight rounding */
+.transfer-btn:first-child {
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+}
+
+.transfer-btn:last-child {
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
+/* Hover effect */
+.transfer-btn:hover {
+    background-color: #4b5e70;
+    color: white;
+}
+
+/* Selected state */
+.transfer-btn.selected {
+    background-color: #4b5e70;
+    color: white;
+}
 
 
 
@@ -617,15 +715,15 @@ thead {
 
 .filter-toggle:hover,
 .filter-toggle.active {
-    background-color: #d8cbb8;
-    color: black;
+    background-color: #4b5e70;
+    color: white;
 }
 
 th,
 td {
-    border-left: 1px solid #ddd;
-    border-right: 1px solid #ddd;
-    border-bottom: 1px solid #ddd;
+    border-left: 1px solid #d8cbb8;
+    border-right: 1px solid #d8cbb8;
+    border-bottom: 1px solid #d8cbb8;
     border-top: none;
 
     padding: 12px 8px;
@@ -759,12 +857,3 @@ table.sticky th {
     padding-bottom: 20px;
     position: relative;
 }
-
-/* =======================================
-   9. COMMENTED / UNUSED STYLES
-======================================= */
-/*
-.dashboard-box {
-    width: 100%;
-    height: 300px;
-   

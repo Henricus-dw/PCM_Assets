@@ -5,12 +5,17 @@
 
 <body>
     <!-- Sidebar navigation -->
+
     <div class="sidebar">
-        <a href="/" class="{{ 'active' if section == 'form' else '' }}">Capturing Form</a>
-        <a href="/dashboard" class="{{ 'active' if section == 'home' else '' }}">Dashboard</a>
-        <a href="/dashboard/vodacom" class="{{ 'active' if section == 'vodacom' else '' }}">Vodacom Dashboard</a>
-        <a href="/dashboard/devices" class="{{ 'active' if section == 'devices' else '' }}">Devices Dashboard</a>
+        <a href="/" class="{{ 'active' if section == 'form' else '' }}"><span>Capturing Form</span></a>
+        <a href="/dashboard" class="{{ 'active' if section == 'home' else '' }}"><span>Dashboard</span></a>
+        <a href="/dashboard/vodacom" class="{{ 'active' if section == 'vodacom' else '' }}"><span>Vodacom
+                Dashboard</span></a>
+        <a href="/dashboard/devices" class="{{ 'active' if section == 'devices' else '' }}"><span>Devices
+                Dashboard</span></a>
     </div>
+
+
 
     <!-- Main content area with 3 columns -->
     <div class="content">
@@ -29,81 +34,83 @@
                         <label for="hasDevices">Does this contract have devices?</label>
                         <input type="checkbox" id="hasDevices">
 
-                        <div id="deviceCountContainer" style="display: none; margin-top: 10px;">
-                            <label for="deviceCount">How many devices?</label>
+                        <div id="deviceCountContainer"
+                            style="display: none, margin-top 8px, margin-right 8px; font-size: 12px;">
+                            <label style="font-weight: normal;" for="deviceCount">How many devices?</label>
                             <input type="number" id="deviceCount" min="1" max="10" value="1">
                         </div>
                     </div>
-                    <label for="Name_">Name:</label>
-                    <input type="text" id="Name_" name="Name_" required>
+                    <div class="vodacom-form-wrapper">
+                        <label>Name:</label>
+                        <input type="text" id="Name_" name="Name_" required>
 
-                    <label for="Surname_">Surname:</label>
-                    <input type="text" id="Surname_" name="Surname_" required>
+                        <label for="Surname_">Surname:</label>
+                        <input type="text" id="Surname_" name="Surname_" required>
 
-                    <label for="Personnel_nr">Personnel Number:</label>
-                    <input type="text" id="Personnel_nr" name="Personnel_nr" required>
+                        <label for="Personnel_nr">Personnel Number:</label>
+                        <input type="text" id="Personnel_nr" name="Personnel_nr" required>
 
-                    <label for="Company">Company:</label>
-                    <select id="Company" name="Company" required>
-                        <option>PCM</option>
-                        <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
-                        <option>PAS/PAC</option>
-                        <option>INT</option>
-                        <option>PSSS</option>
-                        <option>POLYGRAPH</option>
-                    </select>
+                        <label for="Company">Company:</label>
+                        <select id="Company" name="Company" required>
+                            <option>PCM</option>
+                            <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
+                            <option>PAS/PAC</option>
+                            <option>INT</option>
+                            <option>PSSS</option>
+                            <option>POLYGRAPH</option>
+                        </select>
 
-                    <label for="Client_Division">Client Division:</label>
-                    <select id="Client_Division" name="Client_Division" required>
-                        <option>N/A</option>
-                        <option>VECTOR LOG</option>
-                        <option>CRUSADER</option>
-                        <option>SG</option>
-                        <option>WOOLWORTHS</option>
-                    </select>
+                        <label for="Client_Division">Client Division:</label>
+                        <select id="Client_Division" name="Client_Division" required>
+                            <option>N/A</option>
+                            <option>VECTOR LOG</option>
+                            <option>CRUSADER</option>
+                            <option>SG</option>
+                            <option>WOOLWORTHS</option>
+                        </select>
 
-                    <label for="Contract_Type">Contract Type:</label>
-                    <select id="Contract_Type" name="Contract_Type" required>
-                        <option>AIRTIME</option>
-                        <option>DATA</option>
-                    </select>
+                        <label for="Contract_Type">Contract Type:</label>
+                        <select id="Contract_Type" name="Contract_Type" required>
+                            <option>AIRTIME</option>
+                            <option>DATA</option>
+                        </select>
 
-                    <label for="Monthly_Costs">Monthly Costs (Excl VAT):</label>
-                    <input type="text" id="Monthly_Costs" name="Monthly_Costs" required>
+                        <label for="Monthly_Costs">Monthly Costs (Excl VAT):</label>
+                        <input type="text" id="Monthly_Costs" name="Monthly_Costs" required>
 
-                    <label for="VAT">VAT (15%):</label>
-                    <input type="text" id="VAT" name="VAT" readonly>
+                        <label for="VAT">VAT (15%):</label>
+                        <input type="text" id="VAT" name="VAT" readonly>
 
-                    <label for="Monthly_Cost_Excl_VAT">Monthly Cost (Excl VAT):</label>
-                    <input type="text" id="Monthly_Cost_Excl_VAT" name="Monthly_Cost_Excl_VAT" readonly>
+                        <label for="Monthly_Cost_Excl_VAT">Monthly Cost (Excl VAT):</label>
+                        <input type="text" id="Monthly_Cost_Excl_VAT" name="Monthly_Cost_Excl_VAT" readonly>
 
-                    <label>Contract Term:</label>
-                    <div class="radioDiv">
-                        <label for="term12">12 Months</label>
-                        <input class="inputRadio" type="radio" id="term12" name="Contract_Term" value="12 Months"
-                            required>
+                        <label>Contract Term:</label>
+                        <div class="radioDiv">
+                            <label for="term12">12 Months</label>
+                            <input class="inputRadio" type="radio" id="term12" name="Contract_Term" value="12 Months"
+                                required>
+                        </div>
+                        <div class="radioDiv">
+                            <label for="term24">24 Months</label>
+                            <input class="inputRadio" type="radio" id="term24" name="Contract_Term" value="24 Months"
+                                required>
+                        </div>
+                        <div class="radioDiv">
+                            <label for="term36">36 Months</label>
+                            <input class="inputRadio" type="radio" id="term36" name="Contract_Term" value="36 Months"
+                                required>
+                        </div>
+
+                        <label for="Sim_Card_Number">SIM Card Number:</label>
+                        <input type="text" id="Sim_Card_Number" name="Sim_Card_Number" required>
+
+                        <label for="Inception_Date">Inception Date:</label>
+                        <input type="date" id="Inception_Date" name="Inception_Date" required>
+
+                        <label for="Termination_Date">Termination Date:</label>
+                        <input type="date" id="Termination_Date" name="Termination_Date" readonly>
                     </div>
-                    <div class="radioDiv">
-                        <label for="term24">24 Months</label>
-                        <input class="inputRadio" type="radio" id="term24" name="Contract_Term" value="24 Months"
-                            required>
-                    </div>
-                    <div class="radioDiv">
-                        <label for="term36">36 Months</label>
-                        <input class="inputRadio" type="radio" id="term36" name="Contract_Term" value="36 Months"
-                            required>
-                    </div>
-
-                    <label for="Sim_Card_Number">SIM Card Number:</label>
-                    <input type="text" id="Sim_Card_Number" name="Sim_Card_Number" required>
-
-                    <label for="Inception_Date">Inception Date:</label>
-                    <input type="date" id="Inception_Date" name="Inception_Date" required>
-
-                    <label for="Termination_Date">Termination Date:</label>
-                    <input type="date" id="Termination_Date" name="Termination_Date" readonly>
-
-                    <button type="submit" id="vodacomSubmitBtn">Submit</button>
+                    <button type="submit" id="vodacomSubmitBtn" class="formSubmitButton">Submit</button>
                 </form>
             </div>
 
@@ -121,8 +128,11 @@
                         <input type="checkbox" id="deviceIsVodacom" name="deviceIsVodacom">
                     </div>
                     <!-- Device Form 1 (original) -->
-                    <div class="device-form-wrapper" data-device-index="1"
-                        style="background:#f9f9f9; padding:15px; margin-bottom:20px; border:1px solid #ccc;">
+                    <div class="device-form-wrapper" data-device-index="1" style="background: #fcf7f0;
+    
+                            padding: 15px;
+                            margin-bottom: 20px;
+                            border: 1px solid #ccc;">
 
 
                         <label for="AName_1">Name of Device Owner:</label>
@@ -176,8 +186,11 @@
 
                     <!-- Device Forms 2 to 10 (hidden by default) -->
                     <!-- For brevity, only device 2 shown, replicate similarly for devices 3 to 10 -->
-                    <div class="device-form-wrapper" data-device-index="2"
-                        style="display:none; background:#eee; padding:15px; margin-bottom:20px; border:1px solid #bbb;">
+                    <div class="device-form-wrapper" data-device-index="2" style="display:none; background:#f0e8e1;
+                        
+                        padding: 15px;
+                        margin-bottom: 20px;
+                        border: 1px solid #89753e86;">
                         <h3>Device 2</h3>
 
                         <label for="AName_2">Name of Device Owner:</label>
@@ -227,8 +240,11 @@
                         </div>
                     </div>
 
-                    <div class="device-form-wrapper" data-device-index="3"
-                        style="display:none; background:#eee; padding:15px; margin-bottom:20px; border:1px solid #bbb;">
+                    <div class="device-form-wrapper" data-device-index="3" style="display:none; background: #fcf7f0;
+    
+                        padding: 15px;
+                        margin-bottom: 20px;
+                        border: 1px solid #ccc;">
                         <h3>Device 3</h3>
 
                         <label for="AName_3">Name of Device Owner:</label>
@@ -278,8 +294,11 @@
                         </div>
                     </div>
 
-                    <div class="device-form-wrapper" data-device-index="4"
-                        style="display:none; background:#eee; padding:15px; margin-bottom:20px; border:1px solid #bbb;">
+                    <div class="device-form-wrapper" data-device-index="4" style="display:none; background:#f0e8e1;
+    
+                        padding: 15px;
+                        margin-bottom: 20px;
+                        border: 1px solid #ccc;">
                         <h3>Device 4</h3>
 
                         <label for="AName_4">Name of Device Owner:</label>
@@ -329,8 +348,11 @@
                         </div>
                     </div>
 
-                    <div class="device-form-wrapper" data-device-index="5"
-                        style="display:none; background:#eee; padding:15px; margin-bottom:20px; border:1px solid #bbb;">
+                    <div class="device-form-wrapper" data-device-index="5" style="display:none; background: #fcf7f0;
+    
+                            padding: 15px;
+                            margin-bottom: 20px;
+                            border: 1px solid #ccc;">
                         <h3>Device 5</h3>
 
                         <label for="AName_5">Name of Device Owner:</label>
@@ -381,8 +403,11 @@
                         </div>
                     </div>
 
-                    <div class="device-form-wrapper" data-device-index="6"
-                        style="display:none; background:#eee; padding:15px; margin-bottom:20px; border:1px solid #bbb;">
+                    <div class="device-form-wrapper" data-device-index="6" style="display:none; background:#f0e8e1;
+    
+                            padding: 15px;
+                            margin-bottom: 20px;
+                            border: 1px solid #ccc;">
                         <h3>Device 6</h3>
 
                         <label for="AName_6">Name of Device Owner:</label>
@@ -434,8 +459,11 @@
                         </div>
                     </div>
 
-                    <div class="device-form-wrapper" data-device-index="7"
-                        style="display:none; background:#eee; padding:15px; margin-bottom:20px; border:1px solid #bbb;">
+                    <div class="device-form-wrapper" data-device-index="7" style="display:none; background: #fcf7f0;
+                    
+                            padding: 15px;
+                            margin-bottom: 20px;
+                            border: 1px solid #ccc;">
                         <h3>Device 7</h3>
 
                         <label for="AName_7">Name of Device Owner:</label>
@@ -487,8 +515,11 @@
                         </div>
                     </div>
 
-                    <div class="device-form-wrapper" data-device-index="8"
-                        style="display:none; background:#eee; padding:15px; margin-bottom:20px; border:1px solid #bbb;">
+                    <div class="device-form-wrapper" data-device-index="8" style="display:none; background:#f0e8e1;
+    
+                            padding: 15px;
+                            margin-bottom: 20px;
+                            border: 1px solid #ccc;">
                         <h3>Device 8</h3>
 
                         <label for="AName_8">Name of Device Owner:</label>
@@ -540,8 +571,11 @@
                         </div>
                     </div>
 
-                    <div class="device-form-wrapper" data-device-index="9"
-                        style="display:none; background:#eee; padding:15px; margin-bottom:20px; border:1px solid #bbb;">
+                    <div class="device-form-wrapper" data-device-index="9" style="display:none; background: #fcf7f0;
+    
+                            padding: 15px;
+                            margin-bottom: 20px;
+                            border: 1px solid #ccc;">
                         <h3>Device 9</h3>
 
                         <label for="AName_9">Name of Device Owner:</label>
@@ -593,8 +627,11 @@
                         </div>
                     </div>
 
-                    <div class="device-form-wrapper" data-device-index="10"
-                        style="display:none; background:#eee; padding:15px; margin-bottom:20px; border:1px solid #bbb;">
+                    <div class="device-form-wrapper" data-device-index="10" style="display:none; background:#f0e8e1;
+    
+                            padding: 15px;
+                            margin-bottom: 20px;
+                            border: 1px solid #ccc;">
                         <h3>Device 10</h3>
 
                         <label for="AName_10">Name of Device Owner:</label>
@@ -647,7 +684,7 @@
                     </div>
 
 
-                    <button type="submit" id="deviceSubmitBtn">Submit</button>
+                    <button type="submit" id="deviceSubmitBtn" class="formSubmitButton">Submit</button>
                 </form>
             </div>
 
@@ -661,6 +698,48 @@
 
         <div class="contentInner">
             <div class="boxTopHeader">Transferral Form</div>
+
+
+
+            {% if message %}
+            <p style="color: green;">{{ message }}</p>
+            {% endif %}
+
+            <form id="TransferralForm" method="post" action="/submit">
+                <div class="button-group">
+                    <button type="button" id="DeviceTransferBtn" class="transfer-btn">Device Transfer</button>
+                    <button type="button" id="ContractTransferBtn" class="transfer-btn">Contract Transfer</button>
+                </div>
+                <div class="vodacom-form-wrapper">
+
+
+                    <label for="AName_10">Name:</label>
+                    <input type="text" id="AName_10" name="AName_10" required>
+                    <label for="ASurname_10">Surname:</label>
+                    <input type="text" id="ASurname_10" name="ASurname_10" required>
+                    <label for="APersonnel_nr_10">Personnel Number:</label>
+                    <input type="text" id="APersonnel_nr_10" name="APersonnel_nr_10" required>
+                    <label for="ACompany_10">Company:</label>
+                    <select id="ACompany_10" name="ACompany_10" required>
+                        <option>PCM</option>
+                        <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
+                        <option>PAS/PAC</option>
+                        <option>INT</option>
+                        <option>PSSS</option>
+                        <option>POLYGRAPH</option>
+                    </select>
+                    <label for="AClient_Division_10">Client Division:</label>
+                    <select id="AClient_Division_10" name="AClient_Division_10" required>
+                        <option>N/A</option>
+                        <option>VECTOR LOG</option>
+                        <option>CRUSADER</option>
+                        <option>SG</option>
+                        <option>WOOLWORTHS</option>
+                    </select>
+
+                </div>
+                <button type="submit" id="transferSubmitBtn" class="formSubmitButton">Submit</button>
+            </form>
 
         </div>
 

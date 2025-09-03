@@ -9,9 +9,13 @@
 
 <body>
     <div class="sidebar">
-        <a href="/" class="{{ 'active' if section == 'form' else '' }}">Capturing Form</a>
-        <a href="/dashboard" class="{{ 'active' if section == 'home' else '' }}">Dashboard</a>
-        <a href="/dashboard/vodacom" class="{{ 'active' if section == 'vodacom' else '' }}">Vodacom Dashboard</a>
-        <a href="/dashboard/devices" class="{{ 'active' if section == 'devices' else '' }}">Devices Dashboard</a>
+        <a href="/" class="{{ 'active' if section == 'form' else '' }}"><span>Capturing Form</span></a>
+        <a href="/dashboard" class="{{ 'active' if section == 'home' else '' }}"><span>Dashboard</span></a>
+        <a href="/dashboard/vodacom" class="{{ 'active' if section == 'vodacom' else '' }}"><span>Vodacom
+                Dashboard</span></a>
+        <a href="/dashboard/devices" class="{{ 'active' if section == 'devices' else '' }}"><span>Devices
+                Dashboard</span></a>
     </div>
+
+
 </body>
