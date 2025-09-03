@@ -1,10 +1,13 @@
-from fastapi import Form
+from fastapi import Form, HTTPException
 from typing import Optional
 from fastapi import FastAPI, Request, Form, Depends, status, APIRouter
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 from datetime import datetime
 from typing import List, Optional
 from models import VodacomSubscription
@@ -532,3 +535,101 @@ def get_contract_for_device(device_id: int, db: Session = Depends(get_db)):
     contract = db.query(VodacomSubscription).filter(
         VodacomSubscription.id == device.vd_id).first()
     return contract
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # For dev—consider limiting in production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+@app.get("/search/devices")
+def search_devices(query: str = "", db: Session = Depends(get_db)):
+    results = db.query(Device).filter(
+        or_(
+            Device.Name_.ilike(f"%{query}%"),
+            Device.Surname_.ilike(f"%{query}%"),
+            Device.Serial_Number.ilike(f"%{query}%"),
+            Device.Device_Name.ilike(f"%{query}%")
+        )
+    ).limit(20).all()
+
+    return [
+        {
+            "id": d.id,
+            "name": d.Name_,
+            "surname": d.Surname_,
+            "serial": d.Serial_Number,
+            "device": d.Device_Name
+        }
+        for d in results
+    ]
+
+
+@app.get("/search/contracts")
+def search_contracts(query: str, db: Session = Depends(get_db)):
+    results = db.query(VodacomSubscription).filter(
+        (VodacomSubscription.Name_.ilike(f"%{query}%")) |
+        (VodacomSubscription.Surname_.ilike(f"%{query}%")) |
+        (VodacomSubscription.Sim_Card_Number.ilike(f"%{query}%"))
+    ).limit(20).all()
+
+    return JSONResponse(content=[
+        {
+            "id": contract.id,
+            "name": contract.Name_,
+            "surname": contract.Surname_,
+            "sim": contract.Sim_Card_Number
+        }
+        for contract in results
+    ])
+
+
+@app.post("/submit_transfer")
+def submit_transfer(
+    request: Request,
+    selectedDeviceId: Optional[int] = Form(None),
+    selectedContractId: Optional[int] = Form(None),
+    AName_10: str = Form(...),
+    ASurname_10: str = Form(...),
+    APersonnel_nr_10: str = Form(...),
+    ACompany_10: str = Form(...),
+    AClient_Division_10: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    # Determine which transfer is being done
+    if selectedDeviceId:
+        device = db.query(Device).filter(Device.id == selectedDeviceId).first()
+        if not device:
+            raise HTTPException(status_code=404, detail="Device not found.")
+
+        device.Name_ = AName_10
+        device.Surname_ = ASurname_10
+        device.Personnel_nr = APersonnel_nr_10
+        device.Company = ACompany_10
+        device.Client_Division = AClient_Division_10
+
+        db.commit()
+        return RedirectResponse("/", status_code=303)
+
+    elif selectedContractId:
+        contract = db.query(VodacomSubscription).filter(
+            VodacomSubscription.id == selectedContractId).first()
+        if not contract:
+            raise HTTPException(status_code=404, detail="Contract not found.")
+
+        contract.Name_ = AName_10
+        contract.Surname_ = ASurname_10
+        contract.Personnel_nr = APersonnel_nr_10
+        contract.Company = ACompany_10
+        contract.Client_Division = AClient_Division_10
+
+        db.commit()
+        return RedirectResponse("/", status_code=303)
+
+    else:
+        raise HTTPException(
+            status_code=400, detail="No device or contract selected.")

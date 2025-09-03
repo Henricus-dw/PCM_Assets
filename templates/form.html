@@ -705,12 +705,53 @@
             <p style="color: green;">{{ message }}</p>
             {% endif %}
 
-            <form id="TransferralForm" method="post" action="/submit">
+            <form id="TransferralForm" method="post" action="/submit_transfer">
                 <div class="button-group">
-                    <button type="button" id="DeviceTransferBtn" class="transfer-btn">Device Transfer</button>
+                    <button type="button" id="DeviceTransferBtn" class="transfer-btn selected">Device Transfer</button>
                     <button type="button" id="ContractTransferBtn" class="transfer-btn">Contract Transfer</button>
                 </div>
                 <div class="vodacom-form-wrapper">
+                    <div id="deviceBox" class="transfer-box">
+                        <input type="text" id="deviceSearchInput" placeholder="Search devices..."
+                            class="search-input" />
+                        <table class="result-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Surname</th>
+                                    <th>Serial Number</th>
+                                    <th>Device Name</th>
+                                </tr>
+                            </thead>
+                            <tbody id="deviceTableBody">
+                                <!-- Rows from API will appear here -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Contract Dashboard Box -->
+                    <div id="contractBox" class="transfer-box hidden">
+                        <input type="text" id="contractSearchInput" placeholder="Search contracts..."
+                            class="search-input" />
+                        <table class="result-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Surname</th>
+                                    <th>SIM Number</th>
+                                </tr>
+                            </thead>
+                            <tbody id="contractTableBody">
+                                <!-- Contract rows will be injected here -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <input type="hidden" id="selectedDeviceId" name="selectedDeviceId" />
+                    <input type="hidden" id="selectedContractId" name="selectedContractId" />
+
+                    <p id="deviceSelectionMessage" class="selection-msg" style="display: none;"></p>
+                    <p id="contractSelectionMessage" class="selection-msg" style="display: none;"></p>
 
 
                     <label for="AName_10">Name:</label>
@@ -832,7 +873,7 @@
 
             // --- Submit Button Logic ---
             const vodacomForm = document.getElementById("vodacomForm");
-            const deviceForm = document.getElementById("allDevicesForm");  // FIXED: Correct device form ID
+            const deviceForm = document.getElementById("allDevicesForm");
 
             const vodacomSubmitBtn = document.getElementById("vodacomSubmitBtn");
             const deviceSubmitBtn = document.getElementById("deviceSubmitBtn");
@@ -906,34 +947,167 @@
                 });
             });
 
-            // --- Device count input and device forms visibility ---
-            const deviceCountInput = document.getElementById("deviceCount");
-            const deviceForms = document.querySelectorAll("#allDevicesForm .device-form-wrapper");
+            // --- Device/Contract Box Toggle Logic ---
+            const deviceBtn = document.getElementById('DeviceTransferBtn');
+            const contractBtn = document.getElementById('ContractTransferBtn');
+            const deviceBox = document.getElementById('deviceBox');
+            const contractBox = document.getElementById('contractBox');
 
-            function updateDeviceFormsVisibility() {
-                const count = parseInt(deviceCountInput.value) || 1; // default to 1
-                deviceForms.forEach((formDiv, idx) => {
-                    if (idx < count) {
-                        formDiv.style.display = "block";
-                        // Make inputs required only when visible
-                        formDiv.querySelectorAll("input, select").forEach(el => el.required = true);
-                    } else {
-                        formDiv.style.display = "none";
-                        // Remove required attribute on hidden forms
-                        formDiv.querySelectorAll("input, select").forEach(el => el.required = false);
+            deviceBtn.addEventListener('click', () => {
+                deviceBtn.classList.add('selected');
+                contractBtn.classList.remove('selected');
+                deviceBox.classList.remove('hidden');
+                contractBox.classList.add('hidden');
+                document.getElementById('selectedContractId').value = '';
+                document.getElementById('contractSelectionMessage').style.display = 'none';
+
+                // Also visually deselect any selected contract row
+                document.querySelectorAll('#contractTableBody tr.selectable.selected')
+                    .forEach(r => r.classList.remove('selected'));
+            });
+
+            contractBtn.addEventListener('click', () => {
+                contractBtn.classList.add('selected');
+                deviceBtn.classList.remove('selected');
+                contractBox.classList.remove('hidden');
+                deviceBox.classList.add('hidden');
+                document.getElementById('selectedDeviceId').value = '';
+                document.getElementById('deviceSelectionMessage').style.display = 'none';
+
+                // Also visually deselect any selected device row
+                document.querySelectorAll('#deviceTableBody tr.selectable.selected')
+                    .forEach(r => r.classList.remove('selected'));
+            });
+
+            // --- Device Search Logic ---
+            const deviceSearchInput = document.getElementById('deviceSearchInput');
+            const deviceTableBody = document.getElementById('deviceTableBody');
+
+            if (deviceSearchInput && deviceTableBody) {
+                deviceSearchInput.addEventListener('input', async (e) => {
+                    const query = e.target.value.trim();
+                    if (!query) {
+                        deviceTableBody.innerHTML = "";
+                        return;
+                    }
+
+                    try {
+                        const res = await fetch(`/search/devices?query=${encodeURIComponent(query)}`);
+                        const data = await res.json();
+                        console.log("Fetched devices:", data);
+
+                        deviceTableBody.innerHTML = "";
+
+                        data.forEach(row => {
+                            const tr = document.createElement('tr');
+                            tr.classList.add('selectable');
+                            tr.dataset.id = row.id;
+                            tr.innerHTML = `
+                    <td>${row.name}</td>
+                    <td>${row.surname}</td>
+                    <td>${row.serial}</td>
+                    <td>${row.device}</td>
+                `;
+                            deviceTableBody.appendChild(tr);
+                        });
+                    } catch (err) {
+                        console.error("Error fetching devices:", err);
                     }
                 });
             }
 
-            if (deviceCountInput) {
-                deviceCountInput.addEventListener("input", updateDeviceFormsVisibility);
-                // Run initially in case value preset
-                updateDeviceFormsVisibility();
+            // --- Contract Search Logic ---
+            const contractSearchInput = document.getElementById('contractSearchInput');
+            const contractTableBody = document.getElementById('contractTableBody');
+
+            if (contractSearchInput && contractTableBody) {
+                contractSearchInput.addEventListener('input', async (e) => {
+                    const query = e.target.value.trim();
+                    if (!query) {
+                        contractTableBody.innerHTML = "";
+                        return;
+                    }
+
+                    try {
+                        const res = await fetch(`/search/contracts?query=${encodeURIComponent(query)}`);
+                        const data = await res.json();
+                        console.log("Fetched contracts:", data);
+
+                        contractTableBody.innerHTML = "";
+
+                        data.forEach(row => {
+                            const tr = document.createElement('tr');
+                            tr.classList.add('selectable');
+                            tr.dataset.id = row.id;
+                            tr.innerHTML = `
+                    <td>${row.name}</td>
+                    <td>${row.surname}</td>
+                    <td>${row.sim}</td>
+                `;
+                            contractTableBody.appendChild(tr);
+                        });
+                    } catch (err) {
+                        console.error("Error fetching contracts:", err);
+                    }
+                });
             }
+
+            // --- Unified Row Selection Handler ---
+            document.addEventListener('click', (e) => {
+                const deviceRow = e.target.closest('#deviceTableBody tr.selectable');
+                const contractRow = e.target.closest('#contractTableBody tr.selectable');
+
+                if (deviceRow) {
+                    // Deselect previous
+                    document.querySelectorAll('#deviceTableBody tr.selectable.selected').forEach(r => r.classList.remove('selected'));
+                    deviceRow.classList.add('selected');
+
+                    const selectedId = deviceRow.dataset.id;
+                    const serial = deviceRow.children[2].textContent;
+
+                    console.log("Selected device ID:", selectedId);
+
+                    const hidden = document.getElementById("selectedDeviceId");
+                    hidden.value = selectedId;
+
+                    const msg = document.getElementById("deviceSelectionMessage");
+                    msg.textContent = `Enter the new device owner's details for serial number: ${serial}`;
+                    msg.style.display = "block";
+                }
+
+                if (contractRow) {
+                    // Deselect previous
+                    document.querySelectorAll('#contractTableBody tr.selectable.selected').forEach(r => r.classList.remove('selected'));
+                    contractRow.classList.add('selected');
+
+                    const selectedId = contractRow.dataset.id;
+                    const sim = contractRow.children[2].textContent;
+
+                    console.log("Selected contract ID:", selectedId);
+
+                    const hidden = document.getElementById("selectedContractId");
+                    hidden.value = selectedId;
+
+                    const msg = document.getElementById("contractSelectionMessage");
+                    msg.textContent = `Enter the new contract owner's details for SIM number: ${sim}`;
+                    msg.style.display = "block";
+
+                }
+            });
+            document.getElementById("TransferralForm").addEventListener("submit", function (e) {
+                const deviceIdEl = document.getElementById("selectedDeviceId");
+                const contractIdEl = document.getElementById("selectedContractId");
+
+                if (deviceIdEl && !deviceIdEl.value) {
+                    deviceIdEl.remove();
+                }
+
+                if (contractIdEl && !contractIdEl.value) {
+                    contractIdEl.remove();
+                }
+            });
+
         });
-
-
-
     </script>
 
 

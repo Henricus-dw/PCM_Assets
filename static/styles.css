@@ -657,47 +657,7 @@ thead {
 
 
 
-.button-group {
-    display: flex;
-    width: 100%;
-    max-width: 440px;
-}
 
-.transfer-btn {
-    flex: 1;
-    /* makes them both 50% of the container */
-    font-size: 16px;
-    color: #333;
-    background-color: #f0e6d2;
-    border: 1px solid #2d2b26;
-    padding: 4px 8px;
-    cursor: pointer;
-    transition: background-color 0.2s ease, color 0.2s ease;
-    border-radius: 0;
-}
-
-/* First and last buttons get slight rounding */
-.transfer-btn:first-child {
-    border-top-left-radius: 4px;
-    border-bottom-left-radius: 4px;
-}
-
-.transfer-btn:last-child {
-    border-top-right-radius: 4px;
-    border-bottom-right-radius: 4px;
-}
-
-/* Hover effect */
-.transfer-btn:hover {
-    background-color: #4b5e70;
-    color: white;
-}
-
-/* Selected state */
-.transfer-btn.selected {
-    background-color: #4b5e70;
-    color: white;
-}
 
 
 
@@ -856,4 +816,93 @@ table.sticky th {
     overflow: auto;
     padding-bottom: 20px;
     position: relative;
+}
+
+.button-group {
+    display: flex;
+    max-width: 440px;
+
+}
+
+.transfer-btn {
+    flex: 1;
+    font-size: 16px;
+    color: #333;
+    background-color: #f0e6d2;
+    border: 0.5px solid #f0e6d2;
+
+    padding: 4px 8px;
+
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.transfer-btn.selected {
+    background-color: #4b5e70;
+    color: white;
+}
+
+.transfer-btn:hover,
+.transfer-btn.active {
+    background-color: #4b5e70;
+    color: white;
+}
+
+.transfer-box {
+    max-width: 440px;
+    min-height: 200px;
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #fff;
+}
+
+.hidden {
+    display: none;
+}
+
+.search-input {
+    width: 100%;
+    padding: 6px;
+    margin-bottom: 10px;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.result-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.result-table th,
+.result-table td {
+    border: 1px solid #ddd;
+    padding: 6px;
+    text-align: left;
+    background-color: #fdfdfd;
+}
+
+.result-table th {
+    background-color: #f0e6d2;
+}
+
+/* Highlight row on hover */
+.result-table tr.selectable:hover td {
+    background-color: #f0e6d2;
+    cursor: pointer;
+}
+
+/* Animate smooth transitions */
+.result-table td {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Selected row - make cells dark with white text */
+.result-table tr.selectable.selected td {
+    background-color: #4b5e70 !important;
+    color: white !important;
 }
