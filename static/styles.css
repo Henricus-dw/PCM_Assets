@@ -1,6 +1,50 @@
 /* =======================================
    1. RESET & BASE STYLES
 ======================================= */
+/* Header row for forms */
+.form-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+
+
+/* The little "Linked" pill, hidden by default */
+.link-pill {
+    display: none;
+    font-size: 12px;
+    line-height: 1;
+    padding: 6px 8px;
+    border-radius: 999px;
+    background: #eaf6ef;
+    /* soft green */
+    color: #2b6a40;
+    /* deep green */
+    border: 1px solid #cfead9;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Show when .linked class is present on the parent form */
+.form-linked .link-pill {
+    display: inline-block;
+}
+
+/* Soft glow to indicate "linked", no layout shift */
+.form-linked {
+    box-shadow: 0 0 0 2px rgba(43, 106, 64, 0.15), 0 6px 18px rgba(43, 106, 64, 0.08);
+    transition: box-shadow 200ms ease;
+}
+
+/* Accessibility: also add a faint divider color change */
+.form-linked .vodacom-form-wrapper,
+.form-linked .device-form-wrapper {
+    border-color: rgba(43, 106, 64, 0.25);
+}
+
 html,
 body {
     margin: 0;
@@ -99,16 +143,46 @@ body {
    3. MAIN CONTENT LAYOUT
 ======================================= */
 .content {
-    margin: 40px 40px 40px 240px;
+    margin: 20px 20px 20px 240px;
     display: flex;
-    gap: 30px;
+    gap: 16px;
     align-items: stretch;
     border-radius: 8px;
+    flex-wrap: wrap;
+    flex-wrap: nowrap;
+}
 
+
+/* 2) Neutralize the old formGroupWrapper so it doesn't hog width */
+#formGroupWrapper {
+    display: contents;
+    /* "dissolves" the wrapper in layout */
+    flex: initial !important;
+    /* cancel any old flex:2 etc. */
+    position: static !important;
+    /* avoid absolute/relative quirks */
+}
+
+/* 3) Make each form column truly equal width */
+.content>.contentInner,
+#formGroupWrapper>.contentInner {
+    flex: 1 1 0;
+    /* equal columns */
+    max-width: none;
+    /* remove the 500px cap */
+    width: auto;
+    min-width: 0;
+    /* prevent overflow in flex children */
+}
+
+/* 4) Ensure inputs don't force columns to stretch weirdly */
+.contentInner form {
+    width: auto;
+    max-width: none;
 }
 
 .content2 {
-    margin: -2px 40px 80px 240px;
+    margin: -2px 20px 20px 240px;
     display: flex;
     gap: 20px;
     align-items: stretch;
@@ -124,24 +198,16 @@ body {
         0 8px 16px rgba(0, 0, 0, 0.12);
     display: flex;
     flex-direction: column;
-
-    max-width: 500px;
-    height: calc(100vh - 70px);
+    flex: 1 1 0;
+    min-width: 320px;
+    /* don’t get narrower than this */
+    max-width: none;
+    height: calc(100vh - 50px);
     overflow-y: auto;
     flex: 1
 }
 
-.contentInner form {
-    flex: 1;
-    /* fill vertical space */
-    margin: 0;
-    /* remove default margins */
-    display: flex;
-    /* allow children to layout properly */
-    flex-direction: column;
-    overflow-y: auto;
-    /* scrolling if content exceeds */
-}
+
 
 .contentInner2 {
     background-color: #f5fafb;
@@ -155,7 +221,7 @@ body {
     display: flex;
     flex-direction: column;
     width: 100%;
-    height: calc(100vh - 50px- 70px);
+    height: calc(100vh - 100px);
     overflow-y: auto;
     position: relative;
 
@@ -167,68 +233,13 @@ body {
 /* Content header inside contentInner */
 
 
-.contentInner.connected {
-    border: none;
-    background-color: transparent;
-}
-
-#form1 {
-    margin-right: 60px;
-}
-
-#formGroupWrapper {
-    display: flex;
-    flex: 2;
-    position: relative;
-    /* parent for absolute positioning */
-}
-
-.formGroupHighlight {
-    position: absolute;
-    /* remove from layout flow */
-    top: 0;
-    /* adjust as needed */
-    left: 0;
-    /* adjust as needed */
-    z-index: 10;
-    /* appear above other elements */
-    width: auto;
-    border: 2px solid #4CAF50;
-    background-color: #f3fff3;
-    border-radius: 6px;
-    padding: 10px 0 10px 10px;
-    /* or fixed width */
-}
 
 
 
 
-#universalSubmitWrapper {
-    position: absolute;
-    bottom: 20px;
-    right: 30px;
-    z-index: 10;
-    display: none;
-    /* Hidden by default */
-}
 
-#submitAllBtn {
-    cursor: pointer;
-    background-color: #df5d4f;
-    border: none;
-    color: white;
-    font-weight: bold;
 
-    transition: background-color 0.3s ease;
-    width: 100%;
-    box-sizing: border-box;
-    margin: 8px;
-    padding: 10px 0;
-}
 
-#submitAllBtn:hover {
-    background-color: #a93226;
-}
 
 .deviceCheckContainer {
     display: inline-flex;
@@ -274,7 +285,7 @@ body {
 }
 
 .content3 {
-    margin: 40px 40px 0px 240px;
+    margin: 20px 20px 0px 240px;
     /* same left margin, no bottom margin */
     /* Optional styling */
     background-color: #4b5e70;
@@ -294,7 +305,7 @@ body {
 
 .sort-overlay {
     position: fixed;
-    top: 48px;
+    top: 28px;
     left: 250px;
     background-color: #f0e6d2;
     padding: 6px 12px;
@@ -348,8 +359,8 @@ body {
 
 .sort-overlay2 {
     position: fixed;
-    top: 48px;
-    right: 50px;
+    top: 28px;
+    right: 30px;
     background-color: #f0e6d2;
     padding: 6px 12px;
     border-radius: 4px;
@@ -512,10 +523,50 @@ button {
     cursor: pointer;
     display: block;
     margin: 0 auto;
+    transition: background-color 0.3s ease;
     /* centers the button */
 }
 
+.formSubmitButton:hover {
+    background-color: #a93226;
+}
 
+/* Default: show individual submit buttons, hide Submit All */
+#submitAllBtn {
+    display: none;
+}
+
+/* When linked, flip visibility: hide individual, show Submit All */
+.is-linked #vodacomSubmitBtn,
+.is-linked #deviceSubmitBtn {
+    display: none !important;
+}
+
+.is-linked #submitAllBtn {
+    display: block;
+}
+
+/* or inline-block */
+
+
+#submitAllBtn {
+    cursor: pointer;
+    background-color: #df5d4f;
+    border: none;
+    color: white;
+    font-weight: bold;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 8px;
+    padding: 10px 0;
+    max-width: 440px;
+}
+
+#submitAllBtn:hover {
+    background-color: #a93226;
+}
 
 /* Radio buttons */
 .radioDiv {

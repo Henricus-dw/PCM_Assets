@@ -1,3 +1,6 @@
+<!DOCTYPE html>
+<html>
+
 <head>
     <title>Vodacom Subscription Form</title>
     <link rel="stylesheet" href="/static/styles.css?v={{ time }}">
@@ -23,19 +26,23 @@
         <div id="formGroupWrapper">
             <div class="contentInner" id="form1">
 
-                <div class="boxTopHeader">Vodacom Subscription Form</div>
+                <div class="boxTopHeader">Vodacom Subscription Form
+                    <span id="linkPillContract" class="link-pill" aria-hidden="true">🔗 Linked</span>
+                </div>
+
 
                 {% if message %}
                 <p style="color: green;">{{ message }}</p>
                 {% endif %}
 
                 <form id="vodacomForm" method="post" action="/submit">
+
                     <div class="deviceCheckContainer">
                         <label for="hasDevices">Does this contract have devices?</label>
                         <input type="checkbox" id="hasDevices">
 
                         <div id="deviceCountContainer"
-                            style="display: none, margin-top 8px, margin-right 8px; font-size: 12px;">
+                            style="display: none; margin-top: 8px; margin-right: 8px; font-size: 12px;">
                             <label style="font-weight: normal;" for="deviceCount">How many devices?</label>
                             <input type="number" id="deviceCount" min="1" max="10" value="1">
                         </div>
@@ -116,12 +123,15 @@
 
 
             <div class="contentInner" id="form2">
-                <div class="boxTopHeader">Device Capturing Form</div>
+                <div class="boxTopHeader">Device Capturing Form
+                    <span id="linkPillDevices" class="link-pill" aria-hidden="true">🔗 Linked</span>
+                </div>
+
                 {% if message %}
                 <p style="color: green;">{{ message }}</p>
                 {% endif %}
 
-                <form id="allDevicesForm" method="post" action="/submit_devices">
+                <form id="allDevicesForm" method="post" action="/submit_device">
 
                     <div class="deviceCheckContainer">
                         <label for="deviceIsVodacom">Is this device on a Vodacom contract?</label>
@@ -129,10 +139,10 @@
                     </div>
                     <!-- Device Form 1 (original) -->
                     <div class="device-form-wrapper" data-device-index="1" style="background: #fcf7f0;
-    
-                            padding: 15px;
-                            margin-bottom: 20px;
-                            border: 1px solid #ccc;">
+                
+                                        padding: 15px;
+                                        margin-bottom: 20px;
+                                        border: 1px solid #ccc;">
 
 
                         <label for="AName_1">Name of Device Owner:</label>
@@ -187,14 +197,14 @@
                     <!-- Device Forms 2 to 10 (hidden by default) -->
                     <!-- For brevity, only device 2 shown, replicate similarly for devices 3 to 10 -->
                     <div class="device-form-wrapper" data-device-index="2" style="display:none; background:#f0e8e1;
-                        
-                        padding: 15px;
-                        margin-bottom: 20px;
-                        border: 1px solid #89753e86;">
+                                    
+                                    padding: 15px;
+                                    margin-bottom: 20px;
+                                    border: 1px solid #89753e86;">
                         <h3>Device 2</h3>
 
                         <label for="AName_2">Name of Device Owner:</label>
-                        <input type="text" id="AName_2" name="AName_2">
+                        <input type="text" id="AName_2" name="AName_2" required>
                         <label for="ASurname_2">Surname Device Owner:</label>
                         <input type="text" id="ASurname_2" name="ASurname_2">
                         <label for="APersonnel_nr_2">Personnel Number Of Device Owner:</label>
@@ -232,23 +242,25 @@
                         <label>Does this device have insurance?:</label>
                         <div class="radioDiv">
                             <label for="insuranceYes_2">Yes</label>
-                            <input class="inputRadio" type="radio" id="insuranceYes_2" name="insurance_2" value="Yes">
+                            <input class="inputRadio" type="radio" id="insuranceYes_2" name="insurance_2" value="Yes"
+                                required>
                         </div>
                         <div class="radioDiv">
                             <label for="insuranceNo_2">No</label>
-                            <input class="inputRadio" type="radio" id="insuranceNo_2" name="insurance_2" value="No">
+                            <input class="inputRadio" type="radio" id="insuranceNo_2" name="insurance_2" value="No"
+                                required>
                         </div>
                     </div>
 
                     <div class="device-form-wrapper" data-device-index="3" style="display:none; background: #fcf7f0;
-    
-                        padding: 15px;
-                        margin-bottom: 20px;
-                        border: 1px solid #ccc;">
+                
+                                    padding: 15px;
+                                    margin-bottom: 20px;
+                                    border: 1px solid #ccc;">
                         <h3>Device 3</h3>
 
                         <label for="AName_3">Name of Device Owner:</label>
-                        <input type="text" id="AName_3" name="AName_3">
+                        <input type="text" id="AName_3" name="AName_3" required>
                         <label for="ASurname_3">Surname Device Owner:</label>
                         <input type="text" id="ASurname_3" name="ASurname_3">
                         <label for="APersonnel_nr_3">Personnel Number Of Device Owner:</label>
@@ -286,23 +298,25 @@
                         <label>Does this device have insurance?:</label>
                         <div class="radioDiv">
                             <label for="insuranceYes_3">Yes</label>
-                            <input class="inputRadio" type="radio" id="insuranceYes_3" name="insurance_3" value="Yes">
+                            <input class="inputRadio" type="radio" id="insuranceYes_3" name="insurance_3" value="Yes"
+                                required>
                         </div>
                         <div class="radioDiv">
                             <label for="insuranceNo_3">No</label>
-                            <input class="inputRadio" type="radio" id="insuranceNo_3" name="insurance_3" value="No">
+                            <input class="inputRadio" type="radio" id="insuranceNo_3" name="insurance_3" value="No"
+                                required>
                         </div>
                     </div>
 
                     <div class="device-form-wrapper" data-device-index="4" style="display:none; background:#f0e8e1;
-    
-                        padding: 15px;
-                        margin-bottom: 20px;
-                        border: 1px solid #ccc;">
+                
+                                    padding: 15px;
+                                    margin-bottom: 20px;
+                                    border: 1px solid #ccc;">
                         <h3>Device 4</h3>
 
                         <label for="AName_4">Name of Device Owner:</label>
-                        <input type="text" id="AName_4" name="AName_4">
+                        <input type="text" id="AName_4" name="AName_4" required>
                         <label for="ASurname_4">Surname Device Owner:</label>
                         <input type="text" id="ASurname_4" name="ASurname_4">
                         <label for="APersonnel_nr_4">Personnel Number Of Device Owner:</label>
@@ -340,23 +354,25 @@
                         <label>Does this device have insurance?:</label>
                         <div class="radioDiv">
                             <label for="insuranceYes_4">Yes</label>
-                            <input class="inputRadio" type="radio" id="insuranceYes_4" name="insurance_4" value="Yes">
+                            <input class="inputRadio" type="radio" id="insuranceYes_4" name="insurance_4" value="Yes"
+                                required>
                         </div>
                         <div class="radioDiv">
                             <label for="insuranceNo_4">No</label>
-                            <input class="inputRadio" type="radio" id="insuranceNo_4" name="insurance_4" value="No">
+                            <input class="inputRadio" type="radio" id="insuranceNo_4" name="insurance_4" value="No"
+                                required>
                         </div>
                     </div>
 
                     <div class="device-form-wrapper" data-device-index="5" style="display:none; background: #fcf7f0;
-    
-                            padding: 15px;
-                            margin-bottom: 20px;
-                            border: 1px solid #ccc;">
+                
+                                        padding: 15px;
+                                        margin-bottom: 20px;
+                                        border: 1px solid #ccc;">
                         <h3>Device 5</h3>
 
                         <label for="AName_5">Name of Device Owner:</label>
-                        <input type="text" id="AName_5" name="AName_5">
+                        <input type="text" id="AName_5" name="AName_5" required>
                         <label for="ASurname_5">Surname Device Owner:</label>
                         <input type="text" id="ASurname_5" name="ASurname_5">
                         <label for="APersonnel_nr_5">Personnel Number Of Device Owner:</label>
@@ -395,19 +411,21 @@
                         <label>Does this device have insurance?:</label>
                         <div class="radioDiv">
                             <label for="insuranceYes_5">Yes</label>
-                            <input class="inputRadio" type="radio" id="insuranceYes_5" name="insurance_5" value="Yes">
+                            <input class="inputRadio" type="radio" id="insuranceYes_5" name="insurance_5" value="Yes"
+                                required>
                         </div>
                         <div class="radioDiv">
                             <label for="insuranceNo_5">No</label>
-                            <input class="inputRadio" type="radio" id="insuranceNo_5" name="insurance_5" value="No">
+                            <input class="inputRadio" type="radio" id="insuranceNo_5" name="insurance_5" value="No"
+                                required>
                         </div>
                     </div>
 
                     <div class="device-form-wrapper" data-device-index="6" style="display:none; background:#f0e8e1;
-    
-                            padding: 15px;
-                            margin-bottom: 20px;
-                            border: 1px solid #ccc;">
+                
+                                        padding: 15px;
+                                        margin-bottom: 20px;
+                                        border: 1px solid #ccc;">
                         <h3>Device 6</h3>
 
                         <label for="AName_6">Name of Device Owner:</label>
@@ -460,10 +478,10 @@
                     </div>
 
                     <div class="device-form-wrapper" data-device-index="7" style="display:none; background: #fcf7f0;
-                    
-                            padding: 15px;
-                            margin-bottom: 20px;
-                            border: 1px solid #ccc;">
+                                
+                                        padding: 15px;
+                                        margin-bottom: 20px;
+                                        border: 1px solid #ccc;">
                         <h3>Device 7</h3>
 
                         <label for="AName_7">Name of Device Owner:</label>
@@ -516,10 +534,10 @@
                     </div>
 
                     <div class="device-form-wrapper" data-device-index="8" style="display:none; background:#f0e8e1;
-    
-                            padding: 15px;
-                            margin-bottom: 20px;
-                            border: 1px solid #ccc;">
+                
+                                        padding: 15px;
+                                        margin-bottom: 20px;
+                                        border: 1px solid #ccc;">
                         <h3>Device 8</h3>
 
                         <label for="AName_8">Name of Device Owner:</label>
@@ -572,10 +590,10 @@
                     </div>
 
                     <div class="device-form-wrapper" data-device-index="9" style="display:none; background: #fcf7f0;
-    
-                            padding: 15px;
-                            margin-bottom: 20px;
-                            border: 1px solid #ccc;">
+                
+                                        padding: 15px;
+                                        margin-bottom: 20px;
+                                        border: 1px solid #ccc;">
                         <h3>Device 9</h3>
 
                         <label for="AName_9">Name of Device Owner:</label>
@@ -628,10 +646,10 @@
                     </div>
 
                     <div class="device-form-wrapper" data-device-index="10" style="display:none; background:#f0e8e1;
-    
-                            padding: 15px;
-                            margin-bottom: 20px;
-                            border: 1px solid #ccc;">
+                
+                                        padding: 15px;
+                                        margin-bottom: 20px;
+                                        border: 1px solid #ccc;">
                         <h3>Device 10</h3>
 
                         <label for="AName_10">Name of Device Owner:</label>
@@ -685,15 +703,18 @@
 
 
                     <button type="submit" id="deviceSubmitBtn" class="formSubmitButton">Submit</button>
+
+                    <button id="submitAllBtn" class="submitbothbutton" type="button">
+                        Submit Contract + Devices
+                    </button>
+
                 </form>
             </div>
 
 
 
 
-            <div id="universalSubmitWrapper" style="text-align: right; padding: 20px 30px; display: none;">
-                <button id="submitAllBtn" type="button">Submit Both Forms</button>
-            </div>
+
         </div>
 
         <div class="contentInner">
@@ -788,226 +809,230 @@
 
 
     <script>
+        /* =========================================
+           FORM.JS — unified script for form.html
+           Place this once at the end of the <body>.
+        ========================================= */
         document.addEventListener("DOMContentLoaded", () => {
-            // --- VAT Calculation Logic ---
-            const costInput = document.getElementById("Monthly_Costs");
-            const vatInput = document.getElementById("VAT");
-            const exclInput = document.getElementById("Monthly_Cost_Excl_VAT");
-
-            function calculateVAT() {
-                const cost = parseFloat(costInput.value);
-                if (isNaN(cost)) {
-                    vatInput.value = '';
-                    exclInput.value = '';
-                    return;
-                }
-
-                const vat = +(cost * 0.15).toFixed(2);
-                const excl = +(cost - vat).toFixed(2);
-
-                vatInput.value = vat;
-                exclInput.value = excl;
-            }
-
-            costInput.addEventListener("input", calculateVAT);
-
-            // --- Termination Date Calculation Logic ---
-            const inceptionInput = document.getElementById('Inception_Date');
-            const terminationInput = document.getElementById('Termination_Date');
-            const contractRadios = document.querySelectorAll('input[name="Contract_Term"]');
-
-            function calculateTerminationDate() {
-                const inceptionDate = new Date(inceptionInput.value);
-                if (isNaN(inceptionDate.getTime())) return;
-
-                const selectedTerm = document.querySelector('input[name="Contract_Term"]:checked');
-                if (!selectedTerm) return;
-
-                const termValue = parseInt(selectedTerm.value);
-                const terminationDate = new Date(inceptionDate);
-                terminationDate.setMonth(terminationDate.getMonth() + termValue);
-
-                const formatted = terminationDate.toISOString().split('T')[0];
-                terminationInput.value = formatted;
-            }
-
-            inceptionInput.addEventListener('change', calculateTerminationDate);
-            contractRadios.forEach(radio => {
-                radio.addEventListener('change', calculateTerminationDate);
-            });
-
-            // --- Checkbox Sync Logic ---
-            const hasDevicesCheckbox = document.getElementById("hasDevices");
-            const deviceIsVodacomCheckbox = document.getElementById("deviceIsVodacom");
-            const deviceCountContainer = document.getElementById("deviceCountContainer");
-
-            function syncCheckboxes(e) {
-                const isChecked = e.target.checked;
-                if (e.target === hasDevicesCheckbox) {
-                    deviceIsVodacomCheckbox.checked = isChecked;
-                } else {
-                    hasDevicesCheckbox.checked = isChecked;
-                }
-            }
-
-            function toggleDeviceCountVisibility() {
-                if (hasDevicesCheckbox.checked) {
-                    deviceCountContainer.style.display = "block";
-                } else {
-                    deviceCountContainer.style.display = "none";
-                }
-            }
-
-            // Event listeners for both checkboxes
-            hasDevicesCheckbox.addEventListener("change", () => {
-                syncCheckboxes({ target: hasDevicesCheckbox });
-                toggleSubmitButtons();
-                toggleDeviceCountVisibility();
-            });
-
-            deviceIsVodacomCheckbox.addEventListener("change", () => {
-                syncCheckboxes({ target: deviceIsVodacomCheckbox });
-                toggleSubmitButtons();
-                toggleDeviceCountVisibility();
-            });
-
-            // --- Submit Button Logic ---
+            // ====== DOM GETTERS ======
             const vodacomForm = document.getElementById("vodacomForm");
             const deviceForm = document.getElementById("allDevicesForm");
+            const transferForm = document.getElementById("TransferralForm");
 
             const vodacomSubmitBtn = document.getElementById("vodacomSubmitBtn");
             const deviceSubmitBtn = document.getElementById("deviceSubmitBtn");
             const universalSubmitWrapper = document.getElementById("universalSubmitWrapper");
-
-            const formGroupWrapper = document.getElementById("formGroupWrapper");
-
-            function toggleSubmitButtons() {
-                const showUniversal = hasDevicesCheckbox.checked || deviceIsVodacomCheckbox.checked;
-
-                vodacomSubmitBtn.style.display = showUniversal ? "none" : "inline-block";
-                deviceSubmitBtn.style.display = showUniversal ? "none" : "inline-block";
-                universalSubmitWrapper.style.display = showUniversal ? "block" : "none";
-
-                if (showUniversal) {
-                    formGroupWrapper.classList.add("formGroupHighlight");
-                } else {
-                    formGroupWrapper.classList.remove("formGroupHighlight");
-                }
-            }
-
-            // Initial button & device count field visibility
-            toggleSubmitButtons();
-            toggleDeviceCountVisibility();
-
-            // --- Universal Submit Button ---
             const submitAllBtn = document.getElementById("submitAllBtn");
 
-            submitAllBtn.addEventListener("click", () => {
-                console.log("Submit All button clicked");
+            const hasDevicesCheckbox = document.getElementById("hasDevices");
+            const deviceIsVodacomCheckbox = document.getElementById("deviceIsVodacom");
+            const deviceCountContainer = document.getElementById("deviceCountContainer");
+            const deviceCountInput = document.getElementById("deviceCount");
 
-                const vodacomValid = vodacomForm.checkValidity();
-                const deviceValid = deviceForm.checkValidity();
+            const inceptionInput = document.getElementById("Inception_Date");
+            const terminationInput = document.getElementById("Termination_Date");
+            const contractRadios = Array.from(document.querySelectorAll('input[name="Contract_Term"]'));
 
-                console.log({ vodacomValid, deviceValid });
+            const costInput = document.getElementById("Monthly_Costs");
+            const vatInput = document.getElementById("VAT");
+            const exclInput = document.getElementById("Monthly_Cost_Excl_VAT");
 
-                if (!vodacomValid || !deviceValid) {
-                    alert("Please complete both forms before submitting.");
+            // Device/Contract search DOM
+            const deviceSearchInput = document.getElementById("deviceSearchInput");
+            const deviceTableBody = document.getElementById("deviceTableBody");
+            const contractSearchInput = document.getElementById("contractSearchInput");
+            const contractTableBody = document.getElementById("contractTableBody");
+
+            const selectedDeviceIdEl = document.getElementById("selectedDeviceId");
+            const selectedContractIdEl = document.getElementById("selectedContractId");
+            const deviceSelectionMessage = document.getElementById("deviceSelectionMessage");
+            const contractSelectionMessage = document.getElementById("contractSelectionMessage");
+
+            const deviceBtn = document.getElementById("DeviceTransferBtn");
+            const contractBtn = document.getElementById("ContractTransferBtn");
+            const deviceBox = document.getElementById("deviceBox");
+            const contractBox = document.getElementById("contractBox");
+
+            // Optional pills for visual link cue (safe if missing)
+            const linkPillContract = document.getElementById("linkPillContract");
+            const linkPillDevices = document.getElementById("linkPillDevices");
+
+            // All device blocks (1..10)
+            const deviceWrappers = Array.from(document.querySelectorAll(".device-form-wrapper"));
+
+            // ====== UTILITIES ======
+            const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
+
+            function parseTermMonths() {
+                const sel = contractRadios.find(r => r.checked);
+                if (!sel) return null;
+                const m = parseInt(sel.value, 10);
+                return Number.isFinite(m) ? m : null;
+            }
+
+            // sort wrappers by data-device-index if present, else DOM order
+            function getWrappersSorted() {
+                const withIdx = deviceWrappers.map((w, i) => {
+                    const idx = parseInt(w.dataset.deviceIndex || (i + 1), 10);
+                    return { wrap: w, idx: Number.isFinite(idx) ? idx : i + 1 };
+                });
+                withIdx.sort((a, b) => a.idx - b.idx);
+                return withIdx.map(x => x.wrap);
+            }
+
+            function setVisibleAndDisable(wrapper, visible) {
+                wrapper.style.display = visible ? "block" : "none";
+                wrapper.querySelectorAll("input, select, textarea, button").forEach(el => {
+                    el.disabled = !visible; // hidden fields won't validate or submit
+                });
+            }
+
+            function visibleDeviceCount() {
+                const v = parseInt(deviceCountInput?.value || "1", 10);
+                return clamp(isNaN(v) ? 1 : v, 1, 10);
+            }
+
+            function updateDeviceBlocksFromCount() {
+                const wrappers = getWrappersSorted();
+                const n = visibleDeviceCount();
+                wrappers.forEach((wrap, i) => setVisibleAndDisable(wrap, i < n));
+            }
+
+            function toggleSubmitButtons() {
+                const linked = !!(hasDevicesCheckbox?.checked || deviceIsVodacomCheckbox?.checked);
+                // Add/remove a single class on <html> (high specificity and global)
+                document.documentElement.classList.toggle("is-linked", linked);
+            }
+
+
+
+            function toggleDeviceCountVisibility() {
+                if (!deviceCountContainer) return;
+                deviceCountContainer.style.display = hasDevicesCheckbox?.checked ? "block" : "none";
+            }
+
+            // Subtle visual cue for linked state (no layout shift)
+            function setLinkedUI(isLinked) {
+                if (vodacomForm) {
+                    vodacomForm.classList.toggle("form-linked", isLinked);
+                    if (linkPillContract) linkPillContract.style.display = isLinked ? "inline-block" : "none";
+                }
+                if (deviceForm) {
+                    deviceForm.classList.toggle("form-linked", isLinked);
+                    if (linkPillDevices) linkPillDevices.style.display = isLinked ? "inline-block" : "none";
+                }
+                if (submitAllBtn) submitAllBtn.textContent = isLinked ? "Submit Contract + Devices" : "Submit";
+            }
+
+            // ====== VAT + TERM CALC ======
+            function calculateVAT() {
+                if (!costInput || !vatInput || !exclInput) return;
+                const cost = parseFloat(costInput.value);
+                if (isNaN(cost)) {
+                    vatInput.value = "";
+                    exclInput.value = "";
+                    return;
+                }
+                const vat = +(cost * 0.15).toFixed(2);
+                const excl = +(cost - vat).toFixed(2);
+                vatInput.value = String(vat);
+                exclInput.value = String(excl);
+            }
+
+            function calculateTerminationDate() {
+                if (!inceptionInput || !terminationInput) return;
+                const inception = new Date(inceptionInput.value);
+                if (isNaN(inception.getTime())) return;
+                const months = parseTermMonths();
+                if (!months) return;
+                const term = new Date(inception);
+                term.setMonth(term.getMonth() + months);
+                terminationInput.value = term.toISOString().split("T")[0];
+            }
+
+            // ====== CHECKBOX LINKING ======
+            function syncLinkedCheckboxes(changedEl) {
+                if (!hasDevicesCheckbox || !deviceIsVodacomCheckbox) return;
+                const isChecked = changedEl.checked;
+                if (changedEl === hasDevicesCheckbox) {
+                    deviceIsVodacomCheckbox.checked = isChecked;
+                } else {
+                    hasDevicesCheckbox.checked = isChecked;
+                }
+                toggleSubmitButtons();
+                toggleDeviceCountVisibility();
+                updateDeviceBlocksFromCount();
+                setLinkedUI(isChecked);
+            }
+
+            // ====== SUBMIT BOTH ======
+            async function submitBothForms() {
+                if (!vodacomForm || !deviceForm) return;
+
+                // Ensure visibility/disabled state is up-to-date
+                updateDeviceBlocksFromCount();
+
+                // Validate Vodacom
+                if (!vodacomForm.checkValidity()) {
                     vodacomForm.reportValidity();
-                    deviceForm.reportValidity();
                     return;
                 }
 
-                const vodacomData = new FormData(vodacomForm);
-                const deviceData = new FormData(deviceForm);
-                const combined = new FormData();
-
-                // Append Vodacom data
-                for (const [key, value] of vodacomData.entries()) {
-                    combined.append(key, value);
+                // Validate only visible device blocks (1..deviceCount)
+                const count = visibleDeviceCount();
+                const wrappers = getWrappersSorted();
+                for (let i = 0; i < count; i++) {
+                    const wrap = wrappers[i];
+                    if (!wrap) continue;
+                    const fields = wrap.querySelectorAll("input, select");
+                    for (const f of fields) {
+                        if (f.disabled) continue;   // hidden blocks are disabled
+                        if (!f.checkValidity()) {
+                            f.reportValidity();
+                            return;
+                        }
+                    }
                 }
 
-                // Append Device data
-                for (const [key, value] of deviceData.entries()) {
-                    combined.append(key, value);
-                }
+                // Build combined FormData
+                const fd = new FormData();
+                for (const [k, v] of new FormData(vodacomForm)) fd.append(k, v);
+                for (const [k, v] of new FormData(deviceForm)) fd.append(k, v);
 
-                fetch("/submit_all", {
-                    method: "POST",
-                    body: combined
-                }).then(response => {
-                    if (response.ok) {
+                try {
+                    const res = await fetch("/submit_all", { method: "POST", body: fd });
+                    if (res.ok) {
                         alert("Submission successful!");
                         window.location.reload();
                     } else {
-                        alert("There was a problem with submission.");
+                        const txt = await res.text().catch(() => "");
+                        alert("There was a problem submitting both forms." + (txt ? "\n\n" + txt : ""));
                     }
-                }).catch(err => {
-                    alert("Network error.");
-                    console.error(err);
-                });
-            });
+                } catch (e) {
+                    console.error(e);
+                    alert("Network error submitting forms.");
+                }
+            }
 
-            // --- Device/Contract Box Toggle Logic ---
-            const deviceBtn = document.getElementById('DeviceTransferBtn');
-            const contractBtn = document.getElementById('ContractTransferBtn');
-            const deviceBox = document.getElementById('deviceBox');
-            const contractBox = document.getElementById('contractBox');
-
-            deviceBtn.addEventListener('click', () => {
-                deviceBtn.classList.add('selected');
-                contractBtn.classList.remove('selected');
-                deviceBox.classList.remove('hidden');
-                contractBox.classList.add('hidden');
-                document.getElementById('selectedContractId').value = '';
-                document.getElementById('contractSelectionMessage').style.display = 'none';
-
-                // Also visually deselect any selected contract row
-                document.querySelectorAll('#contractTableBody tr.selectable.selected')
-                    .forEach(r => r.classList.remove('selected'));
-            });
-
-            contractBtn.addEventListener('click', () => {
-                contractBtn.classList.add('selected');
-                deviceBtn.classList.remove('selected');
-                contractBox.classList.remove('hidden');
-                deviceBox.classList.add('hidden');
-                document.getElementById('selectedDeviceId').value = '';
-                document.getElementById('deviceSelectionMessage').style.display = 'none';
-
-                // Also visually deselect any selected device row
-                document.querySelectorAll('#deviceTableBody tr.selectable.selected')
-                    .forEach(r => r.classList.remove('selected'));
-            });
-
-            // --- Device Search Logic ---
-            const deviceSearchInput = document.getElementById('deviceSearchInput');
-            const deviceTableBody = document.getElementById('deviceTableBody');
-
+            // ====== DEVICE SEARCH ======
             if (deviceSearchInput && deviceTableBody) {
-                deviceSearchInput.addEventListener('input', async (e) => {
-                    const query = e.target.value.trim();
-                    if (!query) {
-                        deviceTableBody.innerHTML = "";
-                        return;
-                    }
-
+                deviceSearchInput.addEventListener("input", async (e) => {
+                    const q = e.target.value.trim();
+                    if (!q) { deviceTableBody.innerHTML = ""; return; }
                     try {
-                        const res = await fetch(`/search/devices?query=${encodeURIComponent(query)}`);
+                        const res = await fetch(`/search/devices?query=${encodeURIComponent(q)}`);
                         const data = await res.json();
-                        console.log("Fetched devices:", data);
-
                         deviceTableBody.innerHTML = "";
-
                         data.forEach(row => {
-                            const tr = document.createElement('tr');
-                            tr.classList.add('selectable');
+                            const tr = document.createElement("tr");
+                            tr.classList.add("selectable");
                             tr.dataset.id = row.id;
                             tr.innerHTML = `
-                    <td>${row.name}</td>
-                    <td>${row.surname}</td>
-                    <td>${row.serial}</td>
-                    <td>${row.device}</td>
-                `;
+            <td>${row.name}</td>
+            <td>${row.surname}</td>
+            <td>${row.serial}</td>
+            <td>${row.device}</td>
+          `;
                             deviceTableBody.appendChild(tr);
                         });
                     } catch (err) {
@@ -1016,34 +1041,24 @@
                 });
             }
 
-            // --- Contract Search Logic ---
-            const contractSearchInput = document.getElementById('contractSearchInput');
-            const contractTableBody = document.getElementById('contractTableBody');
-
+            // ====== CONTRACT SEARCH ======
             if (contractSearchInput && contractTableBody) {
-                contractSearchInput.addEventListener('input', async (e) => {
-                    const query = e.target.value.trim();
-                    if (!query) {
-                        contractTableBody.innerHTML = "";
-                        return;
-                    }
-
+                contractSearchInput.addEventListener("input", async (e) => {
+                    const q = e.target.value.trim();
+                    if (!q) { contractTableBody.innerHTML = ""; return; }
                     try {
-                        const res = await fetch(`/search/contracts?query=${encodeURIComponent(query)}`);
+                        const res = await fetch(`/search/contracts?query=${encodeURIComponent(q)}`);
                         const data = await res.json();
-                        console.log("Fetched contracts:", data);
-
                         contractTableBody.innerHTML = "";
-
                         data.forEach(row => {
-                            const tr = document.createElement('tr');
-                            tr.classList.add('selectable');
+                            const tr = document.createElement("tr");
+                            tr.classList.add("selectable");
                             tr.dataset.id = row.id;
                             tr.innerHTML = `
-                    <td>${row.name}</td>
-                    <td>${row.surname}</td>
-                    <td>${row.sim}</td>
-                `;
+            <td>${row.name}</td>
+            <td>${row.surname}</td>
+            <td>${row.sim}</td>
+          `;
                             contractTableBody.appendChild(tr);
                         });
                     } catch (err) {
@@ -1052,63 +1067,107 @@
                 });
             }
 
-            // --- Unified Row Selection Handler ---
-            document.addEventListener('click', (e) => {
-                const deviceRow = e.target.closest('#deviceTableBody tr.selectable');
-                const contractRow = e.target.closest('#contractTableBody tr.selectable');
+            // ====== ROW SELECTION (device/contract) ======
+            document.addEventListener("click", (e) => {
+                const deviceRow = e.target.closest("#deviceTableBody tr.selectable");
+                const contractRow = e.target.closest("#contractTableBody tr.selectable");
 
-                if (deviceRow) {
-                    // Deselect previous
-                    document.querySelectorAll('#deviceTableBody tr.selectable.selected').forEach(r => r.classList.remove('selected'));
-                    deviceRow.classList.add('selected');
-
-                    const selectedId = deviceRow.dataset.id;
-                    const serial = deviceRow.children[2].textContent;
-
-                    console.log("Selected device ID:", selectedId);
-
-                    const hidden = document.getElementById("selectedDeviceId");
-                    hidden.value = selectedId;
-
-                    const msg = document.getElementById("deviceSelectionMessage");
-                    msg.textContent = `Enter the new device owner's details for serial number: ${serial}`;
-                    msg.style.display = "block";
+                if (deviceRow && deviceTableBody) {
+                    deviceTableBody.querySelectorAll("tr.selectable.selected").forEach(r => r.classList.remove("selected"));
+                    deviceRow.classList.add("selected");
+                    const selId = deviceRow.dataset.id;
+                    const serial = deviceRow.children[2]?.textContent || "";
+                    if (selectedDeviceIdEl) selectedDeviceIdEl.value = selId || "";
+                    if (deviceSelectionMessage) {
+                        deviceSelectionMessage.textContent = `Enter the new device owner's details for serial number: ${serial}`;
+                        deviceSelectionMessage.style.display = "block";
+                    }
                 }
 
-                if (contractRow) {
-                    // Deselect previous
-                    document.querySelectorAll('#contractTableBody tr.selectable.selected').forEach(r => r.classList.remove('selected'));
-                    contractRow.classList.add('selected');
-
-                    const selectedId = contractRow.dataset.id;
-                    const sim = contractRow.children[2].textContent;
-
-                    console.log("Selected contract ID:", selectedId);
-
-                    const hidden = document.getElementById("selectedContractId");
-                    hidden.value = selectedId;
-
-                    const msg = document.getElementById("contractSelectionMessage");
-                    msg.textContent = `Enter the new contract owner's details for SIM number: ${sim}`;
-                    msg.style.display = "block";
-
-                }
-            });
-            document.getElementById("TransferralForm").addEventListener("submit", function (e) {
-                const deviceIdEl = document.getElementById("selectedDeviceId");
-                const contractIdEl = document.getElementById("selectedContractId");
-
-                if (deviceIdEl && !deviceIdEl.value) {
-                    deviceIdEl.remove();
-                }
-
-                if (contractIdEl && !contractIdEl.value) {
-                    contractIdEl.remove();
+                if (contractRow && contractTableBody) {
+                    contractTableBody.querySelectorAll("tr.selectable.selected").forEach(r => r.classList.remove("selected"));
+                    contractRow.classList.add("selected");
+                    const selId = contractRow.dataset.id;
+                    const sim = contractRow.children[2]?.textContent || "";
+                    if (selectedContractIdEl) selectedContractIdEl.value = selId || "";
+                    if (contractSelectionMessage) {
+                        contractSelectionMessage.textContent = `Enter the new contract owner's details for SIM number: ${sim}`;
+                        contractSelectionMessage.style.display = "block";
+                    }
                 }
             });
 
+            // ====== TRANSFER BOX TOGGLE ======
+            if (deviceBtn && contractBtn && deviceBox && contractBox) {
+                deviceBtn.addEventListener("click", () => {
+                    deviceBtn.classList.add("selected");
+                    contractBtn.classList.remove("selected");
+                    deviceBox.classList.remove("hidden");
+                    contractBox.classList.add("hidden");
+                    if (selectedContractIdEl) selectedContractIdEl.value = "";
+                    if (contractSelectionMessage) contractSelectionMessage.style.display = "none";
+                    document.querySelectorAll("#contractTableBody tr.selectable.selected").forEach(r => r.classList.remove("selected"));
+                });
+
+                contractBtn.addEventListener("click", () => {
+                    contractBtn.classList.add("selected");
+                    deviceBtn.classList.remove("selected");
+                    contractBox.classList.remove("hidden");
+                    deviceBox.classList.add("hidden");
+                    if (selectedDeviceIdEl) selectedDeviceIdEl.value = "";
+                    if (deviceSelectionMessage) deviceSelectionMessage.style.display = "none";
+                    document.querySelectorAll("#deviceTableBody tr.selectable.selected").forEach(r => r.classList.remove("selected"));
+                });
+            }
+
+            // ====== TRANSFER SUBMIT: strip empty hidden ids ======
+            if (transferForm) {
+                transferForm.addEventListener("submit", () => {
+                    if (selectedDeviceIdEl && !selectedDeviceIdEl.value) selectedDeviceIdEl.remove();
+                    if (selectedContractIdEl && !selectedContractIdEl.value) selectedContractIdEl.remove();
+                });
+            }
+
+            // ====== EVENT WIRING ======
+            // VAT calc
+            if (costInput) costInput.addEventListener("input", calculateVAT);
+
+            // Termination calc
+            if (inceptionInput) inceptionInput.addEventListener("change", calculateTerminationDate);
+            contractRadios.forEach(radio => radio.addEventListener("change", calculateTerminationDate));
+
+            // Linked checkboxes + UI
+            if (hasDevicesCheckbox) hasDevicesCheckbox.addEventListener("change", e => syncLinkedCheckboxes(e.target));
+            if (deviceIsVodacomCheckbox) deviceIsVodacomCheckbox.addEventListener("change", e => syncLinkedCheckboxes(e.target));
+
+            // Device count
+            if (deviceCountInput) {
+                deviceCountInput.addEventListener("input", updateDeviceBlocksFromCount);
+                deviceCountInput.addEventListener("change", updateDeviceBlocksFromCount);
+            }
+
+            // Submit both
+            if (submitAllBtn) submitAllBtn.addEventListener("click", submitBothForms);
+
+            // ====== INITIALIZE ======
+            calculateVAT();
+            calculateTerminationDate();
+            toggleSubmitButtons();
+            toggleDeviceCountVisibility();
+            updateDeviceBlocksFromCount();
+
+            // Initial linked UI state
+            const initiallyLinked = !!(hasDevicesCheckbox?.checked || deviceIsVodacomCheckbox?.checked);
+            setLinkedUI(initiallyLinked);
+
+            // Safety: ensure hidden blocks are disabled on first load
+            getWrappersSorted().forEach((wrap, i) => {
+                const visible = i < visibleDeviceCount();
+                setVisibleAndDisable(wrap, visible);
+            });
         });
     </script>
+
 
 
 
