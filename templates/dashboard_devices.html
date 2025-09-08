@@ -9,7 +9,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
 <body>
-    <!-- Sidebar navigation -->
     <div class="sidebar">
         <a href="/" class="{{ 'active' if section == 'form' else '' }}"><span>Capturing Form</span></a>
         <a href="/dashboard" class="{{ 'active' if section == 'home' else '' }}"><span>Dashboard</span></a>
@@ -17,8 +16,8 @@
                 Dashboard</span></a>
         <a href="/dashboard/devices" class="{{ 'active' if section == 'devices' else '' }}"><span>Devices
                 Dashboard</span></a>
-
     </div>
+
 
 
 
@@ -104,6 +103,11 @@
                             <input type="text" class="header-filter" data-col="9" style="display:none;" />
                             <button class="filter-toggle" data-col="9" aria-label="Search"> ⌕ </button>
                         </th>
+                        <th data-col="10">
+                            <div class="header-label">Previous ast Device Owners</div><br>
+                            <input type="text" class="header-filter" data-col="10" style="display:none;" />
+                            <button class="filter-toggle" data-col="10" aria-label="Search"> ⌕ </button>
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
@@ -127,6 +131,13 @@
                         <td>{{ device.Serial_Number }}</td>
                         <td>{{ device.Device_Description }}</td>
                         <td>{{ device.insurance }}</td>
+                        <td>
+                            {% if device.past_owners_display %}
+                            {{ device.past_owners_display.replace('\n', '<br>') | safe }}
+                            {% else %}
+                            No past owners
+                            {% endif %}
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -414,6 +425,66 @@
 
         function closeDevicesModal() {
             document.getElementById("deviceModal").style.display = "none";
+        }
+        document.addEventListener("DOMContentLoaded", () => {
+            const collapse = document.getElementById("sidebarCollapse");
+            const scrim = document.getElementById("sidebarScrim");
+            const burger = document.getElementById("openSidebar"); // optional top-left hamburger
+
+            // Collapse/expand on desktop
+            collapse?.addEventListener("click", () => {
+                document.body.classList.toggle("sidebar-collapsed");
+            });
+
+            // Mobile open/close
+            burger?.addEventListener("click", () => {
+                document.body.classList.add("sidebar-open");
+            });
+            scrim?.addEventListener("click", () => {
+                document.body.classList.remove("sidebar-open");
+            });
+        });
+        function showOwnersModal(deviceId) {
+            fetch(`/devices/${deviceId}/past_owners`)
+                .then(r => r.json())
+                .then(data => {
+                    const body = document.getElementById("deviceModalBody");
+                    if (!data || data.length === 0) {
+                        body.innerHTML = "<p>No previous owners archived for this device.</p>";
+                    } else {
+                        body.innerHTML = `
+          <table border="1" width="100%" cellpadding="5">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Surname</th>
+                <th>Personnel #</th>
+                <th>Company</th>
+                <th>Client Division</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.map(p => `
+                <tr>
+                  <td>${p.Name_}</td>
+                  <td>${p.Surname_}</td>
+                  <td>${p.Personnel_nr}</td>
+                  <td>${p.Company}</td>
+                  <td>${p.Client_Division}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        `;
+                    }
+                    document.getElementById("deviceModal").style.display = "block";
+                })
+                .catch(err => {
+                    document.getElementById("deviceModalBody").innerHTML =
+                        `<p style="color:#b00020;">Error loading previous owners.</p>`;
+                    document.getElementById("deviceModal").style.display = "block";
+                    console.error(err);
+                });
         }
     </script>
 

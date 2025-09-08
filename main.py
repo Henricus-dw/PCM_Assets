@@ -1,3 +1,6 @@
+from sqlalchemy import func
+from sqlalchemy import text
+from sqlalchemy import text  # make sure this import is present
 from fastapi import Form, HTTPException
 from typing import Optional
 from fastapi import FastAPI, Request, Form, Depends, status, APIRouter
@@ -7,7 +10,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
-from sqlalchemy import or_
+from sqlalchemy import or_, text
 from datetime import datetime
 from typing import List, Optional
 from models import VodacomSubscription
@@ -117,16 +120,42 @@ def dashboard_vodacom(request: Request):
 
 
 @app.get("/dashboard/devices", response_class=HTMLResponse)
-def dashboard_devices(request: Request):
-    db: Session = SessionLocal()
-
+def dashboard_devices(request: Request, db: Session = Depends(get_db)):
+    # 1) Load devices
     devices = db.query(Device).order_by(Device.id.desc()).all()
 
-    db.close()
+    # 2) Build device_id -> list of owner lines: "Name_ Surname_ (Company)"
+    owners_map = {}
+    if devices:
+        device_ids = [d.id for d in devices]
+        params = {f"id{i}": did for i, did in enumerate(device_ids)}
+        placeholders = ",".join(f":id{i}" for i in range(len(device_ids)))
+
+        rows = db.execute(
+            text(f"""
+                SELECT d_id, Name_, Surname_, Personnel_nr, Company
+                FROM Past_device_owners
+                WHERE d_id IN ({placeholders})
+                ORDER BY d_id
+            """),
+            params
+        ).fetchall()
+
+        for d_id, Name_, Surname_, Personnel_nr, Company in rows:
+            line = f"{Name_} {Surname_} ({Company})"
+            owners_map.setdefault(d_id, []).append(line)
+
+    # 3) Attach a newline-joined display string to each device
+    for d in devices:
+        d.past_owners_display = "\n".join(owners_map.get(d.id, []))
 
     return templates.TemplateResponse(
         "dashboard_devices.html",
-        {"request": request, "devices": devices, "section": "devices"}
+        {
+            "request": request,
+            "devices": devices,
+            "section": "devices",
+        },
     )
 
 
@@ -606,6 +635,26 @@ def submit_transfer(
         if not device:
             raise HTTPException(status_code=404, detail="Device not found.")
 
+        # ---- NEW: snapshot current owner into Past_device_owners BEFORE update
+        db.execute(
+            text("""
+                INSERT INTO Past_device_owners
+                    (d_id, Name_, Surname_, Personnel_nr, Company, Client_Division)
+                VALUES
+                    (:d_id, :Name_, :Surname_, :Personnel_nr, :Company, :Client_Division)
+            """),
+            {
+                "d_id": device.id,
+                "Name_": device.Name_,
+                "Surname_": device.Surname_,
+                "Personnel_nr": device.Personnel_nr,
+                "Company": device.Company,
+                "Client_Division": device.Client_Division
+            }
+        )
+        # ---- END NEW
+
+        # Existing update with the new owner
         device.Name_ = AName_10
         device.Surname_ = ASurname_10
         device.Personnel_nr = APersonnel_nr_10
@@ -616,6 +665,7 @@ def submit_transfer(
         return RedirectResponse("/", status_code=303)
 
     elif selectedContractId:
+        # (unchanged)
         contract = db.query(VodacomSubscription).filter(
             VodacomSubscription.id == selectedContractId).first()
         if not contract:
@@ -633,3 +683,95 @@ def submit_transfer(
     else:
         raise HTTPException(
             status_code=400, detail="No device or contract selected.")
+
+
+class PastOwnerOut(BaseModel):
+    Name_: str
+    Surname_: str
+    Personnel_nr: str
+    Company: str
+    Client_Division: str
+
+
+@app.get("/dashboard/home-data")
+def get_home_data(db: Session = Depends(get_db)):
+    today = date.today()
+
+    # --- 1) Monthly Costs (current month) ---
+    current_costs = db.query(
+        func.coalesce(func.sum(VodacomSubscription.Monthly_Costs), 0)
+    ).filter(
+        VodacomSubscription.Inception_Date <= today,
+        VodacomSubscription.Termination_Date >= today
+    ).scalar()
+
+    # --- 2) Costs per month (for trend / chart) ---
+    # Build a few months window (prev 3, next 3)
+    from dateutil.relativedelta import relativedelta
+    months = []
+    for offset in range(-3, 4):  # -3 = 3 months back, +3 = 3 months ahead
+        month_date = today + relativedelta(months=offset)
+        start = month_date.replace(day=1)
+        # Get last day of month safely
+        if month_date.month == 12:
+            end = month_date.replace(
+                year=month_date.year+1, month=1, day=1) - relativedelta(days=1)
+        else:
+            end = month_date.replace(
+                month=month_date.month+1, day=1) - relativedelta(days=1)
+
+        total = db.query(func.coalesce(func.sum(VodacomSubscription.Monthly_Costs), 0)).filter(
+            VodacomSubscription.Inception_Date <= end,
+            VodacomSubscription.Termination_Date >= start
+        ).scalar()
+
+        months.append({
+            "month": start.strftime("%b %Y"),
+            "total": float(total or 0)
+        })
+
+    # --- 3) Upcoming Terminations (within 3 months) ---
+    term_limit = today + relativedelta(months=3)
+    upcoming = db.query(
+        VodacomSubscription.id,
+        VodacomSubscription.Name_,
+        VodacomSubscription.Surname_,
+        VodacomSubscription.Personnel_nr,
+        VodacomSubscription.Company,
+        VodacomSubscription.Client_Division,
+        VodacomSubscription.Termination_Date,
+        VodacomSubscription.due_upgrade
+    ).filter(
+        VodacomSubscription.Termination_Date >= today,
+        VodacomSubscription.Termination_Date <= term_limit
+    ).order_by(VodacomSubscription.Termination_Date.asc()).all()
+
+    return {
+        "monthly_costs": float(current_costs or 0),
+        "months": months,
+        "upcoming_terminations": [
+            {
+                "id": r.id,
+                "name": r.Name_,
+                "surname": r.Surname_,
+                "personnel": r.Personnel_nr,
+                "company": r.Company,
+                "division": r.Client_Division,
+                "termination": r.Termination_Date.strftime("%Y-%m-%d") if r.Termination_Date else None,
+                "due_upgrade": r.due_upgrade
+            }
+            for r in upcoming
+        ]
+    }
+
+
+@app.post("/contracts/{contract_id}/due-upgrade")
+def set_due_upgrade(contract_id: int, action: str = Form(...), db: Session = Depends(get_db)):
+    contract = db.query(VodacomSubscription).filter(
+        VodacomSubscription.id == contract_id).first()
+    if not contract:
+        raise HTTPException(status_code=404, detail="Contract not found")
+
+    contract.due_upgrade = action
+    db.commit()
+    return {"success": True, "id": contract_id, "due_upgrade": action}

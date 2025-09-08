@@ -3,11 +3,11 @@
 
 <head>
     <link rel="stylesheet" href="/static/styles.css?v={{ time }}">
-
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
-
 <body>
+    <!-- Sidebar -->
     <div class="sidebar">
         <a href="/" class="{{ 'active' if section == 'form' else '' }}"><span>Capturing Form</span></a>
         <a href="/dashboard" class="{{ 'active' if section == 'home' else '' }}"><span>Dashboard</span></a>
@@ -17,7 +17,170 @@
                 Dashboard</span></a>
     </div>
 
+    <!-- Header -->
+    <div class="content3">
+        <div class="boxTopHeader2">Dashboard Overview</div>
+    </div>
 
+    <!-- Main Content -->
+    <div class="content2">
+        <div class="contentInner2">
+
+            <div class="dashboard-grid">
+                <!-- Block 1: Monthly Costs -->
+                <div class="dashboard-card">
+                    <h2>Vodacom Monthly Costs</h2>
+                    <p id="monthly-cost" class="big-number">Loading...</p>
+                    <canvas id="costChart"></canvas>
+                </div>
+
+                <!-- Block 2: Upcoming Terminations -->
+                <div class="dashboard-card">
+                    <h2>Upcoming Terminations (next 3 months)</h2>
+                    <table class="sticky small-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Company</th>
+                                <th>Termination</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="terminationTableBody"></tbody>
+                    </table>
+                </div>
+
+                <!-- Block 3: Devices Overview -->
+                <div class="dashboard-card">
+                    <h2>Devices Overview</h2>
+                    <ul id="deviceStats">
+                        <li>Total devices: <span id="totalDevices">-</span></li>
+                        <li>Transfers this month: <span id="deviceTransfers">-</span></li>
+                        <li>No insurance: <span id="noInsurance">-</span></li>
+                        <li>Linked to contracts: <span id="linkedDevices">-</span></li>
+                    </ul>
+                </div>
+
+                <!-- Block 4: Contract Breakdown -->
+                <div class="dashboard-card">
+                    <h2>Contract Breakdown</h2>
+                    <canvas id="contractPie"></canvas>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Inline styling to match your theme -->
+    <style>
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+        }
+
+        .dashboard-card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .big-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .small-table th,
+        .small-table td {
+            padding: 4px 8px;
+            font-size: 0.9rem;
+        }
+
+        .action-select {
+            width: 100%;
+        }
+    </style>
+
+    <!-- JS -->
+    <script>
+        async function loadDashboard() {
+            const res = await fetch("/dashboard/home-data");
+            const data = await res.json();
+
+            // --- Block 1: Monthly costs
+            document.getElementById("monthly-cost").textContent =
+                "R " + data.monthly_costs.toLocaleString();
+
+            new Chart(document.getElementById("costChart"), {
+                type: "line",
+                data: {
+                    labels: data.months.map(m => m.month),
+                    datasets: [{
+                        label: "Monthly Cost (R)",
+                        data: data.months.map(m => m.total),
+                        borderColor: "#3366cc",
+                        backgroundColor: "rgba(51,102,204,0.2)",
+                        tension: 0.3
+                    }]
+                },
+                options: { plugins: { legend: { display: false } } }
+            });
+
+            // --- Block 2: Upcoming terminations
+            const tbody = document.getElementById("terminationTableBody");
+            tbody.innerHTML = "";
+            data.upcoming_terminations.forEach(row => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>${row.name} ${row.surname}</td>
+                    <td>${row.company}</td>
+                    <td>${row.termination || ""}</td>
+                    <td>
+                        <select class="action-select" data-id="${row.id}">
+                            <option value="">-- Choose --</option>
+                            <option value="Upgrade" ${row.due_upgrade === "Upgrade" ? "selected" : ""}>Upgrade</option>
+                            <option value="Downgrade" ${row.due_upgrade === "Downgrade" ? "selected" : ""}>Downgrade</option>
+                            <option value="Cancel" ${row.due_upgrade === "Cancel" ? "selected" : ""}>Cancel</option>
+                        </select>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.querySelectorAll(".action-select").forEach(sel => {
+                sel.addEventListener("change", async e => {
+                    const id = e.target.dataset.id;
+                    const action = e.target.value;
+                    await fetch(`/contracts/${id}/due-upgrade`, {
+                        method: "POST",
+                        body: new URLSearchParams({ action }),
+                        headers: { "Content-Type": "application/x-www-form-urlencoded" }
+                    });
+                });
+            });
+
+            // --- Block 3 + 4 are still placeholders, backend hookup next
+            document.getElementById("totalDevices").textContent = "-";
+            document.getElementById("deviceTransfers").textContent = "-";
+            document.getElementById("noInsurance").textContent = "-";
+            document.getElementById("linkedDevices").textContent = "-";
+
+            new Chart(document.getElementById("contractPie"), {
+                type: "pie",
+                data: {
+                    labels: ["Airtime", "Data"],
+                    datasets: [{
+                        data: [0, 0],
+                        backgroundColor: ["#ff9900", "#109618"]
+                    }]
+                }
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", loadDashboard);
+    </script>
 </body>
 
 </html>

@@ -21,6 +21,7 @@ class VodacomSubscription(Base):
     Sim_Card_Number = Column(String(50))
     Inception_Date = Column(DateTime)
     Termination_Date = Column(DateTime)
+    due_upgrade = Column(String(250))
 
 
 class Device(Base):
