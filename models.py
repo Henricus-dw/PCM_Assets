@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime
+from sqlalchemy import Column, Integer, String, Float, DateTime, func
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
@@ -22,6 +22,7 @@ class VodacomSubscription(Base):
     Inception_Date = Column(DateTime)
     Termination_Date = Column(DateTime)
     due_upgrade = Column(String(250))
+    created_at = Column(DateTime, server_default=func.now())
 
 
 class Device(Base):
@@ -38,3 +39,4 @@ class Device(Base):
     Serial_Number = Column(String(250))
     Device_Description = Column(String(250))
     insurance = Column(String(10))
+    created_at = Column(DateTime, server_default=func.now())

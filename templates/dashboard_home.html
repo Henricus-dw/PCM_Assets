@@ -2,12 +2,14 @@
 <html>
 
 <head>
+    <meta charset="utf-8" />
+    <title>PCM Dashboard</title>
     <link rel="stylesheet" href="/static/styles.css?v={{ time }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
-<body>
-    <!-- Sidebar -->
+<body class="home-dashboard">
+    <!-- Sidebar (220px wide; CSS already handles styling) -->
     <div class="sidebar">
         <a href="/" class="{{ 'active' if section == 'form' else '' }}"><span>Capturing Form</span></a>
         <a href="/dashboard" class="{{ 'active' if section == 'home' else '' }}"><span>Dashboard</span></a>
@@ -17,169 +19,348 @@
                 Dashboard</span></a>
     </div>
 
-    <!-- Header -->
-    <div class="content3">
-        <div class="boxTopHeader2">Dashboard Overview</div>
-    </div>
+    <!-- Main content (uses the 240px left margin defined in styles.css to clear the sidebar) -->
+    <div class="content4">
+        <div class="contentInner4">
+            <div class="dash-grid">
+                <!-- Card 1: Monthly Costs -->
+                <section class="card card--tall">
+                    <header class="card-head">
+                        <h2>Vodacom Monthly Costs</h2>
+                        <span id="monthPill" class="pill">This month</span>
+                    </header>
+                    <div class="big-number" id="monthlyCost">R 0</div>
+                    <div class="chart-wrap">
+                        <canvas id="costChart"></canvas>
+                    </div>
+                    <p class="muted">Sum of Monthly_Costs for active contracts in the selected month.</p>
+                </section>
 
-    <!-- Main Content -->
-    <div class="content2">
-        <div class="contentInner2">
+                <!-- Card 2: Upcoming Terminations -->
+                <section class="card card--tall">
+                    <header class="card-head">
+                        <h2>Upcoming Terminations (next 3 months)</h2>
+                        <span class="pill pill-warn" id="termCount">0</span>
+                    </header>
 
-            <div class="dashboard-grid">
-                <!-- Block 1: Monthly Costs -->
-                <div class="dashboard-card">
-                    <h2>Vodacom Monthly Costs</h2>
-                    <p id="monthly-cost" class="big-number">Loading...</p>
-                    <canvas id="costChart"></canvas>
-                </div>
+                    <div class="table-tools">
+                        <input id="termSearch" class="input" placeholder="Search name/company…" />
+                        <select id="termFilter" class="input">
+                            <option value="all">All</option>
+                            <option value="30">≤ 30 days</option>
+                            <option value="60">31–60 days</option>
+                            <option value="ok">> 60 days</option>
+                            <option value="past">Past</option>
+                        </select>
+                    </div>
 
-                <!-- Block 2: Upcoming Terminations -->
-                <div class="dashboard-card">
-                    <h2>Upcoming Terminations (next 3 months)</h2>
-                    <table class="sticky small-table">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Company</th>
-                                <th>Termination</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="terminationTableBody"></tbody>
-                    </table>
-                </div>
+                    <div class="table-wrap">
+                        <table class="small-table" id="termTable">
+                            <thead>
+                                <tr>
+                                    <th data-sort="name">Name</th>
+                                    <th data-sort="company">Company</th>
+                                    <th data-sort="termination">Termination</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="terminationBody">
+                                <tr>
+                                    <td colspan="4" class="muted">Loading…</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
 
-                <!-- Block 3: Devices Overview -->
-                <div class="dashboard-card">
-                    <h2>Devices Overview</h2>
-                    <ul id="deviceStats">
-                        <li>Total devices: <span id="totalDevices">-</span></li>
-                        <li>Transfers this month: <span id="deviceTransfers">-</span></li>
-                        <li>No insurance: <span id="noInsurance">-</span></li>
-                        <li>Linked to contracts: <span id="linkedDevices">-</span></li>
-                    </ul>
-                </div>
+                <!-- Card 3: Devices Overview -->
+                <section class="card">
+                    <header class="card-head">
+                        <h2>Devices Overview</h2>
+                    </header>
+                    <div class="kpi-grid">
+                        <div class="kpi">
+                            <div class="kpi-label">Total devices</div>
+                            <div class="kpi-value" id="kpiTotal">-</div>
+                        </div>
+                        <div class="kpi">
+                            <div class="kpi-label">Transfers this month</div>
+                            <div class="kpi-value" id="kpiTransfers">-</div>
+                        </div>
+                        <div class="kpi">
+                            <div class="kpi-label">No insurance</div>
+                            <div class="kpi-value" id="kpiNoIns">-</div>
+                        </div>
+                        <div class="kpi">
+                            <div class="kpi-label">Linked to contracts</div>
+                            <div class="kpi-value" id="kpiLinked">-</div>
+                        </div>
+                    </div>
+                </section>
 
-                <!-- Block 4: Contract Breakdown -->
-                <div class="dashboard-card">
-                    <h2>Contract Breakdown</h2>
-                    <canvas id="contractPie"></canvas>
-                </div>
+                <!-- Card 4: Contract Type Breakdown -->
+                <section class="card">
+                    <header class="card-head">
+                        <h2>Contract Type Breakdown</h2>
+                    </header>
+                    <div class="chart-wrap">
+                        <canvas id="typePie"></canvas>
+                    </div>
+                </section>
             </div>
-
         </div>
     </div>
 
-    <!-- Inline styling to match your theme -->
-    <style>
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 20px;
-        }
 
-        .dashboard-card {
-            background: #fff;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        .big-number {
-            font-size: 2rem;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        .small-table th,
-        .small-table td {
-            padding: 4px 8px;
-            font-size: 0.9rem;
-        }
-
-        .action-select {
-            width: 100%;
-        }
-    </style>
-
-    <!-- JS -->
     <script>
-        async function loadDashboard() {
-            const res = await fetch("/dashboard/home-data");
-            const data = await res.json();
+        (function () {
+            // ---------- Tiny DOM helpers ----------
+            const $ = (sel, root = document) => root.querySelector(sel);
+            const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
-            // --- Block 1: Monthly costs
-            document.getElementById("monthly-cost").textContent =
-                "R " + data.monthly_costs.toLocaleString();
+            // ---------- Formatting & badges ----------
+            function fmtR(value) {
+                try { return "R " + Number(value ?? 0).toLocaleString(); }
+                catch { return "R " + (value ?? 0); }
+            }
+            function daysUntil(iso) {
+                if (!iso) return null;
+                const d = new Date(iso + "T00:00:00");
+                const now = new Date();
+                return Math.ceil((d - now) / (1000 * 60 * 60 * 24));
+            }
+            function badgeClass(days) {
+                if (days == null) return "badge";
+                if (days < 0) return "badge badge-danger";
+                if (days <= 30) return "badge badge-danger";
+                if (days <= 60) return "badge badge-warn";
+                return "badge badge-ok";
+            }
 
-            new Chart(document.getElementById("costChart"), {
-                type: "line",
-                data: {
-                    labels: data.months.map(m => m.month),
-                    datasets: [{
-                        label: "Monthly Cost (R)",
-                        data: data.months.map(m => m.total),
-                        borderColor: "#3366cc",
-                        backgroundColor: "rgba(51,102,204,0.2)",
-                        tension: 0.3
-                    }]
-                },
-                options: { plugins: { legend: { display: false } } }
-            });
+            // ---------- Chart helpers ----------
+            // Guard against chartArea being undefined on first render
+            function lineGradient(ctx, area, colorTop = "rgba(37,99,235,0.18)", colorBottom = "rgba(37,99,235,0.02)") {
+                if (!area) return colorTop; // first layout: return flat color so Chart.js doesn't crash
+                const g = ctx.createLinearGradient(0, area.top, 0, area.bottom);
+                g.addColorStop(0, colorTop);
+                g.addColorStop(1, colorBottom);
+                return g;
+            }
 
-            // --- Block 2: Upcoming terminations
-            const tbody = document.getElementById("terminationTableBody");
-            tbody.innerHTML = "";
-            data.upcoming_terminations.forEach(row => {
-                const tr = document.createElement("tr");
-                tr.innerHTML = `
-                    <td>${row.name} ${row.surname}</td>
-                    <td>${row.company}</td>
-                    <td>${row.termination || ""}</td>
-                    <td>
-                        <select class="action-select" data-id="${row.id}">
-                            <option value="">-- Choose --</option>
-                            <option value="Upgrade" ${row.due_upgrade === "Upgrade" ? "selected" : ""}>Upgrade</option>
-                            <option value="Downgrade" ${row.due_upgrade === "Downgrade" ? "selected" : ""}>Downgrade</option>
-                            <option value="Cancel" ${row.due_upgrade === "Cancel" ? "selected" : ""}>Cancel</option>
-                        </select>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
+            // ---------- Terminations table state & rendering ----------
+            const termState = {
+                rows: [],
+                sortKey: null,
+                sortDir: 1, // 1 asc, -1 desc
+                filter: "all",
+                query: ""
+            };
 
-            document.querySelectorAll(".action-select").forEach(sel => {
-                sel.addEventListener("change", async e => {
-                    const id = e.target.dataset.id;
-                    const action = e.target.value;
-                    await fetch(`/contracts/${id}/due-upgrade`, {
-                        method: "POST",
-                        body: new URLSearchParams({ action }),
-                        headers: { "Content-Type": "application/x-www-form-urlencoded" }
+            function renderTerminations() {
+                const tbody = $("#terminationBody");
+                if (!tbody) return;
+                tbody.innerHTML = "";
+
+                const filtered = termState.rows.filter(r => {
+                    const d = daysUntil(r.termination);
+                    let pass = true;
+
+                    // dropdown filter
+                    if (termState.filter === "30") pass = d != null && d >= 0 && d <= 30;
+                    else if (termState.filter === "60") pass = d != null && d > 30 && d <= 60;
+                    else if (termState.filter === "ok") pass = d != null && d > 60;
+                    else if (termState.filter === "past") pass = d != null && d < 0;
+
+                    // text query
+                    const q = termState.query.trim().toLowerCase();
+                    if (q) {
+                        const blob = `${r.name} ${r.surname} ${r.company}`.toLowerCase();
+                        pass = pass && blob.includes(q);
+                    }
+                    return pass;
+                });
+
+                // sort
+                if (termState.sortKey) {
+                    filtered.sort((a, b) => {
+                        const ka = (a[termState.sortKey] ?? "").toString();
+                        const kb = (b[termState.sortKey] ?? "").toString();
+                        if (ka < kb) return -1 * termState.sortDir;
+                        if (ka > kb) return 1 * termState.sortDir;
+                        return 0;
+                    });
+                }
+
+                if (!filtered.length) {
+                    tbody.innerHTML = `<tr><td colspan="4" class="muted">No matches</td></tr>`;
+                    return;
+                }
+
+                filtered.forEach(row => {
+                    const d = row.termination || "";
+                    const days = daysUntil(d);
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+        <td>${row.name} ${row.surname}</td>
+        <td>${row.company}</td>
+        <td>${d ? d : ""} <span class="${badgeClass(days)}">${days != null ? (days >= 0 ? days + "d" : "past") : ""}</span></td>
+        <td>
+          <select class="action-select" data-id="${row.id}">
+            <option value="">-- Choose --</option>
+            <option value="Upgrade"  ${row.due_upgrade === "Upgrade" ? "selected" : ""}>Upgrade</option>
+            <option value="Downgrade"${row.due_upgrade === "Downgrade" ? "selected" : ""}>Downgrade</option>
+            <option value="Cancel"   ${row.due_upgrade === "Cancel" ? "selected" : ""}>Cancel</option>
+          </select>
+        </td>
+      `;
+                    tbody.appendChild(tr);
+                });
+
+                // wire action handlers
+                $$(".action-select", tbody).forEach(sel => {
+                    sel.addEventListener("change", async (e) => {
+                        const id = e.target.dataset.id;
+                        const action = e.target.value;
+                        await fetch(`/contracts/${id}/due-upgrade`, {
+                            method: "POST",
+                            body: new URLSearchParams({ action }),
+                            headers: { "Content-Type": "application/x-www-form-urlencoded" }
+                        });
                     });
                 });
-            });
+            }
 
-            // --- Block 3 + 4 are still placeholders, backend hookup next
-            document.getElementById("totalDevices").textContent = "-";
-            document.getElementById("deviceTransfers").textContent = "-";
-            document.getElementById("noInsurance").textContent = "-";
-            document.getElementById("linkedDevices").textContent = "-";
+            function wireTerminationsControls() {
+                const search = $("#termSearch");
+                const filter = $("#termFilter");
+                const head = $("#termTable thead");
 
-            new Chart(document.getElementById("contractPie"), {
-                type: "pie",
-                data: {
-                    labels: ["Airtime", "Data"],
-                    datasets: [{
-                        data: [0, 0],
-                        backgroundColor: ["#ff9900", "#109618"]
-                    }]
+                if (search) search.addEventListener("input", (e) => { termState.query = e.target.value; renderTerminations(); });
+                if (filter) filter.addEventListener("change", (e) => { termState.filter = e.target.value; renderTerminations(); });
+
+                head && head.addEventListener("click", (e) => {
+                    const th = e.target.closest("[data-sort]");
+                    if (!th) return;
+                    const key = th.getAttribute("data-sort");
+                    if (termState.sortKey === key) termState.sortDir *= -1;
+                    else { termState.sortKey = key; termState.sortDir = 1; }
+                    renderTerminations();
+                });
+            }
+
+            // ---------- Main loader ----------
+            async function loadDashboard() {
+                try {
+                    const res = await fetch("/dashboard/home-data");
+                    if (!res.ok) throw new Error(`GET /dashboard/home-data -> ${res.status}`);
+                    const data = await res.json();
+
+                    // Shape adapter & logging so small backend differences don’t break UI
+                    console.debug("[home-data]", data);
+                    const monthlyCosts = data.monthly_costs ?? data.monthly_cost ?? 0;
+
+                    const monthsArr = Array.isArray(data.months) ? data.months
+                        : Array.isArray(data.months_data) ? data.months_data
+                            : [];
+
+                    const upcoming = Array.isArray(data.upcoming_terminations) ? data.upcoming_terminations
+                        : Array.isArray(data.terminations) ? data.terminations
+                            : [];
+
+                    const deviceStats = data.device_stats ?? data.devices ?? {};
+                    const breakdown = data.contract_breakdown ?? data.contracts ?? { labels: [], data: [] };
+
+                    // --- Card 1: Monthly costs line chart ---
+                    const monthlyEl = $("#monthlyCost");
+                    if (monthlyEl) monthlyEl.textContent = fmtR(monthlyCosts);
+
+                    const costCanvas = $("#costChart");
+                    if (costCanvas && window.Chart) {
+                        const labels = monthsArr.map(m => m.month ?? m.label ?? "");
+                        const values = monthsArr.map(m => m.total ?? m.value ?? 0);
+                        const costChart = new Chart(costCanvas, {
+                            type: "line",
+                            data: {
+                                labels,
+                                datasets: [{
+                                    label: "Monthly Cost (R)",
+                                    data: values,
+                                    borderWidth: 2,
+                                    borderColor: "rgba(37,99,235,1)",
+                                    pointRadius: 2,
+                                    tension: 0.35,
+                                    fill: true,
+                                    backgroundColor: (context) => {
+                                        const { ctx, chartArea } = context.chart;
+                                        return lineGradient(ctx, chartArea);
+                                    }
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: { display: false },
+                                    tooltip: { mode: "index", intersect: false }
+                                },
+                                scales: {
+                                    x: { grid: { display: false } },
+                                    y: {
+                                        beginAtZero: true,
+                                        ticks: { callback: v => "R " + Number(v).toLocaleString() },
+                                        grid: { color: "rgba(0,0,0,0.06)" }
+                                    }
+                                }
+                            }
+                        });
+                        // Re-run gradient when layout changes
+                        window.addEventListener("resize", () => costChart.update("none"));
+                    }
+
+                    // --- Card 2: Terminations table ---
+                    termState.rows = upcoming;
+                    const pill = $("#termCount");
+                    if (pill) pill.textContent = termState.rows.length;
+                    wireTerminationsControls();
+                    renderTerminations();
+
+                    // --- Card 3: KPI tiles ---
+                    const st = deviceStats || {};
+                    const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+                    setText("kpiTotal", st.total ?? 0);
+                    setText("kpiTransfers", st.transfers ?? 0);
+                    setText("kpiNoIns", st.no_insurance ?? 0);
+                    setText("kpiLinked", st.linked ?? 0);
+
+                    // --- Card 4: Contract breakdown pie ---
+                    const pieEl = $("#typePie");
+                    if (pieEl && window.Chart) {
+                        const pieData = breakdown || { labels: [], data: [] };
+                        new Chart(pieEl, {
+                            type: "pie",
+                            data: {
+                                labels: pieData.labels,
+                                datasets: [{ data: pieData.data }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: { legend: { position: "bottom" } }
+                            }
+                        });
+                    }
+                } catch (err) {
+                    console.error(err);
+                    const monthlyEl = $("#monthlyCost"); if (monthlyEl) monthlyEl.textContent = "R 0";
+                    const bodyEl = $("#terminationBody"); if (bodyEl) bodyEl.innerHTML = `<tr><td colspan="4" class="muted">Could not load data</td></tr>`;
+                    const pill = $("#termCount"); if (pill) pill.textContent = "—";
                 }
-            });
-        }
+            }
 
-        document.addEventListener("DOMContentLoaded", loadDashboard);
+            document.addEventListener("DOMContentLoaded", loadDashboard);
+        })();
+
+
     </script>
 </body>
 

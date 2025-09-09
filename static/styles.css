@@ -957,3 +957,300 @@ table.sticky th {
     background-color: #4b5e70 !important;
     color: white !important;
 }
+
+/* ===========================
+   PCM Dashboard (content only)
+   =========================== */
+:root {
+    --gap: 18px;
+    --radius: 14px;
+    --line: #e5e7eb;
+    --shadow: 0 10px 28px rgba(0, 0, 0, 0.08);
+    --card-bg: #ffffffea;
+    /* soft glass */
+    --card-bg-hover: #ffffff;
+    --muted: #6b7280;
+    --accent: #2563eb;
+    /* buttons, focus, accents */
+    --ok: #16a34a;
+    --warn: #f59e0b;
+    --danger: #dc2626;
+}
+
+/* keep the sidebar offset intact; do not touch .sidebar */
+.home-dashboard .content4 {
+    margin: 0px 0px 0px 220px;
+    display: flex;
+    align-items: stretch;
+    min-height: calc(100vh - 40px);
+}
+
+.home-dashboard .contentInner4 {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(180deg, #f8fafc, #ffffff);
+    border-radius: 12px;
+    box-shadow: inset 0 1px 0 #fff, 0 1px 0 #f1f5f9;
+    padding: 0;
+}
+
+/* Grid: 2 columns desktop, 1 column on narrow screens */
+.home-dashboard .dash-grid {
+    --cols: 2;
+    display: grid;
+    gap: var(--gap);
+    padding: var(--gap);
+    grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+    align-items: stretch;
+}
+
+@media (max-width: 980px) {
+    .home-dashboard .dash-grid {
+        --cols: 1;
+    }
+}
+
+/* Card */
+.home-dashboard .card {
+    background: var(--card-bg);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    transition: background 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+    min-height: 260px;
+}
+
+.home-dashboard .card:hover {
+    background: var(--card-bg-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.10);
+}
+
+.home-dashboard .card:active {
+    transform: translateY(0);
+}
+
+.home-dashboard .card--tall {
+    min-height: 340px;
+}
+
+.home-dashboard .card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.home-dashboard .card h2 {
+    font-size: 1.05rem;
+    letter-spacing: .2px;
+}
+
+.home-dashboard .big-number {
+    font-size: 2.1rem;
+    font-weight: 800;
+    margin: 4px 0 10px;
+}
+
+/* Chart container ensures canvas scales nicely */
+.home-dashboard .chart-wrap {
+    position: relative;
+    min-height: 180px;
+    flex: 1 1 auto;
+}
+
+/* KPIs */
+.home-dashboard .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.home-dashboard .kpi {
+    background: #f8fafc;
+    border: 1px solid #eef2f7;
+    border-radius: 12px;
+    padding: 12px;
+}
+
+.home-dashboard .kpi-label {
+    color: var(--muted);
+    font-size: .9rem;
+}
+
+.home-dashboard .kpi-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+}
+
+/* Pills & badges */
+.home-dashboard .pill {
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: .78rem;
+    background: #eef2ff;
+    color: #374151;
+    border: 1px solid #e5e7eb;
+}
+
+.home-dashboard .pill-warn {
+    background: #fff7ed;
+    color: #9a3412;
+    border-color: #fde68a;
+}
+
+.home-dashboard .badge {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: .72rem;
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.home-dashboard .badge-danger {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.home-dashboard .badge-warn {
+    background: #ffedd5;
+    color: #9a3412;
+}
+
+.home-dashboard .badge-ok {
+    background: #dcfce7;
+    color: #166534;
+}
+
+/* Inputs (table tools) */
+.home-dashboard .table-tools {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.home-dashboard .input {
+    appearance: none;
+    border: 1px solid var(--line);
+    background: #fff;
+    border-radius: 10px;
+    padding: 8px 10px;
+    font-size: .95rem;
+    outline: none;
+}
+
+.home-dashboard .input:focus {
+    border-color: #bfdbfe;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, .15);
+}
+
+/* Table */
+.home-dashboard .table-wrap {
+    overflow: auto;
+}
+
+.home-dashboard .small-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.home-dashboard .small-table th,
+.home-dashboard .small-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.home-dashboard .small-table thead th {
+    position: sticky;
+    top: 0;
+    background: #f8fafc;
+    z-index: 1;
+}
+
+.home-dashboard .small-table th[data-sort] {
+    cursor: pointer;
+}
+
+.home-dashboard .small-table th[data-sort]::after {
+    content: " ⇅";
+    opacity: .35;
+    font-size: .85em;
+}
+
+/* Helpers */
+.home-dashboard .muted {
+    color: var(--muted);
+    font-size: .9rem;
+}
+
+@media (max-width: 520px) {
+    .home-dashboard .card {
+        min-height: 240px;
+    }
+
+    .home-dashboard .chart-wrap {
+        min-height: 160px;
+    }
+}
+
+/* === Dashboard (home) — transparent bg + bottom spacing === */
+.home-dashboard .content4,
+.home-dashboard .contentInner4 {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: 0 !important;
+}
+
+/* Keep the inner scroller, and ensure 20px space after the last cards */
+.home-dashboard .contentInner4 {
+    /* override earlier fixed heights */
+    height: auto !important;
+    min-height: calc(100vh - 100px);
+    overflow-y: auto;
+    padding-bottom: 20px;
+    /* <-- the 20px you asked for */
+}
+
+/* Let rows size naturally to avoid clipping on smaller screens */
+.home-dashboard .dash-grid {
+    grid-template-rows: auto !important;
+    /* overrides the fixed rows rule */
+    grid-auto-rows: minmax(340px, auto);
+    /* matches your .card min-height */
+}
+
+.home-dashboard .dash-grid>.card:nth-child(4) .chart-wrap {
+    min-height: 120px;
+    /* down from ~180px */
+    padding-top: 4px;
+}
+
+.home-dashboard .dash-grid>.card:nth-child(4) #typePie {
+    height: 160px !important;
+    /* force a shorter canvas */
+    max-height: 160px !important;
+}
+
+/* Untrap the container so content doesn't get chopped */
+.home-dashboard .content4 {
+    overflow: visible !important;
+    height: auto !important;
+    /* was 100% in an earlier rule */
+}
+
+/* Let the grid size rows naturally (not forced) */
+.home-dashboard .dash-grid {
+    padding-bottom: 20px !important;
+    /* the gap you want */
+    box-sizing: border-box;
+    grid-template-rows: auto auto !important;
+}

@@ -1,6 +1,5 @@
-from sqlalchemy import func
-from sqlalchemy import text
-from sqlalchemy import text  # make sure this import is present
+from sqlalchemy import text, Column, Integer, String, Float, DateTime, func, or_
+from sqlalchemy.ext.declarative import declarative_base
 from fastapi import Form, HTTPException
 from typing import Optional
 from fastapi import FastAPI, Request, Form, Depends, status, APIRouter
@@ -17,7 +16,8 @@ from models import VodacomSubscription
 from models import Device
 from database import SessionLocal, engine, Base
 from pydantic import BaseModel
-from datetime import date
+from datetime import date, datetime, timedelta
+import calendar
 # Create all tables (only needed once)
 Base.metadata.create_all(bind=engine)
 
@@ -693,45 +693,60 @@ class PastOwnerOut(BaseModel):
     Client_Division: str
 
 
+def month_range(d: date):
+    """Return [month_start, next_month_start) for the given date."""
+    start = date(d.year, d.month, 1)
+    # next month
+    if d.month == 12:
+        next_start = date(d.year + 1, 1, 1)
+    else:
+        next_start = date(d.year, d.month + 1, 1)
+    return start, next_start
+
+
+def add_months(d: date, months: int) -> date:
+    """Add months to a date (keeps day=1 when we call with month starts)."""
+    y = d.year + (d.month - 1 + months) // 12
+    m = (d.month - 1 + months) % 12 + 1
+    return date(y, m, min(d.day, calendar.monthrange(y, m)[1]))
+
+
 @app.get("/dashboard/home-data")
 def get_home_data(db: Session = Depends(get_db)):
     today = date.today()
 
-    # --- 1) Monthly Costs (current month) ---
-    current_costs = db.query(
-        func.coalesce(func.sum(VodacomSubscription.Monthly_Costs), 0)
-    ).filter(
-        VodacomSubscription.Inception_Date <= today,
-        VodacomSubscription.Termination_Date >= today
+    # ---------- Block 1: Monthly Costs (current month active contracts) ----------
+    month_start, next_month_start = month_range(today)
+
+    # Active this month: inception <= last day of month AND termination >= first day of month
+    current_costs = db.query(func.coalesce(func.sum(VodacomSubscription.Monthly_Costs), 0)).filter(
+        VodacomSubscription.Inception_Date <= next_month_start -
+        timedelta(days=1),
+        VodacomSubscription.Termination_Date >= month_start,
     ).scalar()
 
-    # --- 2) Costs per month (for trend / chart) ---
-    # Build a few months window (prev 3, next 3)
-    from dateutil.relativedelta import relativedelta
+    # Costs per month for the small trend chart (-3..+3)
     months = []
-    for offset in range(-3, 4):  # -3 = 3 months back, +3 = 3 months ahead
-        month_date = today + relativedelta(months=offset)
-        start = month_date.replace(day=1)
-        # Get last day of month safely
-        if month_date.month == 12:
-            end = month_date.replace(
-                year=month_date.year+1, month=1, day=1) - relativedelta(days=1)
-        else:
-            end = month_date.replace(
-                month=month_date.month+1, day=1) - relativedelta(days=1)
+    for offset in range(-3, 4):
+        m_start = month_range(add_months(month_start, offset))[0]
+        m_next = month_range(add_months(month_start, offset))[1]
 
         total = db.query(func.coalesce(func.sum(VodacomSubscription.Monthly_Costs), 0)).filter(
-            VodacomSubscription.Inception_Date <= end,
-            VodacomSubscription.Termination_Date >= start
+            VodacomSubscription.Inception_Date <= m_next - timedelta(days=1),
+            VodacomSubscription.Termination_Date >= m_start,
         ).scalar()
 
         months.append({
-            "month": start.strftime("%b %Y"),
-            "total": float(total or 0)
+            "month": m_start.strftime("%b %Y"),
+            "total": float(total or 0),
         })
 
-    # --- 3) Upcoming Terminations (within 3 months) ---
-    term_limit = today + relativedelta(months=3)
+    # ---------- Block 2: Upcoming Terminations (within next 3 months) ----------
+    # three months from today (use month jumps by whole months)
+    three_months_out_start = add_months(month_start, 3)
+    term_limit = three_months_out_start - \
+        timedelta(days=1)  # end of the 3rd month
+
     upcoming = db.query(
         VodacomSubscription.id,
         VodacomSubscription.Name_,
@@ -746,6 +761,50 @@ def get_home_data(db: Session = Depends(get_db)):
         VodacomSubscription.Termination_Date <= term_limit
     ).order_by(VodacomSubscription.Termination_Date.asc()).all()
 
+    # ---------- Block 3: Devices Overview (now uses created_at for "transfers this month") ----------
+    total_devices = db.query(func.count(Device.id)).scalar()
+
+    # No insurance: treat NULL/empty/"no"
+    no_insurance = db.query(func.count(Device.id)).filter(
+        or_(
+            Device.insurance.is_(None),
+            Device.insurance == "",
+            func.lower(Device.insurance) == "no"
+        )
+    ).scalar()
+
+    # Linked to contracts: vd_id not null
+    linked_devices = db.query(func.count(Device.id)).filter(
+        Device.vd_id.isnot(None)).scalar()
+
+    # Transfers this month from Past_device_owners.created_at
+    transfers_this_month = db.execute(
+        text("""
+            SELECT COUNT(*) FROM Past_device_owners
+            WHERE created_at >= :start AND created_at < :next
+        """),
+        {"start": datetime.combine(month_start, datetime.min.time()),
+         "next":  datetime.combine(next_month_start, datetime.min.time())}
+    ).scalar()
+
+    device_stats = {
+        "total": int(total_devices or 0),
+        "transfers": int(transfers_this_month or 0),
+        "no_insurance": int(no_insurance or 0),
+        "linked": int(linked_devices or 0),
+    }
+
+    # ---------- Block 4: Contract Type Breakdown ----------
+    type_rows = db.query(
+        VodacomSubscription.Contract_Type,
+        func.count(VodacomSubscription.id)
+    ).group_by(VodacomSubscription.Contract_Type).all()
+
+    contract_breakdown = {
+        "labels": [row[0] or "Unknown" for row in type_rows],
+        "data":   [int(row[1]) for row in type_rows],
+    }
+
     return {
         "monthly_costs": float(current_costs or 0),
         "months": months,
@@ -759,9 +818,10 @@ def get_home_data(db: Session = Depends(get_db)):
                 "division": r.Client_Division,
                 "termination": r.Termination_Date.strftime("%Y-%m-%d") if r.Termination_Date else None,
                 "due_upgrade": r.due_upgrade
-            }
-            for r in upcoming
-        ]
+            } for r in upcoming
+        ],
+        "device_stats": device_stats,
+        "contract_breakdown": contract_breakdown,
     }
 
 
