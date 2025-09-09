@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="350" viewBox="0 0 1200 350" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <title>PCM – logo + wordmark lockup</title>
+  <desc>PCM logo with gold circles matching the gold "c" in the wordmark.</desc>
+  <defs>
+    <style><![CDATA[
+      .pcm-navy { fill:#182957; }
+      .pcm-gold { fill:#EBAB21; } /* gold matches the "c" */
+      .wordmark {
+        font-family: "Comfortaa","Nunito","Quicksand","Poppins","Montserrat","Arial Rounded MT Bold", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        font-weight: 700;
+        letter-spacing: -1px;
+      }
+    ]]></style>
+  </defs>
+
+  <!-- Left symbol -->
+  <g id="pcm-symbol" transform="translate(40,20) scale(1.6)">
+    <!-- All dots now explicitly use the same gold as the "c" -->
+    <circle cx="27" cy="128" r="26" class="pcm-gold"/>
+    <circle cx="145" cy="128" r="26" class="pcm-gold"/>
+    <circle cx="86" cy="26" r="26" class="pcm-gold"/>
+    <path d="M8.5 75.5L16 98C53 87.0001 74 129.5 48 154C52.4999 159 55.9998 162.5 63.4995 170L63.5 170C113 118.5 58.5 57.5 8.5 75.5Z" class="pcm-navy"/>
+    <path d="M164.502 75.5L157.002 98C120.002 87.0001 99.002 129.5 125.002 154C120.502 159 117.002 162.5 109.502 170L109.502 170C60.002 118.5 114.502 57.5 164.502 75.5Z" class="pcm-navy"/>
+    <path d="M141.09 36.25L117.855 31.4952C108.881 69.0381 61.5748 65.9746 53.3572 31.208C46.7773 32.6051 41.9963 33.8861 31.7515 36.6312L31.7508 36.6314C51.6011 105.25 131.679 88.5513 141.09 36.25Z" class="pcm-navy"/>
+  </g>
+
+  <!-- Wordmark letters separately -->
+  <g id="wordmark" transform="translate(360,215)">
+    <!-- "p" navy -->
+    <text class="wordmark pcm-navy" font-size="220" x="0" y="0">p</text>
+    <!-- "c" gold -->
+    <text class="wordmark pcm-gold" font-size="220" x="110" y="0">c</text>
+    <!-- "m" navy -->
+    <text class="wordmark pcm-navy" font-size="220" x="180" y="0">m</text>
+  </g>
+</svg>
