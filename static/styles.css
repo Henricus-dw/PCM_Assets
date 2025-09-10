@@ -1,3 +1,43 @@
+:root {
+    --sidebar-width: 220px;
+    --content-gap: 20px;
+    /* effective left offset for content when sidebar is visible */
+    --sidebar-space: calc(var(--sidebar-width) + var(--content-gap));
+}
+
+/* When collapsed, sidebar takes 0 space; content hugs the left with standard gap */
+body.sidebar-collapsed {
+    --sidebar-space: var(--content-gap);
+}
+
+
+.sidebar-toggle {
+    margin-right: 12px;
+    background: #f0e6d2;
+    border: 1px solid #2d2b26;
+    border-radius: 6px;
+    padding: 6px 10px;
+    cursor: pointer;
+    height: 28px;
+    line-height: 1;
+}
+
+.sidebar-scrim {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .35);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 200ms ease;
+    z-index: 90;
+}
+
+/* Show scrim when mobile drawer is open */
+body.sidebar-open .sidebar-scrim {
+    opacity: 1;
+    pointer-events: auto;
+}
+
 /* =======================================
    1. RESET & BASE STYLES
 ======================================= */
@@ -59,16 +99,28 @@ body {
 
 .sidebar {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 220px;
-    height: 100vh;
+    inset: 0 auto 0 0;
+    /* top:0; left:0; bottom:0 */
+    width: var(--sidebar-width);
     background-color: #4b5e70;
     display: flex;
     flex-direction: column;
     overflow-y: auto;
     padding-top: 20px;
+    transform: translateX(0);
+    transition: transform 280ms ease;
+    z-index: 100;
+    /* above content, below modals */
 }
+
+/* Hide it off-screen when collapsed */
+body.sidebar-collapsed .sidebar {
+    transform: translateX(-100%);
+}
+
+/* Mobile drawer pattern: open state pulls it back */
+
+
 
 .sidebar a {
     position: relative;
@@ -142,8 +194,33 @@ body {
 /* =======================================
    3. MAIN CONTENT LAYOUT
 ======================================= */
+.content,
+.content2,
+.content3,
+.home-dashboard .content4 {
+    margin-left: var(--sidebar-space);
+}
+
+/* Keep your original vertical/horizontal spacing */
 .content {
-    margin: 20px 20px 20px 240px;
+    margin: 20px 20px 20px var(--sidebar-space);
+}
+
+.content2 {
+    margin: -2px 20px 20px var(--sidebar-space);
+}
+
+.content3 {
+    margin: 20px 20px 0 var(--sidebar-space);
+}
+
+.home-dashboard .content4 {
+    margin-left: var(--sidebar-space);
+}
+
+
+.content {
+
     display: flex;
     gap: 16px;
     align-items: stretch;
@@ -182,7 +259,7 @@ body {
 }
 
 .content2 {
-    margin: -2px 20px 20px 240px;
+
     display: flex;
     gap: 20px;
     align-items: stretch;
@@ -285,7 +362,7 @@ body {
 }
 
 .content3 {
-    margin: 20px 20px 0px 240px;
+
     /* same left margin, no bottom margin */
     /* Optional styling */
     background-color: #4b5e70;
@@ -306,7 +383,7 @@ body {
 .sort-overlay {
     position: fixed;
     top: 28px;
-    left: 250px;
+    left: calc(var(--sidebar-space) + 10px);
     background-color: #f0e6d2;
     padding: 6px 12px;
     border-radius: 4px;
@@ -979,7 +1056,7 @@ table.sticky th {
 
 /* keep the sidebar offset intact; do not touch .sidebar */
 .home-dashboard .content4 {
-    margin: 0px 0px 0px 220px;
+
     display: flex;
     align-items: stretch;
     min-height: calc(100vh - 40px);
