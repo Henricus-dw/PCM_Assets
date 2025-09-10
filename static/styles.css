@@ -1,3 +1,64 @@
+/* Floating edge handle */
+.sidebar-handle {
+    position: fixed;
+    /* stays put even when sidebar slides away */
+    left: 0;
+    /* always on the left edge */
+    top: 50%;
+    /* vertically centered */
+    transform: translateY(-50%);
+    z-index: 120;
+    /* above sidebar (100) and scrim (90) */
+    border: 1px solid #2d2b26;
+    border-left: none;
+    /* flush with screen edge */
+    background: #f0e6d2;
+    color: #2d2b26;
+    padding: 10px 10px;
+    width: 34px;
+    /* slim "tab" */
+    height: 56px;
+    /* nice hit area */
+    border-radius: 0 10px 10px 0;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .15);
+}
+
+/* Icon styling */
+.sidebar-handle .handle-icon {
+    font-size: 18px;
+    line-height: 1;
+    pointer-events: none;
+}
+
+/* When sidebar is OPEN, nudge the handle slightly right so it looks attached */
+body:not(.sidebar-collapsed) .sidebar-handle {
+    left: 0;
+    /* still at edge; looks attached to the left side */
+}
+
+/* Optional hover feedback */
+.sidebar-handle:hover {
+    background: #4b5e70;
+    color: #fff;
+}
+
+/* Flip the chevron depending on state */
+body.sidebar-collapsed .sidebar-handle .handle-icon {
+    /* pointing right to indicate "open" */
+    transform: rotate(180deg);
+}
+
+/* (Optional) On very small screens, keep it reachable above other UI */
+@media (max-width: 960px) {
+    .sidebar-handle {
+        z-index: 130;
+    }
+}
+
 :root {
     --sidebar-width: 220px;
     --content-gap: 20px;
@@ -9,7 +70,6 @@
 body.sidebar-collapsed {
     --sidebar-space: var(--content-gap);
 }
-
 
 .sidebar-toggle {
     margin-right: 12px;
@@ -38,9 +98,7 @@ body.sidebar-open .sidebar-scrim {
     pointer-events: auto;
 }
 
-/* =======================================
-   1. RESET & BASE STYLES
-======================================= */
+/* ======================================= 1. RESET & BASE STYLES ======================================= */
 /* Header row for forms */
 .form-header {
     display: flex;
@@ -49,8 +107,6 @@ body.sidebar-open .sidebar-scrim {
     gap: 12px;
     margin-bottom: 8px;
 }
-
-
 
 /* The little "Linked" pill, hidden by default */
 .link-pill {
@@ -108,7 +164,7 @@ body {
     overflow-y: auto;
     padding-top: 20px;
     transform: translateX(0);
-    transition: transform 280ms ease;
+    transition: transform 320ms ease-out;
     z-index: 100;
     /* above content, below modals */
 }
@@ -119,9 +175,6 @@ body.sidebar-collapsed .sidebar {
 }
 
 /* Mobile drawer pattern: open state pulls it back */
-
-
-
 .sidebar a {
     position: relative;
     display: block;
@@ -189,16 +242,13 @@ body.sidebar-collapsed .sidebar {
     cursor: pointer;
 }
 
-
-
-/* =======================================
-   3. MAIN CONTENT LAYOUT
-======================================= */
+/* ======================================= 3. MAIN CONTENT LAYOUT ======================================= */
 .content,
 .content2,
 .content3,
 .home-dashboard .content4 {
     margin-left: var(--sidebar-space);
+    transition: margin 300ms ease-out;
 }
 
 /* Keep your original vertical/horizontal spacing */
@@ -218,9 +268,7 @@ body.sidebar-collapsed .sidebar {
     margin-left: var(--sidebar-space);
 }
 
-
 .content {
-
     display: flex;
     gap: 16px;
     align-items: stretch;
@@ -228,7 +276,6 @@ body.sidebar-collapsed .sidebar {
     flex-wrap: wrap;
     flex-wrap: nowrap;
 }
-
 
 /* 2) Neutralize the old formGroupWrapper so it doesn't hog width */
 #formGroupWrapper {
@@ -259,7 +306,6 @@ body.sidebar-collapsed .sidebar {
 }
 
 .content2 {
-
     display: flex;
     gap: 20px;
     align-items: stretch;
@@ -270,9 +316,7 @@ body.sidebar-collapsed .sidebar {
     background-color: #fefaf5;
     border: 1px solid rgba(0, 0, 0, 0.08);
     border-radius: 8px;
-    box-shadow:
-        0 2px 4px rgba(0, 0, 0, 0.08),
-        0 8px 16px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08), 0 8px 16px rgba(0, 0, 0, 0.12);
     display: flex;
     flex-direction: column;
     flex: 1 1 0;
@@ -284,40 +328,20 @@ body.sidebar-collapsed .sidebar {
     flex: 1
 }
 
-
-
 .contentInner2 {
     background-color: #f5fafb;
-
     border-radius: 0 0 8px 8px;
     /* No top-left or top-right bevel */
-
-    box-shadow:
-        0 12px 20px rgba(0, 0, 0, 0.05);
-
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.05);
     display: flex;
     flex-direction: column;
     width: 100%;
     height: calc(100vh - 100px);
     overflow-y: auto;
     position: relative;
-
-
 }
 
-
-
 /* Content header inside contentInner */
-
-
-
-
-
-
-
-
-
-
 .deviceCheckContainer {
     display: inline-flex;
     align-items: center;
@@ -331,8 +355,6 @@ body.sidebar-collapsed .sidebar {
     transform: translateY(15px);
     /* Fine-tune vertical position */
 }
-
-
 
 .boxTopHeader {
     background-color: #4b5e70;
@@ -358,11 +380,9 @@ body.sidebar-collapsed .sidebar {
     border-radius: 8px 8px 0 0;
     width: 100%;
     box-sizing: border-box;
-
 }
 
 .content3 {
-
     /* same left margin, no bottom margin */
     /* Optional styling */
     background-color: #4b5e70;
@@ -384,6 +404,7 @@ body.sidebar-collapsed .sidebar {
     position: fixed;
     top: 28px;
     left: calc(var(--sidebar-space) + 10px);
+    transition: all 300ms ease-out;
     background-color: #f0e6d2;
     padding: 6px 12px;
     border-radius: 4px;
@@ -392,12 +413,9 @@ body.sidebar-collapsed .sidebar {
     display: flex;
     align-items: center;
     gap: 8px;
-
     color: #333;
-
     height: 32px;
     width: 200px;
-
 }
 
 .sort-overlay label {
@@ -446,12 +464,9 @@ body.sidebar-collapsed .sidebar {
     display: flex;
     align-items: center;
     gap: 8px;
-
     color: #333;
-
     height: 32px;
     width: 200px;
-
 }
 
 .sort-overlay2 label {
@@ -497,7 +512,6 @@ body.sidebar-collapsed .sidebar {
 .pdf-icon {
     height: 18px;
     width: 16px;
-
 }
 
 #export-pdf-btn {
@@ -518,9 +532,7 @@ body.sidebar-collapsed .sidebar {
     width: 40px
 }
 
-/* =======================================
-   4. FORM STYLES
-======================================= */
+/* ======================================= 4. FORM STYLES ======================================= */
 form {
     background-color: #fffdfa;
     padding: 30px;
@@ -555,7 +567,6 @@ form::-webkit-scrollbar-thumb {
     /* make the draggable part shorter */
 }
 
-
 .vodacom-form-wrapper {
     background: #fcf7f0;
     ;
@@ -563,8 +574,6 @@ form::-webkit-scrollbar-thumb {
     margin-bottom: 20px;
     border: 1px solid #ccc;
 }
-
-
 
 label {
     display: block;
@@ -624,8 +633,6 @@ button {
 }
 
 /* or inline-block */
-
-
 #submitAllBtn {
     cursor: pointer;
     background-color: #df5d4f;
@@ -670,24 +677,8 @@ button {
     vertical-align: middle;
 }
 
-
-/* =======================================
-   5. BUTTON STYLES
-======================================= */
-
-
-
-
-
+/* ======================================= 5. BUTTON STYLES ======================================= */
 /* Tiny corners animation */
-
-
-
-
-
-
-
-
 .view-contracts-btn {
     font-size: 16px;
     height: 35px;
@@ -708,31 +699,21 @@ button {
     color: white;
 }
 
-/* =======================================
-   6. TABLE STYLES
-======================================= */
+/* ======================================= 6. TABLE STYLES ======================================= */
 table {
     border-collapse: collapse;
     width: auto;
     background-color: #fefaf5;
-
     overflow: hidden;
-    box-shadow:
-        0 12px 20px rgba(0, 0, 0, 0.05);
-
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.05);
     overflow-y: auto;
     table-layout: fixed;
-
-
 }
-
-
 
 .header-row th {
     position: sticky;
     top: 0;
     z-index: 5;
-
     color: white;
     height: 45px;
     text-align: left;
@@ -742,14 +723,6 @@ table {
     z-index: 20;
     align-items: center;
     justify-content: space-between;
-
-
-
-
-
-
-
-
     /* ← Ensures column respects header size */
 }
 
@@ -765,30 +738,16 @@ thead {
     display: inline-block;
 }
 
-
-
-
 .header-filter {
     display: none;
-
     padding: 5px 9px;
-
     font-size: 16px;
-
     background: #f5eee0;
-
     border-radius: 4px;
     border: 1px solid #2d2b26;
     outline: none;
     box-shadow: none;
 }
-
-
-
-
-
-
-
 
 .filter-toggle {
     font-size: 16px;
@@ -813,7 +772,6 @@ td {
     border-right: 1px solid #d8cbb8;
     border-bottom: 1px solid #d8cbb8;
     border-top: none;
-
     padding: 12px 8px;
     text-align: left;
     max-width: 350px;
@@ -845,12 +803,9 @@ tbody tr:nth-child(even) {
 
 tbody tr:hover {
     background-color: #e7dbcd;
-
 }
 
 /* Sticky headers and filters */
-
-
 table.sticky th {
     position: sticky;
     top: 0;
@@ -865,13 +820,7 @@ table.sticky th {
     /* Slightly bigger */
 }
 
-
-
-
-
-/* =======================================
-   7. SCROLLBARS
-======================================= */
+/* ======================================= 7. SCROLLBARS ======================================= */
 .contentInner::-webkit-scrollbar,
 .dashboardContent::-webkit-scrollbar {
     width: 8px;
@@ -903,7 +852,6 @@ table.sticky th {
 .dashboardContent::-webkit-scrollbar {
     width: 8px;
     height: 8px;
-
 }
 
 .contentInner2::-webkit-scrollbar-track {
@@ -933,11 +881,7 @@ table.sticky th {
     height: 8px;
 }
 
-
-
-/* =======================================
-   8. DASHBOARD CONTAINER
-======================================= */
+/* ======================================= 8. DASHBOARD CONTAINER ======================================= */
 .dashboardContent {
     width: 100%;
     height: calc(100vh - 70px);
@@ -949,7 +893,6 @@ table.sticky th {
 .button-group {
     display: flex;
     max-width: 440px;
-
 }
 
 .transfer-btn {
@@ -958,9 +901,7 @@ table.sticky th {
     color: #333;
     background-color: #f0e6d2;
     border: 0.5px solid #f0e6d2;
-
     padding: 4px 8px;
-
     cursor: pointer;
     transition: background-color 0.2s ease, color 0.2s ease;
 }
@@ -1035,9 +976,7 @@ table.sticky th {
     color: white !important;
 }
 
-/* ===========================
-   PCM Dashboard (content only)
-   =========================== */
+/* =========================== PCM Dashboard (content only) =========================== */
 :root {
     --gap: 18px;
     --radius: 14px;
@@ -1056,7 +995,6 @@ table.sticky th {
 
 /* keep the sidebar offset intact; do not touch .sidebar */
 .home-dashboard .content4 {
-
     display: flex;
     align-items: stretch;
     min-height: calc(100vh - 40px);

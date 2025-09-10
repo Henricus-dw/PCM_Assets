@@ -20,6 +20,8 @@
         <a href="/dashboard/devices" class="{{ 'active' if section == 'devices' else '' }}"><span>Devices
                 Dashboard</span></a>
     </div>
+    <button id="sidebarHandle" class="sidebar-handle" aria-label="Collapse sidebar" aria-pressed="false"
+        title="Collapse sidebar"> <span class="handle-icon" aria-hidden="true">⟨</span> </button>
 
     <!-- Main content (uses the 240px left margin defined in styles.css to clear the sidebar) -->
     <div class="content4">
@@ -362,7 +364,29 @@
             document.addEventListener("DOMContentLoaded", loadDashboard);
         })();
 
+        document.addEventListener("DOMContentLoaded", () => {
+            const handle = document.getElementById("sidebarHandle");
+            const collapseBtn = document.getElementById("sidebarCollapse"); // optional header button
+            const scrim = document.getElementById("sidebarScrim");
 
+            function toggleSidebar() {
+                const collapsed = document.body.classList.toggle("sidebar-collapsed");
+
+                handle?.setAttribute("aria-pressed", String(!collapsed ? true : false));
+                handle?.setAttribute(
+                    "aria-label",
+                    collapsed ? "Expand sidebar" : "Collapse sidebar"
+                );
+                handle.title = collapsed ? "Expand sidebar" : "Collapse sidebar";
+            }
+
+            handle?.addEventListener("click", toggleSidebar);
+            collapseBtn?.addEventListener("click", toggleSidebar);
+
+            scrim?.addEventListener("click", () => {
+                document.body.classList.remove("sidebar-open");
+            });
+        });
     </script>
 </body>
 

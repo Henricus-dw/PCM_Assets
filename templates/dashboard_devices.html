@@ -20,12 +20,13 @@
                 Dashboard</span></a>
     </div>
 
-
+    <button id="sidebarHandle" class="sidebar-handle" aria-label="Collapse sidebar" aria-pressed="false"
+        title="Collapse sidebar"> <span class="handle-icon" aria-hidden="true">⟨</span> </button>
 
 
     <!-- Main content -->
     <div class="content3">
-        <button id="sidebarCollapse" class="sidebar-toggle" aria-label="Toggle sidebar">☰</button>
+
         <div class="boxTopHeader2">Devices Dashboard</div>
 
     </div>
@@ -489,6 +490,29 @@
                     console.error(err);
                 });
         }
+        document.addEventListener("DOMContentLoaded", () => {
+            const handle = document.getElementById("sidebarHandle");
+            const collapseBtn = document.getElementById("sidebarCollapse"); // optional header button
+            const scrim = document.getElementById("sidebarScrim");
+
+            function toggleSidebar() {
+                const collapsed = document.body.classList.toggle("sidebar-collapsed");
+
+                handle?.setAttribute("aria-pressed", String(!collapsed ? true : false));
+                handle?.setAttribute(
+                    "aria-label",
+                    collapsed ? "Expand sidebar" : "Collapse sidebar"
+                );
+                handle.title = collapsed ? "Expand sidebar" : "Collapse sidebar";
+            }
+
+            handle?.addEventListener("click", toggleSidebar);
+            collapseBtn?.addEventListener("click", toggleSidebar);
+
+            scrim?.addEventListener("click", () => {
+                document.body.classList.remove("sidebar-open");
+            });
+        });
     </script>
 
 
