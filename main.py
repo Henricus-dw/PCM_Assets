@@ -18,10 +18,37 @@ from database import SessionLocal, engine, Base
 from pydantic import BaseModel
 from datetime import date, datetime, timedelta
 import calendar
+import os
+from passlib.context import CryptContext
+from starlette.middleware.sessions import SessionMiddleware
+from fastapi import HTTPException
+
+
+from models import User  # add this import
+
+
 # Create all tables (only needed once)
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=os.environ.get(
+        "SECRET_KEY", "dev-change-me"),  # set in env for prod
+    same_site="lax",   # or "strict"
+    https_only=True    # sets cookie Secure flag (requires HTTPS in prod)
+)
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+def get_password_hash(plain: str) -> str:
+    return pwd_context.hash(plain)
+
+
+def verify_password(plain: str, hashed: str) -> bool:
+    return pwd_context.verify(plain, hashed)
+
 
 # Mount static folder (for CSS/JS if needed)
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -835,3 +862,58 @@ def set_due_upgrade(contract_id: int, action: str = Form(...), db: Session = Dep
     contract.due_upgrade = action
     db.commit()
     return {"success": True, "id": contract_id, "due_upgrade": action}
+
+
+def current_user(request: Request, db: Session = Depends(get_db)) -> User | None:
+    uid = request.session.get("user_id")
+    if not uid:
+        return None
+    return db.query(User).filter(User.id == uid).first()
+
+
+def require_user(request: Request, db: Session = Depends(get_db)) -> User:
+    user = current_user(request, db)
+    if not user:
+        # not logged in -> redirect to login page
+        response = RedirectResponse(url="/login", status_code=302)
+        return response  # FastAPI doesn't love returning from dependency; we'll use it in route logic below
+    return user
+
+
+@app.get("/login", response_class=HTMLResponse)
+def login_page(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request, "error": None})
+
+
+@app.post("/login")
+def login_post(
+    request: Request,
+    email: str = Form(...),
+    password: str = Form(...),
+    db: Session = Depends(get_db),
+):
+    user = db.query(User).filter(User.email == email).first()
+    if not user or not verify_password(password, user.password_hash):
+        # re-render with error
+        return templates.TemplateResponse(
+            "login.html",
+            {"request": request, "error": "Invalid email or password."},
+            status_code=400,
+        )
+
+    request.session["user_id"] = user.id  # signed, HttpOnly cookie
+    return RedirectResponse(url="/", status_code=302)
+
+
+@app.get("/logout")
+def logout(request: Request):
+    request.session.clear()
+    return RedirectResponse(url="/login", status_code=302)
+
+
+@app.get("/", response_class=HTMLResponse)
+def home(request: Request, db: Session = Depends(get_db)):
+    uid = request.session.get("user_id")
+    if not uid:
+        return RedirectResponse(url="/login", status_code=302)
+    # ... your existing logic and template response

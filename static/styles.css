@@ -12,7 +12,7 @@
     border: 1px solid #2d2b26;
     border-left: none;
     /* flush with screen edge */
-    background: #f0e6d2;
+    background: #f6efe3;
     color: #2d2b26;
     padding: 10px 10px;
     width: 34px;
@@ -41,10 +41,6 @@ body:not(.sidebar-collapsed) .sidebar-handle {
 }
 
 /* Optional hover feedback */
-.sidebar-handle:hover {
-    background: #4b5e70;
-    color: #fff;
-}
 
 /* Flip the chevron depending on state */
 body.sidebar-collapsed .sidebar-handle .handle-icon {
@@ -73,7 +69,7 @@ body.sidebar-collapsed {
 
 .sidebar-toggle {
     margin-right: 12px;
-    background: #f0e6d2;
+    background: #f6efe3;
     border: 1px solid #2d2b26;
     border-radius: 6px;
     padding: 6px 10px;
@@ -138,7 +134,7 @@ body.sidebar-open .sidebar-scrim {
 /* Accessibility: also add a faint divider color change */
 .form-linked .vodacom-form-wrapper,
 .form-linked .device-form-wrapper {
-    border-color: rgba(43, 106, 64, 0.25);
+    border-color: rgba(72, 158, 69, 0.907);
 }
 
 html,
@@ -147,7 +143,7 @@ body {
     padding: 0;
     height: 100%;
     font-family: 'Inter', 'Segoe UI', sans-serif;
-    background: #fcf7f0;
+    background: #fefaf5;
     overflow: hidden;
     /* Prevent background scroll */
     box-sizing: border-box;
@@ -158,7 +154,7 @@ body {
     inset: 0 auto 0 0;
     /* top:0; left:0; bottom:0 */
     width: var(--sidebar-width);
-    background-color: #4b5e70;
+    background-color: #f2f5f8;
     display: flex;
     flex-direction: column;
     overflow-y: auto;
@@ -166,6 +162,8 @@ body {
     transform: translateX(0);
     transition: transform 320ms ease-out;
     z-index: 100;
+    border-top-right-radius: 10px !important;
+    border-bottom-right-radius: 10px !important;
     /* above content, below modals */
 }
 
@@ -181,8 +179,8 @@ body.sidebar-collapsed .sidebar {
     width: 100%;
     padding: 12px 20px;
     text-decoration: none;
-    background-color: #f0e6d2;
-    color: #4b5e70;
+    background-color: #000000d7;
+    color: #ffffff;
     font-weight: 500;
     overflow: hidden;
     transition: color 0.4s ease;
@@ -195,7 +193,7 @@ body.sidebar-collapsed .sidebar {
     left: 0;
     height: 1.5px;
     width: 100%;
-    background-color: #e7dbcd;
+    background-color: black;
     transition: background-color 0.4s ease;
 }
 
@@ -217,7 +215,7 @@ body.sidebar-collapsed .sidebar {
     right: 0;
     bottom: 0;
     left: 0;
-    background-color: #4b5e70;
+    background-color: #fcf7f0;
     transform: scaleX(0);
     transform-origin: right;
     /* background fills right-to-left */
@@ -230,12 +228,12 @@ body.sidebar-collapsed .sidebar {
 }
 
 .sidebar a.active span {
-    color: #f0e6d2;
+    color: #4b5e70;
     /* instant color change with background */
 }
 
 .sidebar a.active::after {
-    background-color: #f0e6d2;
+    background-color: #fcf7f0;
 }
 
 .sidebar a:hover {
@@ -305,11 +303,20 @@ body.sidebar-collapsed .sidebar {
     max-width: none;
 }
 
+/* Floating effect for .content2 block */
 .content2 {
     display: flex;
     gap: 20px;
     align-items: stretch;
     max-height: calc(100vh - 50px - 80px);
+
+    background: #ffffff;
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+    border-bottom-left-radius: 14px !important;
+    border-bottom-right-radius: 14px !important;
+
+
 }
 
 .contentInner {
@@ -329,10 +336,9 @@ body.sidebar-collapsed .sidebar {
 }
 
 .contentInner2 {
-    background-color: #f5fafb;
-    border-radius: 0 0 8px 8px;
-    /* No top-left or top-right bevel */
-    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.05);
+    background-color: white;
+
+    border-radius: 14px 14px 14px 14px;
     display: flex;
     flex-direction: column;
     width: 100%;
@@ -370,8 +376,8 @@ body.sidebar-collapsed .sidebar {
 }
 
 .boxTopHeader2 {
-    background-color: #4b5e70;
-    color: white;
+    background-color: white;
+    color: #4b5e70;
     text-align: center;
     padding: 16px 24px;
     font-size: 1.2em;
@@ -382,30 +388,53 @@ body.sidebar-collapsed .sidebar {
     box-sizing: border-box;
 }
 
+/* Header: shadow on TOP + SIDES only, absolutely NONE on bottom */
 .content3 {
-    /* same left margin, no bottom margin */
-    /* Optional styling */
-    background-color: #4b5e70;
-    color: white;
-    padding: 16px 24px;
+    background: #ffffff !important;
+    color: #4b5e70;
     font-size: 1.2em;
     font-weight: bold;
-    border-radius: 8px 8px 0 0;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-    height: 30px;
-    max-height: 30px;
-    align-items: center;
+
+    height: 60px;
     display: flex;
-    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
-    z-index: 2;
+    align-items: center;
+    /* vertical centering */
+    justify-content: center;
+    /* horizontal centering */
+
+    /* rounded top only */
+    border-top-left-radius: 14px !important;
+    border-top-right-radius: 14px !important;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+
+    /* apply shadow normally */
+    box-shadow:
+        -2px 0 6px rgba(0, 0, 0, 0.10),
+        /* left */
+        2px 0 6px rgba(0, 0, 0, 0.10),
+        /* right */
+        0 -2px 6px rgba(0, 0, 0, 0.12);
+    /* top */
+
+    /* clip so the top edge is flush (no shadow allowed below) */
+    clip-path: inset(-10px -10px 0px -10px);
+
+    position: relative;
+    z-index: 3;
 }
+
+
+
+
+
 
 .sort-overlay {
     position: fixed;
     top: 28px;
     left: calc(var(--sidebar-space) + 10px);
     transition: all 300ms ease-out;
-    background-color: #f0e6d2;
+    background-color: #f6efe3;
     padding: 6px 12px;
     border-radius: 4px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -433,7 +462,7 @@ body.sidebar-collapsed .sidebar {
     padding: 4px 8px;
     border: 1px solid #2d2b26;
     border-radius: 4px;
-    background-color: #f0e6d2;
+    background-color: #f6efe3;
     border: 1px solid #2d2b26;
     cursor: pointer;
     width: 140px;
@@ -446,7 +475,7 @@ body.sidebar-collapsed .sidebar {
 
 .sort-overlay select:hover,
 .sort-overlay select:focus {
-    background-color: #4b5e70;
+    background-color: #0b0f12;
     color: white;
     /* slightly darker on hover/focus */
     outline: none;
@@ -456,7 +485,7 @@ body.sidebar-collapsed .sidebar {
     position: fixed;
     top: 28px;
     right: 30px;
-    background-color: #f0e6d2;
+    background-color: #f6efe3;
     padding: 6px 12px;
     border-radius: 4px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -479,7 +508,7 @@ body.sidebar-collapsed .sidebar {
 }
 
 .export-button {
-    background-color: #f0e6d2;
+    background-color: #f6efe3;
     /* Excel green */
     color: white;
     border: none;
@@ -515,7 +544,7 @@ body.sidebar-collapsed .sidebar {
 }
 
 #export-pdf-btn {
-    background-color: #f0e6d2;
+    background-color: #f6efe3;
     /* Excel green */
     color: white;
     border: none;
@@ -683,7 +712,7 @@ button {
     font-size: 16px;
     height: 35px;
     padding: 4px 10px;
-    background-color: #f0e6d2;
+    background-color: #f6efe3;
     color: black;
     border-radius: 4px;
     cursor: pointer;
@@ -703,11 +732,12 @@ button {
 table {
     border-collapse: collapse;
     width: auto;
-    background-color: #fefaf5;
+    background-color: #faf7f2;
     overflow: hidden;
     box-shadow: 0 12px 20px rgba(0, 0, 0, 0.05);
     overflow-y: auto;
     table-layout: fixed;
+    border-radius: 14px 14px 14px 14px
 }
 
 .header-row th {
@@ -715,6 +745,7 @@ table {
     top: 0;
     z-index: 5;
     color: white;
+
     height: 45px;
     text-align: left;
     white-space: nowrap;
@@ -751,8 +782,8 @@ thead {
 
 .filter-toggle {
     font-size: 16px;
-    color: #333;
-    background-color: #f0e6d2;
+    color: white;
+    background-color: #4b5e70;
     border: 1px solid #2d2b26;
     padding: 4px 8px;
     border-radius: 4px;
@@ -762,15 +793,16 @@ thead {
 
 .filter-toggle:hover,
 .filter-toggle.active {
-    background-color: #4b5e70;
-    color: white;
+    background-color: #f6efe3;
+
+    color: #333;
 }
 
 th,
 td {
-    border-left: 1px solid #d8cbb8;
-    border-right: 1px solid #d8cbb8;
-    border-bottom: 1px solid #d8cbb8;
+    border-left: 1px solid #1e222345;
+    border-right: 1px solid #1e222350;
+    border-bottom: 1px solid #1e222342;
     border-top: none;
     padding: 12px 8px;
     text-align: left;
@@ -798,7 +830,7 @@ tbody tr {
 }
 
 tbody tr:nth-child(even) {
-    background-color: #fffdfa;
+    background-color: white;
 }
 
 tbody tr:hover {
@@ -809,12 +841,12 @@ tbody tr:hover {
 table.sticky th {
     position: sticky;
     top: 0;
-    background-color: #f0e6d2;
-    color: black;
+    background-color: white;
+    color: #4b5e70;
     z-index: 5;
-    box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.1);
+
     font-family: 'Inter', 'Segoe UI', sans-serif;
-    font-weight: 450;
+    font-weight: bold;
     /* Slightly bolder */
     font-size: 1.15rem;
     /* Slightly bigger */
@@ -855,8 +887,12 @@ table.sticky th {
 }
 
 .contentInner2::-webkit-scrollbar-track {
-    background-color: #fcf7f0;
-    /* Hide the track */
+    background: #ffffff;
+    margin-top: 0;
+    margin-bottom: 14px;
+    margin-right: 14px;
+    margin-left: 14px
+        /* Hide the track */
 }
 
 .contentInner2::-webkit-scrollbar-thumb {
@@ -899,8 +935,8 @@ table.sticky th {
     flex: 1;
     font-size: 16px;
     color: #333;
-    background-color: #f0e6d2;
-    border: 0.5px solid #f0e6d2;
+    background-color: #f6efe3;
+    border: 0.5px solid #f6efe3;
     padding: 4px 8px;
     cursor: pointer;
     transition: background-color 0.2s ease, color 0.2s ease;
@@ -956,12 +992,12 @@ table.sticky th {
 }
 
 .result-table th {
-    background-color: #f0e6d2;
+    background-color: #f6efe3;
 }
 
 /* Highlight row on hover */
 .result-table tr.selectable:hover td {
-    background-color: #f0e6d2;
+    background-color: #f6efe3;
     cursor: pointer;
 }
 
@@ -1343,11 +1379,21 @@ table.sticky th {
 
 /* Keep the shell white and clean (unchanged) */
 .sidebar {
-    background: #ffffff !important;
+    background: #fcf7f0 !important;
     border-right: 1px solid #eaeaea !important;
     overflow: hidden !important;
     /* no scrollbars */
     font-family: "Inter", "IBM Plex Sans", "Helvetica Neue", system-ui, -apple-system, Segoe UI, Arial, sans-serif;
+    box-shadow:
+        -2px 0 6px rgba(0, 0, 0, 0.10),
+        /* left */
+        2px 0 6px rgba(0, 0, 0, 0.10),
+        /* right */
+        0 -2px 6px rgba(0, 0, 0, 0.12);
+    /* top */
+
+    /* clip so the top edge is flush (no shadow allowed below) */
+    clip-path: inset(-10px -10px 0px -10px);
 }
 
 /* Center the PCM logo and size it up ~25% WITHOUT overflow */
@@ -1397,20 +1443,21 @@ table.sticky th {
 /* Clean hover background (unchanged) */
 .sidebar a:hover,
 .sidebar a:focus-visible {
-    background: #f7f8fa !important;
-    outline: none !important;
+    background: #ffffff !important;
+
     box-shadow: inset 0 -1px 0 #ececee !important;
 }
 
 /* ===== Underline (navy), centered, short, never clipped ===== */
 :root {
-    --navy: #0b2a5b;
+    --navy: #4b5e70;
+    --underline-offset: 4px;
 }
 
 /* dark navy; tweak if you have an exact brand code */
 
 .sidebar a::after {
-    content: "" !important;
+    content: " " !important;
     position: absolute !important;
     left: 50% !important;
     bottom: 8px !important;
@@ -1432,7 +1479,7 @@ table.sticky th {
 /* Hover: same width & navy (just lighter opacity), smoothly animated */
 .sidebar a:hover::after,
 .sidebar a:focus-visible::after {
-    opacity: .6 !important;
+    opacity: .9 !important;
     transform: translateX(-50%) scaleX(1) !important;
     /* same width as selected */
 }
@@ -1455,6 +1502,56 @@ table.sticky th {
 
 /* Collapsed state stays white and consistent */
 body.sidebar-collapsed .sidebar {
-    background: #ffffff !important;
+    background: #fcf7f0 !important;
     border-right: 1px solid #eaeaea !important;
+}
+
+/* --- Bigger PCM logo (~50%), extra gap, subtle divider --- */
+.sidebar>img {
+    display: block !important;
+    /* much wider, but still safely inside the 220px column */
+    width: calc(130% - 2px) !important;
+    max-width: calc(130% - 2px) !important;
+    height: auto !important;
+
+    /* more breathing room under the logo */
+    margin: 20px 20px 20px 15px !important;
+}
+
+/* gap + divider before the first nav item */
+.sidebar a:first-of-type {
+    margin-top: 8px !important;
+    padding-top: 14px !important;
+    border-top: 1px solid #eaeaea !important;
+    /* subtle line */
+}
+
+/* keep the header above everything so nothing bleeds over it */
+.content3 {
+    position: relative;
+    z-index: 3;
+}
+
+/* .content2 floats with shadow on sides + bottom, none on top */
+.content2 {
+    display: flex;
+    gap: 20px;
+    align-items: stretch;
+    max-height: calc(100vh - 50px - 45px);
+
+    background: #ffffff;
+    border-radius: 0 0 14px 14px !important;
+
+    /* shadow: left + right + bottom only (no top) */
+    box-shadow:
+        -2px 0 6px rgba(0, 0, 0, 0.12),
+        /* left */
+        2px 0 6px rgba(0, 0, 0, 0.12),
+        /* right */
+        0 -2px 6px rgba(0, 0, 0, 0.15);
+    /* bottom */
+
+    overflow: visible;
+    position: relative;
+    z-index: 1;
 }
