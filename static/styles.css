@@ -1269,3 +1269,192 @@ table.sticky th {
     box-sizing: border-box;
     grid-template-rows: auto auto !important;
 }
+
+/* ================================
+   Sidebar underline — signature blue
+   ================================ */
+
+.sidebar a {
+    color: #000 !important;
+    /* black text */
+    font-size: 1.06rem;
+    font-weight: 400;
+    letter-spacing: -0.005em;
+    background: transparent !important;
+    padding: 12px 20px !important;
+    border: none !important;
+    border-radius: 0 !important;
+    position: relative;
+    box-sizing: border-box;
+    transition:
+        background-color .25s ease,
+        color .20s ease,
+        box-shadow .25s ease,
+        opacity .20s ease,
+        transform .25s ease;
+}
+
+/* underline element */
+.sidebar a::after {
+    content: "" !important;
+    position: absolute;
+    left: 50%;
+    bottom: 8px;
+    height: 4px;
+    width: min(60%, calc(100% - 40px));
+    transform: translateX(-50%) scaleX(0.0);
+    transform-origin: center;
+    border-radius: 3px;
+    opacity: 0;
+    /* darker version of signature app blue */
+    background: #1e40af;
+    /* deep blue (darker than #2563eb) */
+    transition:
+        transform .24s ease,
+        opacity .20s ease,
+        background-color .24s ease;
+}
+
+/* hover = subtle preview */
+.sidebar a:hover::after,
+.sidebar a:focus-visible::after {
+    opacity: .5;
+    transform: translateX(-50%) scaleX(0.75);
+}
+
+/* active = full underline */
+.sidebar a.active::after {
+    opacity: 1;
+    transform: translateX(-50%) scaleX(1);
+}
+
+/* ============================
+   Precise tweaks requested
+   (no layout/HTML/JS changes)
+   ============================ */
+
+/* Safety: never exceed sidebar width (220px) */
+.sidebar,
+.sidebar * {
+    box-sizing: border-box !important;
+    max-width: 100% !important;
+    /* hard cap to container width */
+}
+
+/* Keep the shell white and clean (unchanged) */
+.sidebar {
+    background: #ffffff !important;
+    border-right: 1px solid #eaeaea !important;
+    overflow: hidden !important;
+    /* no scrollbars */
+    font-family: "Inter", "IBM Plex Sans", "Helvetica Neue", system-ui, -apple-system, Segoe UI, Arial, sans-serif;
+}
+
+/* Center the PCM logo and size it up ~25% WITHOUT overflow */
+.sidebar>img {
+    display: block !important;
+    margin: 12px auto 12px auto !important;
+    /* center */
+    height: auto !important;
+    /* target “~25% larger” visually while strictly fitting inside 220px */
+    width: min(125%, calc(100% - 32px)) !important;
+    /* grow, but clamp inside */
+    max-width: calc(100% - 32px) !important;
+    /* never exceed container */
+}
+
+/* Links: black, slightly larger, skinny (unchanged) */
+.sidebar a {
+    color: #000000 !important;
+    font-size: 1.06rem !important;
+    font-weight: 400 !important;
+    /* skinny */
+    letter-spacing: -0.005em !important;
+    background: transparent !important;
+    padding: 12px 20px !important;
+    /* internal; stays inside 220px */
+    border: none !important;
+    border-radius: 0 !important;
+    position: relative !important;
+    white-space: nowrap !important;
+    /* avoid wrapping-induced overflow */
+    overflow: hidden !important;
+    /* keep underline inside */
+    text-overflow: ellipsis !important;
+    transition:
+        background-color .25s ease,
+        color .20s ease,
+        box-shadow .25s ease,
+        opacity .20s ease,
+        transform .25s ease !important;
+}
+
+/* Thin separators between items (visual only) */
+.sidebar a+a {
+    border-top: 1px solid #f2f2f2 !important;
+}
+
+/* Clean hover background (unchanged) */
+.sidebar a:hover,
+.sidebar a:focus-visible {
+    background: #f7f8fa !important;
+    outline: none !important;
+    box-shadow: inset 0 -1px 0 #ececee !important;
+}
+
+/* ===== Underline (navy), centered, short, never clipped ===== */
+:root {
+    --navy: #0b2a5b;
+}
+
+/* dark navy; tweak if you have an exact brand code */
+
+.sidebar a::after {
+    content: "" !important;
+    position: absolute !important;
+    left: 50% !important;
+    bottom: 8px !important;
+    height: 4px !important;
+    /* short line, clamped to fit inside left/right padding (20px each) */
+    width: min(60%, calc(100% - 40px)) !important;
+    transform: translateX(-50%) scaleX(0) !important;
+    transform-origin: center !important;
+    border-radius: 3px !important;
+    opacity: 0 !important;
+    background: var(--navy) !important;
+    /* NAVY underline */
+    transition:
+        transform .24s ease,
+        opacity .20s ease,
+        background-color .24s ease !important;
+}
+
+/* Hover: same width & navy (just lighter opacity), smoothly animated */
+.sidebar a:hover::after,
+.sidebar a:focus-visible::after {
+    opacity: .6 !important;
+    transform: translateX(-50%) scaleX(1) !important;
+    /* same width as selected */
+}
+
+/* Selected: underline in NAVY, text NAVY & bold as requested */
+.sidebar a.active {
+    background: transparent !important;
+    color: var(--navy) !important;
+    /* selected text = navy */
+    font-weight: 700 !important;
+    /* bold when selected */
+}
+
+.sidebar a.active::after {
+    opacity: 1 !important;
+    transform: translateX(-50%) scaleX(1) !important;
+    /* full short line, centered */
+    background: var(--navy) !important;
+}
+
+/* Collapsed state stays white and consistent */
+body.sidebar-collapsed .sidebar {
+    background: #ffffff !important;
+    border-right: 1px solid #eaeaea !important;
+}
