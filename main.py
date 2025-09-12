@@ -112,9 +112,18 @@ def logout(request: Request):
 def read_root(request: Request):
     if not request.session.get("user_id"):
         return RedirectResponse(url="/login", status_code=302)
-    return templates.TemplateResponse("form.html", {"request": request, "section": "form"})
+    return templates.TemplateResponse("dashboard_home.html", {"request": request, "section": "home"})
+
 
 # 2) DASHBOARD "/" base page (you already had this)
+
+
+@app.get("/form", response_class=HTMLResponse)
+def form_page(request: Request):
+    if not request.session.get("user_id"):
+        return RedirectResponse(url="/login", status_code=302)
+    return templates.TemplateResponse("form.html",
+                                      {"request": request, "section": "form"})
 
 
 @app.get("/dashboard", response_class=HTMLResponse)
@@ -712,3 +721,13 @@ def get_home_data(request: Request, db: Session = Depends(get_db)):
         "device_stats": device_stats,
         "contract_breakdown": contract_breakdown,
     }
+
+
+@app.get("/admin", response_class=HTMLResponse)
+async def admin(request: Request):
+    return templates.TemplateResponse("admin.html", {"request": request, "section": "admin"})
+
+
+@app.get("/settings", response_class=HTMLResponse)
+async def settings(request: Request):
+    return templates.TemplateResponse("settings.html", {"request": request, "section": "settings"})

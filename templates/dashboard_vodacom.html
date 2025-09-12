@@ -12,14 +12,23 @@
     <!-- Sidebar navigation -->
     <div class="sidebar">
         <img src="/static/pcm-lockup-goldc-final.svg" alt="PCM logo" />
-        <a href="/dashboard" class="{{ 'active' if section == 'home' else '' }}"><span>Home</span></a>
-        <a href="/" class="{{ 'active' if section == 'form' else '' }}"><span>Capturing Form</span></a>
 
-        <a href="/dashboard/vodacom" class="{{ 'active' if section == 'vodacom' else '' }}"><span>Vodacom
-                Dashboard</span></a>
-        <a href="/dashboard/devices" class="{{ 'active' if section == 'devices' else '' }}"><span>Devices
-                Dashboard</span></a>
-        <a href="/logout"><span>Log Out</span></a>
+        <!-- Top navigation -->
+        <div class="nav-top">
+            <a href="/dashboard" class="{{ 'active' if section == 'home' else '' }}"><span>Home</span></a>
+            <a href="/form" class="{{ 'active' if section == 'form' else '' }}"><span>Capturing Form</span></a>
+            <a href="/dashboard/vodacom" class="{{ 'active' if section == 'vodacom' else '' }}"><span>Vodacom
+                    Dashboard</span></a>
+            <a href="/dashboard/devices" class="{{ 'active' if section == 'devices' else '' }}"><span>Devices
+                    Dashboard</span></a>
+        </div>
+
+        <!-- Bottom navigation -->
+        <div class="nav-bottom">
+            <a href="/admin" class="{{ 'active' if section == 'admin' else '' }}"><span>Admin</span></a>
+            <a href="/settings" class="{{ 'active' if section == 'settings' else '' }}"><span>Settings</span></a>
+            <a href="/logout" class="{{ 'active' if section == 'logout' else '' }}"><span>Log Out</span></a>
+        </div>
     </div>
     <button id="sidebarHandle" class="sidebar-handle" aria-label="Collapse sidebar" aria-pressed="false"
         title="Collapse sidebar"> <span class="handle-icon" aria-hidden="true">⟨</span> </button>

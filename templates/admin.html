@@ -8,7 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
-<body class="home-dashboard">
+<body>
     <!-- Sidebar (220px wide; CSS already handles styling) -->
     <div class="sidebar">
         <img src="/static/pcm-lockup-goldc-final.svg" alt="PCM logo" />
@@ -33,97 +33,6 @@
     <button id="sidebarHandle" class="sidebar-handle" aria-label="Collapse sidebar" aria-pressed="false"
         title="Collapse sidebar"> <span class="handle-icon" aria-hidden="true">⟨</span> </button>
 
-    <!-- Main content (uses the 240px left margin defined in styles.css to clear the sidebar) -->
-    <div class="content4">
-        <div class="contentInner4">
-            <div class="dash-grid">
-                <!-- Card 1: Monthly Costs -->
-                <section class="card card--tall">
-                    <header class="card-head">
-                        <h2>Vodacom Monthly Costs</h2>
-                        <span id="monthPill" class="pill">This month</span>
-                    </header>
-                    <div class="big-number" id="monthlyCost">R 0</div>
-                    <div class="chart-wrap">
-                        <canvas id="costChart"></canvas>
-                    </div>
-                    <p class="muted">Sum of Monthly_Costs for active contracts in the selected month.</p>
-                </section>
-
-                <!-- Card 2: Upcoming Terminations -->
-                <section class="card card--tall">
-                    <header class="card-head">
-                        <h2>Upcoming Terminations (next 3 months)</h2>
-                        <span class="pill pill-warn" id="termCount">0</span>
-                    </header>
-
-                    <div class="table-tools">
-                        <input id="termSearch" class="input" placeholder="Search name/company…" />
-                        <select id="termFilter" class="input">
-                            <option value="all">All</option>
-                            <option value="30">≤ 30 days</option>
-                            <option value="60">31–60 days</option>
-                            <option value="ok">> 60 days</option>
-                            <option value="past">Past</option>
-                        </select>
-                    </div>
-
-                    <div class="table-wrap">
-                        <table class="small-table" id="termTable">
-                            <thead>
-                                <tr>
-                                    <th data-sort="name">Name</th>
-                                    <th data-sort="company">Company</th>
-                                    <th data-sort="termination">Termination</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="terminationBody">
-                                <tr>
-                                    <td colspan="4" class="muted">Loading…</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <!-- Card 3: Devices Overview -->
-                <section class="card">
-                    <header class="card-head">
-                        <h2>Devices Overview</h2>
-                    </header>
-                    <div class="kpi-grid">
-                        <div class="kpi">
-                            <div class="kpi-label">Total devices</div>
-                            <div class="kpi-value" id="kpiTotal">-</div>
-                        </div>
-                        <div class="kpi">
-                            <div class="kpi-label">Transfers this month</div>
-                            <div class="kpi-value" id="kpiTransfers">-</div>
-                        </div>
-                        <div class="kpi">
-                            <div class="kpi-label">No insurance</div>
-                            <div class="kpi-value" id="kpiNoIns">-</div>
-                        </div>
-                        <div class="kpi">
-                            <div class="kpi-label">Linked to contracts</div>
-                            <div class="kpi-value" id="kpiLinked">-</div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Card 4: Contract Type Breakdown -->
-                <section class="card">
-                    <header class="card-head">
-                        <h2>Contract Type Breakdown</h2>
-                    </header>
-                    <div class="chart-wrap">
-                        <canvas id="typePie"></canvas>
-                    </div>
-                </section>
-            </div>
-        </div>
-    </div>
 
 
     <script>

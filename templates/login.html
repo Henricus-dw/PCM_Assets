@@ -5,15 +5,31 @@
     <meta charset="UTF-8" />
     <title>Sign in</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link href="/styles.css" rel="stylesheet" />
+    <link href="/static/styles.css" rel="stylesheet" />
     <style>
-        /* minimal inline styles; you can move into styles.css */
+        body {
+            background: #fefaf5;
+            /* matches app background */
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
         .login-wrap {
             max-width: 420px;
             margin: 10vh auto;
             padding: 2rem;
             border-radius: 14px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, .08);
+            background: #ffffff;
+            /* clean white card */
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        h1 {
+            margin: 0 0 1.5rem 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #111827;
         }
 
         .field {
@@ -24,6 +40,7 @@
             display: block;
             font-weight: 600;
             margin-bottom: .35rem;
+            color: #333;
         }
 
         input {
@@ -31,6 +48,14 @@
             padding: .75rem 1rem;
             border: 1px solid #ddd;
             border-radius: 10px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        input:focus {
+            border-color: #bfdbfe;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, .15);
+            outline: none;
         }
 
         button {
@@ -40,23 +65,49 @@
             border-radius: 12px;
             font-weight: 700;
             cursor: pointer;
+            background: #111827;
+            color: #fff;
+            font-size: 1rem;
+            transition: background 0.2s ease;
         }
 
-        .btn {
-            background: #111827;
-            color: white;
+        button:hover {
+            background: #1f2937;
         }
 
         .error {
             color: #b91c1c;
             margin-bottom: 1rem;
+            font-weight: 500;
+        }
+
+        .logo-wrap {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .logo-wrap img {
+            max-width: 300px;
+            padding-left: 80px;
+            max-height: 300px;
+            display: flex;
+            width: auto;
+            height: auto;
+        }
+
+        h1 {
+            text-align: center;
         }
     </style>
 </head>
 
 <body>
     <main class="login-wrap">
-        <h1 style="margin:0 0 1rem 0;">Sign in</h1>
+        <div class="logo-wrap">
+            <img src="/static/pcm-lockup-goldc-final.svg" alt="PCM logo">
+        </div>
+        <h1>Sign in:</h1>
         {% if error %}
         <div class="error">{{ error }}</div>
         {% endif %}
@@ -69,7 +120,7 @@
                 <label for="password">Password</label>
                 <input id="password" name="password" type="password" required autocomplete="current-password" />
             </div>
-            <button class="btn" type="submit">Sign in</button>
+            <button type="submit">Sign in</button>
         </form>
     </main>
 </body>
