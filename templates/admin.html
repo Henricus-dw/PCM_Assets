@@ -6,6 +6,155 @@
     <title>PCM Dashboard</title>
     <link rel="stylesheet" href="/static/styles.css?v={{ time }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .admin-card {
+            margin: 20px;
+            padding: 20px;
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, .08);
+            width: 50%;
+            max-height: 40vh;
+            overflow: auto;
+        }
+
+        .admin-card.expanded {
+            max-height: 80vh;
+        }
+
+        .admin-head {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .admin-title {
+            font-weight: 800;
+            font-size: 1.05rem;
+            color: #111827;
+            margin: 0;
+        }
+
+        ._spacer {
+            flex: 1 1 auto;
+        }
+
+        .size-toggle {
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: .45rem .9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background .2s ease;
+        }
+
+        .size-toggle:hover {
+            background: #e5e7eb;
+        }
+
+        .req-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .req-row {
+            display: flex;
+            align-items: center;
+            background: #fafafa;
+            border: 1px solid #f1f5f9;
+            border-radius: 12px;
+            padding: 10px 12px;
+            max-height: 50px;
+        }
+
+        .req-info {
+            display: flex;
+            gap: 16px;
+        }
+
+        .req-info span {
+            font-size: .95rem;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .req-info .muted {
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        .req-actions {
+            margin-left: auto;
+            display: inline-flex;
+            gap: 0;
+        }
+
+        /* Modern solid buttons */
+        .btn {
+            border: none;
+            outline: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.6rem 1.2rem;
+            font-weight: 600;
+            font-size: .9rem;
+            color: #fff;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background 0.25s ease, transform 0.15s ease, box-shadow 0.25s ease;
+            line-height: 1.2;
+        }
+
+        /* Forest green */
+        .btn-approve {
+            background: #1b5e20;
+        }
+
+        .btn-approve:hover {
+            background: #145214;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(27, 94, 32, 0.35);
+        }
+
+        /* Darker red */
+        .btn-deny {
+            background: #8b0000;
+        }
+
+        .btn-deny:hover {
+            background: #6e0000;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(139, 0, 0, 0.35);
+        }
+
+        /* Pressed state */
+        .btn:active {
+            transform: translateY(0);
+            box-shadow: none;
+            filter: brightness(0.95);
+        }
+
+        /* Kill form defaults */
+        .req-actions form {
+            margin: 0;
+            padding: 0;
+            border: none;
+            background: transparent;
+            display: inline;
+        }
+
+        .empty {
+            color: #6b7280;
+            font-weight: 600;
+            background: #fafafa;
+            border: 1px dashed #e5e7eb;
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+    </style>
 </head>
 
 <body>
@@ -34,46 +183,44 @@
         title="Collapse sidebar"> <span class="handle-icon" aria-hidden="true">⟨</span> </button>
 
 
+
+
+
+    <!-- Left-aligned content space; not centered -->
     <div class="content" style="margin:20px var(--content-gap) 20px var(--sidebar-space);">
-        <div class="contentInner" style="max-width:820px;margin:auto;">
-            <div class="boxTopHeader">Pending account requests</div>
-            <div style="padding:20px;">
-                {% if not pending %}
-                <p class="muted">No pending requests.</p>
-                {% else %}
-                <table class="sticky" style="width:100%;">
-                    <thead class="header-row">
-                        <tr>
-                            <th>Name</th>
-                            <th>Surname</th>
-                            <th>Email</th>
-                            <th style="width:210px;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for p in pending %}
-                        <tr>
-                            <td>{{ p.name }}</td>
-                            <td>{{ p.surname }}</td>
-                            <td>{{ p.email }}</td>
-                            <td>
-                                <form method="post" action="/admin/approve/{{ p.id }}" style="display:inline;">
-                                    <button class="view-contracts-btn" type="submit">Approve</button>
-                                </form>
-                                <form method="post" action="/admin/deny/{{ p.id }}"
-                                    style="display:inline;margin-left:6px;">
-                                    <button class="view-contracts-btn" type="submit">Deny</button>
-                                </form>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                {% endif %}
+        <div id="adminCard" class="admin-card">
+            <div class="admin-head">
+                <h2 class="admin-title">Pending account requests</h2>
+                <div class="_spacer"></div>
+                <button class="size-toggle" type="button" onclick="toggleAdminCard()">Expand</button>
             </div>
+
+            {% if not pending %}
+            <div class="empty">No pending requests.</div>
+            {% else %}
+            <div class="req-list">
+                {% for p in pending %}
+                <div class="req-row">
+                    <div class="req-info">
+                        <span>{{ p.name }}</span>
+                        <span>{{ p.surname }}</span>
+                        <span class="muted">{{ p.email }}</span>
+                    </div>
+
+                    <div class="req-actions">
+                        <form method="post" action="/admin/approve/{{ p.id }}">
+                            <button class="btn btn-approve" type="submit">Approve</button>
+                        </form>
+                        <form method="post" action="/admin/deny/{{ p.id }}">
+                            <button class="btn btn-deny" type="submit">Deny</button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
         </div>
     </div>
-
 
     <script>
 
@@ -103,6 +250,12 @@
             });
         });
 
+        function toggleAdminCard() {
+            const el = document.getElementById('adminCard');
+            el.classList.toggle('expanded');
+            const btn = document.querySelector('.size-toggle');
+            btn.textContent = el.classList.contains('expanded') ? 'Shrink' : 'Expand';
+        }
     </script>
 
 </body>

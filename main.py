@@ -1,3 +1,4 @@
+from sqlalchemy import desc   # already imported at top, but make sure
 from datetime import datetime  # (already imported above in your file)
 from sqlalchemy import text, Column, Integer, String, Float, DateTime, func, or_, exc
 from sqlalchemy.ext.declarative import declarative_base
@@ -731,7 +732,8 @@ def admin(request: Request, db: Session = Depends(get_db)):
     if not request.session.get("user_id"):
         return RedirectResponse(url="/login", status_code=302)
     pending = db.query(PendingUser).order_by(
-        PendingUser.created_at.asc()).all()
+        PendingUser.created_at.desc()   # newest first
+    ).all()
     return templates.TemplateResponse("admin.html", {
         "request": request,
         "section": "admin",
