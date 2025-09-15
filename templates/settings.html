@@ -6,6 +6,81 @@
     <title>PCM Dashboard</title>
     <link rel="stylesheet" href="/static/styles.css?v={{ time }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .confirm {
+            width: auto;
+            height: auto;
+            color: white;
+            background-color: #4b5e70;
+            border: none;
+            border-radius: 14px;
+            padding: 4px 14px 6px 14px;
+            font: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            margin: 0 auto;
+            margin-top: 20px;
+            transition: background-color 0.2s ease;
+
+        }
+
+
+
+        .confirm:hover {
+            background-color: #f6efe3;
+
+            color: #333;
+        }
+
+        .confirm2:hover {
+            background-color: #f6efe3;
+
+            color: #333;
+        }
+
+        .confirm2 {
+            width: auto;
+            height: 20px;
+            color: white;
+            background-color: #4b5e70;
+            border: none;
+            border-radius: 14px;
+            padding: 2px 14px 12px 14px;
+            font: inherit;
+            cursor: pointer;
+            display: block;
+            /* no flexbox here */
+            margin-left: auto;
+            /* pushes it to the right */
+            margin-right: 30px;
+            font-size: 12px;
+            margin-bottom: -20px;
+            transition: background-color 0.2s ease;
+        }
+
+
+        /* Confirm buttons reserve their space but start hidden */
+        #confirm1,
+        #confirm2 {
+            visibility: hidden;
+        }
+
+
+
+        .form_settings {
+            height: auto;
+            max-height: 200px;
+            overflow: hidden;
+            background: transparent !important;
+            box-shadow: none !important;
+            border: none !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+        }
+    </style>
 </head>
 
 <body class="home-dashboard">
@@ -33,372 +108,211 @@
     <button id="sidebarHandle" class="sidebar-handle" aria-label="Collapse sidebar" aria-pressed="false"
         title="Collapse sidebar"> <span class="handle-icon" aria-hidden="true">⟨</span> </button>
 
-    <!-- Main content (uses the 240px left margin defined in styles.css to clear the sidebar) -->
-    <div class="content4">
-        <div class="contentInner4">
-            <div class="dash-grid">
-                <!-- Card 1: Monthly Costs -->
-                <section class="card card--tall">
-                    <header class="card-head">
-                        <h2>Vodacom Monthly Costs</h2>
-                        <span id="monthPill" class="pill">This month</span>
-                    </header>
-                    <div class="big-number" id="monthlyCost">R 0</div>
-                    <div class="chart-wrap">
-                        <canvas id="costChart"></canvas>
-                    </div>
-                    <p class="muted">Sum of Monthly_Costs for active contracts in the selected month.</p>
-                </section>
+    <div class="content">
+        <!-- Block 1: The form -->
 
-                <!-- Card 2: Upcoming Terminations -->
-                <section class="card card--tall">
-                    <header class="card-head">
-                        <h2>Upcoming Terminations (next 3 months)</h2>
-                        <span class="pill pill-warn" id="termCount">0</span>
-                    </header>
 
-                    <div class="table-tools">
-                        <input id="termSearch" class="input" placeholder="Search name/company…" />
-                        <select id="termFilter" class="input">
-                            <option value="all">All</option>
-                            <option value="30">≤ 30 days</option>
-                            <option value="60">31–60 days</option>
-                            <option value="ok">> 60 days</option>
-                            <option value="past">Past</option>
-                        </select>
-                    </div>
+        <div class="contentInner" style="max-width: 500px; " id="form1">
+            <div class="boxTopHeader">Settings</div>
+            <form id="profileForm" method="POST" action="/settings/profile" class="form_settings">
+                <button type="button" id="editProfileBtn" class="confirm2">Edit</button>
 
-                    <div class="table-wrap">
-                        <table class="small-table" id="termTable">
-                            <thead>
-                                <tr>
-                                    <th data-sort="name">Name</th>
-                                    <th data-sort="company">Company</th>
-                                    <th data-sort="termination">Termination</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="terminationBody">
-                                <tr>
-                                    <td colspan="4" class="muted">Loading…</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
+                <div class="UserDetails">
+                    <span class="field-label">Name:</span>
+                    <span class="field-control">
+                        <input type="text" name="name" value="{{ current_user.name or '' }}" placeholder="(optional)">
+                    </span>
+                </div>
 
-                <!-- Card 3: Devices Overview -->
-                <section class="card">
-                    <header class="card-head">
-                        <h2>Devices Overview</h2>
-                    </header>
-                    <div class="kpi-grid">
-                        <div class="kpi">
-                            <div class="kpi-label">Total devices</div>
-                            <div class="kpi-value" id="kpiTotal">-</div>
-                        </div>
-                        <div class="kpi">
-                            <div class="kpi-label">Transfers this month</div>
-                            <div class="kpi-value" id="kpiTransfers">-</div>
-                        </div>
-                        <div class="kpi">
-                            <div class="kpi-label">No insurance</div>
-                            <div class="kpi-value" id="kpiNoIns">-</div>
-                        </div>
-                        <div class="kpi">
-                            <div class="kpi-label">Linked to contracts</div>
-                            <div class="kpi-value" id="kpiLinked">-</div>
-                        </div>
-                    </div>
-                </section>
+                <div class="UserDetails">
+                    <span class="field-label">Surname:</span>
+                    <span class="field-control">
+                        <input type="text" name="surname" value="{{ current_user.surname or '' }}"
+                            placeholder="(optional)">
+                    </span>
+                </div>
 
-                <!-- Card 4: Contract Type Breakdown -->
-                <section class="card">
-                    <header class="card-head">
-                        <h2>Contract Type Breakdown</h2>
-                    </header>
-                    <div class="chart-wrap">
-                        <canvas id="typePie"></canvas>
-                    </div>
-                </section>
-            </div>
+                <div class="UserDetails">
+                    <span class="field-label">Email address:</span>
+                    <span class="field-control">
+                        <span class="readonly-value">{{ current_user.email }}</span>
+                    </span>
+                </div>
+
+                <button type="submit" id="confirm1" class="confirm">Confirm</button>
+            </form>
+
+
+
+            <div class="form_line"></div>
+
+            <form id="passwordForm" method="POST" action="/settings/password" class="form_settings">
+                <div class="UserDetails">
+                    <span class="field-label">Password:</span>
+                    <span class="field-control">
+                        <input type="password" name="password" placeholder="Password" required>
+                    </span>
+                </div>
+
+                <div class="UserDetails">
+                    <span class="field-label">New Password:</span>
+                    <span class="field-control">
+                        <input type="password" name="new_password" placeholder="New Password" minlength="8" required>
+                    </span>
+                </div>
+
+                <div class="UserDetails">
+                    <span class="field-label">Confirm new password:</span>
+                    <span class="field-control">
+                        <input type="password" name="confirm_password" placeholder="New Password" required>
+                    </span>
+                </div>
+
+                <button type="submit" id="confirm2" class="confirm">Confirm</button>
+            </form>
+
         </div>
-    </div>
 
 
-    <script>
-        (function () {
-            // ---------- Tiny DOM helpers ----------
-            const $ = (sel, root = document) => root.querySelector(sel);
-            const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                // --- Sidebar toggle ---
+                const handle = document.getElementById("sidebarHandle");
+                const collapseBtn = document.getElementById("sidebarCollapse");
+                const scrim = document.getElementById("sidebarScrim");
 
-            // ---------- Formatting & badges ----------
-            function fmtR(value) {
-                try { return "R " + Number(value ?? 0).toLocaleString(); }
-                catch { return "R " + (value ?? 0); }
-            }
-            function daysUntil(iso) {
-                if (!iso) return null;
-                const d = new Date(iso + "T00:00:00");
-                const now = new Date();
-                return Math.ceil((d - now) / (1000 * 60 * 60 * 24));
-            }
-            function badgeClass(days) {
-                if (days == null) return "badge";
-                if (days < 0) return "badge badge-danger";
-                if (days <= 30) return "badge badge-danger";
-                if (days <= 60) return "badge badge-warn";
-                return "badge badge-ok";
-            }
+                function toggleSidebar() {
+                    const collapsed = document.body.classList.toggle("sidebar-collapsed");
+                    handle?.setAttribute("aria-pressed", String(!collapsed));
+                    handle?.setAttribute("aria-label", collapsed ? "Expand sidebar" : "Collapse sidebar");
+                    handle.title = collapsed ? "Expand sidebar" : "Collapse sidebar";
+                }
 
-            // ---------- Chart helpers ----------
-            // Guard against chartArea being undefined on first render
-            function lineGradient(ctx, area, colorTop = "rgba(37,99,235,0.18)", colorBottom = "rgba(37,99,235,0.02)") {
-                if (!area) return colorTop; // first layout: return flat color so Chart.js doesn't crash
-                const g = ctx.createLinearGradient(0, area.top, 0, area.bottom);
-                g.addColorStop(0, colorTop);
-                g.addColorStop(1, colorBottom);
-                return g;
-            }
+                handle?.addEventListener("click", toggleSidebar);
+                collapseBtn?.addEventListener("click", toggleSidebar);
+                scrim?.addEventListener("click", () => document.body.classList.remove("sidebar-open"));
 
-            // ---------- Terminations table state & rendering ----------
-            const termState = {
-                rows: [],
-                sortKey: null,
-                sortDir: 1, // 1 asc, -1 desc
-                filter: "all",
-                query: ""
-            };
+                // --- Profile form: show Confirm if NAME or SURNAME changed ---
+                const profileForm = document.getElementById('profileForm');
+                const nameInput = profileForm?.querySelector('input[name="name"]');
+                const surnameInput = profileForm?.querySelector('input[name="surname"]');
+                const confirm1 = document.getElementById('confirm1');
 
-            function renderTerminations() {
-                const tbody = $("#terminationBody");
-                if (!tbody) return;
-                tbody.innerHTML = "";
+                const editBtn = document.getElementById('editProfileBtn');
 
-                const filtered = termState.rows.filter(r => {
-                    const d = daysUntil(r.termination);
-                    let pass = true;
-
-                    // dropdown filter
-                    if (termState.filter === "30") pass = d != null && d >= 0 && d <= 30;
-                    else if (termState.filter === "60") pass = d != null && d > 30 && d <= 60;
-                    else if (termState.filter === "ok") pass = d != null && d > 60;
-                    else if (termState.filter === "past") pass = d != null && d < 0;
-
-                    // text query
-                    const q = termState.query.trim().toLowerCase();
-                    if (q) {
-                        const blob = `${r.name} ${r.surname} ${r.company}`.toLowerCase();
-                        pass = pass && blob.includes(q);
-                    }
-                    return pass;
-                });
-
-                // sort
-                if (termState.sortKey) {
-                    filtered.sort((a, b) => {
-                        const ka = (a[termState.sortKey] ?? "").toString();
-                        const kb = (b[termState.sortKey] ?? "").toString();
-                        if (ka < kb) return -1 * termState.sortDir;
-                        if (ka > kb) return 1 * termState.sortDir;
-                        return 0;
+                if (editBtn && nameInput && surnameInput) {
+                    editBtn.addEventListener('click', () => {
+                        // focus the Name field
+                        nameInput.focus();
+                        // move caret to the end of the current value
+                        const length = nameInput.value.length;
+                        nameInput.setSelectionRange(length, length);
                     });
                 }
 
-                if (!filtered.length) {
-                    tbody.innerHTML = `<tr><td colspan="4" class="muted">No matches</td></tr>`;
-                    return;
-                }
+                if (profileForm && confirm1) {
+                    const initialName = (nameInput?.defaultValue ?? '').trim();
+                    const initialSurname = (surnameInput?.defaultValue ?? '').trim();
 
-                filtered.forEach(row => {
-                    const d = row.termination || "";
-                    const days = daysUntil(d);
-                    const tr = document.createElement("tr");
-                    tr.innerHTML = `
-        <td>${row.name} ${row.surname}</td>
-        <td>${row.company}</td>
-        <td>${d ? d : ""} <span class="${badgeClass(days)}">${days != null ? (days >= 0 ? days + "d" : "past") : ""}</span></td>
-        <td>
-          <select class="action-select" data-id="${row.id}">
-            <option value="">-- Choose --</option>
-            <option value="Upgrade"  ${row.due_upgrade === "Upgrade" ? "selected" : ""}>Upgrade</option>
-            <option value="Downgrade"${row.due_upgrade === "Downgrade" ? "selected" : ""}>Downgrade</option>
-            <option value="Cancel"   ${row.due_upgrade === "Cancel" ? "selected" : ""}>Cancel</option>
-          </select>
-        </td>
-      `;
-                    tbody.appendChild(tr);
-                });
-
-                // wire action handlers
-                $$(".action-select", tbody).forEach(sel => {
-                    sel.addEventListener("change", async (e) => {
-                        const id = e.target.dataset.id;
-                        const action = e.target.value;
-                        await fetch(`/contracts/${id}/due-upgrade`, {
-                            method: "POST",
-                            body: new URLSearchParams({ action }),
-                            headers: { "Content-Type": "application/x-www-form-urlencoded" }
-                        });
-                    });
-                });
-            }
-
-            function wireTerminationsControls() {
-                const search = $("#termSearch");
-                const filter = $("#termFilter");
-                const head = $("#termTable thead");
-
-                if (search) search.addEventListener("input", (e) => { termState.query = e.target.value; renderTerminations(); });
-                if (filter) filter.addEventListener("change", (e) => { termState.filter = e.target.value; renderTerminations(); });
-
-                head && head.addEventListener("click", (e) => {
-                    const th = e.target.closest("[data-sort]");
-                    if (!th) return;
-                    const key = th.getAttribute("data-sort");
-                    if (termState.sortKey === key) termState.sortDir *= -1;
-                    else { termState.sortKey = key; termState.sortDir = 1; }
-                    renderTerminations();
-                });
-            }
-
-            // ---------- Main loader ----------
-            async function loadDashboard() {
-                try {
-                    const res = await fetch("/dashboard/home-data");
-                    if (!res.ok) throw new Error(`GET /dashboard/home-data -> ${res.status}`);
-                    const data = await res.json();
-
-                    // Shape adapter & logging so small backend differences don’t break UI
-                    console.debug("[home-data]", data);
-                    const monthlyCosts = data.monthly_costs ?? data.monthly_cost ?? 0;
-
-                    const monthsArr = Array.isArray(data.months) ? data.months
-                        : Array.isArray(data.months_data) ? data.months_data
-                            : [];
-
-                    const upcoming = Array.isArray(data.upcoming_terminations) ? data.upcoming_terminations
-                        : Array.isArray(data.terminations) ? data.terminations
-                            : [];
-
-                    const deviceStats = data.device_stats ?? data.devices ?? {};
-                    const breakdown = data.contract_breakdown ?? data.contracts ?? { labels: [], data: [] };
-
-                    // --- Card 1: Monthly costs line chart ---
-                    const monthlyEl = $("#monthlyCost");
-                    if (monthlyEl) monthlyEl.textContent = fmtR(monthlyCosts);
-
-                    const costCanvas = $("#costChart");
-                    if (costCanvas && window.Chart) {
-                        const labels = monthsArr.map(m => m.month ?? m.label ?? "");
-                        const values = monthsArr.map(m => m.total ?? m.value ?? 0);
-                        const costChart = new Chart(costCanvas, {
-                            type: "line",
-                            data: {
-                                labels,
-                                datasets: [{
-                                    label: "Monthly Cost (R)",
-                                    data: values,
-                                    borderWidth: 2,
-                                    borderColor: "rgba(37,99,235,1)",
-                                    pointRadius: 2,
-                                    tension: 0.35,
-                                    fill: true,
-                                    backgroundColor: (context) => {
-                                        const { ctx, chartArea } = context.chart;
-                                        return lineGradient(ctx, chartArea);
-                                    }
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                plugins: {
-                                    legend: { display: false },
-                                    tooltip: { mode: "index", intersect: false }
-                                },
-                                scales: {
-                                    x: { grid: { display: false } },
-                                    y: {
-                                        beginAtZero: true,
-                                        ticks: { callback: v => "R " + Number(v).toLocaleString() },
-                                        grid: { color: "rgba(0,0,0,0.06)" }
-                                    }
-                                }
-                            }
-                        });
-                        // Re-run gradient when layout changes
-                        window.addEventListener("resize", () => costChart.update("none"));
+                    function checkProfileChanged() {
+                        const nameChanged = !!nameInput && nameInput.value.trim() !== initialName;
+                        const surnameChanged = !!surnameInput && surnameInput.value.trim() !== initialSurname;
+                        const changed = nameChanged || surnameChanged;
+                        confirm1.style.visibility = changed ? 'visible' : 'hidden';
                     }
 
-                    // --- Card 2: Terminations table ---
-                    termState.rows = upcoming;
-                    const pill = $("#termCount");
-                    if (pill) pill.textContent = termState.rows.length;
-                    wireTerminationsControls();
-                    renderTerminations();
+                    nameInput?.addEventListener('input', checkProfileChanged);
+                    surnameInput?.addEventListener('input', checkProfileChanged);
+                    nameInput?.addEventListener('change', checkProfileChanged);
+                    surnameInput?.addEventListener('change', checkProfileChanged);
 
-                    // --- Card 3: KPI tiles ---
-                    const st = deviceStats || {};
-                    const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-                    setText("kpiTotal", st.total ?? 0);
-                    setText("kpiTransfers", st.transfers ?? 0);
-                    setText("kpiNoIns", st.no_insurance ?? 0);
-                    setText("kpiLinked", st.linked ?? 0);
-
-                    // --- Card 4: Contract breakdown pie ---
-                    const pieEl = $("#typePie");
-                    if (pieEl && window.Chart) {
-                        const pieData = breakdown || { labels: [], data: [] };
-                        new Chart(pieEl, {
-                            type: "pie",
-                            data: {
-                                labels: pieData.labels,
-                                datasets: [{ data: pieData.data }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                plugins: { legend: { position: "bottom" } }
-                            }
-                        });
-                    }
-                } catch (err) {
-                    console.error(err);
-                    const monthlyEl = $("#monthlyCost"); if (monthlyEl) monthlyEl.textContent = "R 0";
-                    const bodyEl = $("#terminationBody"); if (bodyEl) bodyEl.innerHTML = `<tr><td colspan="4" class="muted">Could not load data</td></tr>`;
-                    const pill = $("#termCount"); if (pill) pill.textContent = "—";
+                    // Handle prefilled/autofill values
+                    checkProfileChanged();
+                    setTimeout(checkProfileChanged, 200);
                 }
-            }
 
-            document.addEventListener("DOMContentLoaded", loadDashboard);
-        })();
+                // --- Password form: show Confirm if any password field has text ---
+                const passwordForm = document.getElementById('passwordForm');
+                const currPwd = passwordForm?.querySelector('input[name="password"]');
+                const newPwd = passwordForm?.querySelector('input[name="new_password"]');
+                const confPwd = passwordForm?.querySelector('input[name="confirm_password"]');
+                const confirm2 = document.getElementById('confirm2');
 
-        document.addEventListener("DOMContentLoaded", () => {
-            const handle = document.getElementById("sidebarHandle");
-            const collapseBtn = document.getElementById("sidebarCollapse"); // optional header button
-            const scrim = document.getElementById("sidebarScrim");
+                if (passwordForm && confirm2) {
+                    function checkPwdTyped() {
+                        const anyTyped = (currPwd?.value || newPwd?.value || confPwd?.value || '').length > 0;
+                        confirm2.style.visibility = anyTyped ? 'visible' : 'hidden';
+                    }
 
-            function toggleSidebar() {
-                const collapsed = document.body.classList.toggle("sidebar-collapsed");
+                    [currPwd, newPwd, confPwd].forEach(el => el && el.addEventListener('input', checkPwdTyped));
+                    checkPwdTyped();
+                }
 
-                handle?.setAttribute("aria-pressed", String(!collapsed ? true : false));
-                handle?.setAttribute(
-                    "aria-label",
-                    collapsed ? "Expand sidebar" : "Collapse sidebar"
-                );
-                handle.title = collapsed ? "Expand sidebar" : "Collapse sidebar";
-            }
+                // --- Messages + error borders from query params ---
+                const params = new URLSearchParams(window.location.search);
+                const ok = params.get('ok');   // 'profile' | 'pwd'
+                const err = params.get('err');  // 'badpwd' | 'nomatch'
 
-            handle?.addEventListener("click", toggleSidebar);
-            collapseBtn?.addEventListener("click", toggleSidebar);
+                function showMessageAbove(formElem, text, isError) {
+                    if (!formElem) return;
+                    const msg = document.createElement('div');
+                    msg.textContent = text;
+                    msg.style.margin = '10px 30px 0 30px';
+                    msg.style.fontSize = '14px';
+                    msg.style.fontWeight = '600';
+                    msg.style.color = isError ? '#b00020' : '#0a7a3c';
+                    formElem.parentElement.insertBefore(msg, formElem);
+                }
 
-            scrim?.addEventListener("click", () => {
-                document.body.classList.remove("sidebar-open");
+                function redBorderForInput(input) {
+                    const row = input?.closest('.UserDetails');
+                    if (row) {
+                        row.style.boxShadow = '0 0 0 2px #d9534f inset';
+                        row.style.borderRadius = '14px';
+                    }
+                }
+
+                if (ok === 'profile') {
+                    showMessageAbove(profileForm, 'Profile details updated successfully', false);
+                } else if (ok === 'pwd') {
+                    showMessageAbove(passwordForm, 'Password changed successfully', false);
+                }
+
+                if (err === 'badpwd') {
+                    showMessageAbove(passwordForm, 'Incorrect password', true);
+                    redBorderForInput(currPwd);
+                } else if (err === 'nomatch') {
+                    showMessageAbove(passwordForm, 'Password does not match', true);
+                    redBorderForInput(newPwd);
+                    redBorderForInput(confPwd);
+                }
+
+                // Clean URL so refresh doesn’t re-show messages
+                if (ok || err) {
+                    const url = new URL(window.location.href);
+                    url.searchParams.delete('ok');
+                    url.searchParams.delete('err');
+                    window.history.replaceState({}, '', url.toString());
+                }
             });
-        });
+            const editBtn = document.getElementById('editProfileBtn');
 
-    </script>
+            if (editBtn && nameInput && surnameInput) {
+                editBtn.addEventListener('click', () => {
+                    // toggle highlight on Name and Surname rows
+                    [nameInput, surnameInput].forEach(input => {
+                        const row = input.closest('.UserDetails');
+                        row?.classList.toggle('highlight-input');
+                    });
+                });
+            }
+
+        </script>
+
+
+
+
+
 </body>
 
 </html>

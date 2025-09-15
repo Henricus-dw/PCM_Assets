@@ -1,7 +1,8 @@
-from sqlalchemy import text, Column, Integer, String, Float, DateTime, func, or_
+from datetime import datetime  # (already imported above in your file)
+from sqlalchemy import text, Column, Integer, String, Float, DateTime, func, or_, exc
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
-from fastapi import FastAPI, Request, Form, Depends, HTTPException
+from fastapi import FastAPI, Request, Form, Depends, HTTPException, APIRouter, Path
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -14,16 +15,18 @@ from datetime import date, datetime, timedelta
 import calendar
 import os
 
+from auth import get_current_user
+
 # ---- Your models & DB ----
-from models import VodacomSubscription, Device, User
+from models import VodacomSubscription, Device, User, PendingUser
 from database import SessionLocal, engine, Base
 
 # Create all tables (only needed once)
 Base.metadata.create_all(bind=engine)
-
+router = APIRouter()
 # ---- App setup ----
 app = FastAPI()
-
+app.include_router(router)
 # IMPORTANT for local dev: https_only=False so the browser will send the cookie over http://127.0.0.1
 app.add_middleware(
     SessionMiddleware,
@@ -724,10 +727,158 @@ def get_home_data(request: Request, db: Session = Depends(get_db)):
 
 
 @app.get("/admin", response_class=HTMLResponse)
-async def admin(request: Request):
-    return templates.TemplateResponse("admin.html", {"request": request, "section": "admin"})
+def admin(request: Request, db: Session = Depends(get_db)):
+    if not request.session.get("user_id"):
+        return RedirectResponse(url="/login", status_code=302)
+    pending = db.query(PendingUser).order_by(
+        PendingUser.created_at.asc()).all()
+    return templates.TemplateResponse("admin.html", {
+        "request": request,
+        "section": "admin",
+        "pending": pending,
+        "time": datetime.utcnow().timestamp(),
+    })
+
+
+@app.post("/admin/approve/{pending_id}")
+def approve_user(pending_id: int = Path(...), db: Session = Depends(get_db), request: Request = None):
+    if not request.session.get("user_id"):
+        return RedirectResponse(url="/login", status_code=302)
+
+    # Move inside a transaction so it's atomic
+    with db.begin():
+        p = db.query(PendingUser).filter(PendingUser.id ==
+                                         pending_id).with_for_update().first()
+        if not p:
+            raise HTTPException(
+                status_code=404, detail="Pending user not found")
+
+        # Create real User (will 409 if email taken)
+        user = User(email=p.email, password_hash=p.password_hash,
+                    name=p.name, surname=p.surname)
+        db.add(user)
+        db.delete(p)
+
+    return RedirectResponse(url="/admin", status_code=303)
+
+
+@app.post("/admin/deny/{pending_id}")
+def deny_user(pending_id: int = Path(...), db: Session = Depends(get_db), request: Request = None):
+    if not request.session.get("user_id"):
+        return RedirectResponse(url="/login", status_code=302)
+
+    p = db.query(PendingUser).filter(PendingUser.id == pending_id).first()
+    if not p:
+        raise HTTPException(status_code=404, detail="Pending user not found")
+    db.delete(p)
+    db.commit()
+    return RedirectResponse(url="/admin", status_code=303)
 
 
 @app.get("/settings", response_class=HTMLResponse)
-async def settings(request: Request):
-    return templates.TemplateResponse("settings.html", {"request": request, "section": "settings"})
+async def settings(
+    request: Request,
+    current_user: User = Depends(get_current_user)  # get the logged-in user
+):
+    return templates.TemplateResponse(
+        "settings.html",
+        {
+            "request": request,
+            "section": "settings",
+            "current_user": current_user,
+            # for /static cache-busting in your link
+            "time": datetime.utcnow().timestamp(),
+        },
+    )
+
+
+@app.post("/settings/profile")
+def update_profile(
+    name: Optional[str] = Form(None),
+    surname: Optional[str] = Form(None),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    # load the same DB row into THIS db session
+    user = db.query(User).filter(User.id == current_user.id).first()
+    if not user:
+        # should never happen if you're logged in, but safe-guard anyway
+        raise HTTPException(status_code=404, detail="User not found")
+
+    user.name = (name or "").strip() or None
+    user.surname = (surname or "").strip() or None
+
+    # email stays unchanged (rendered read-only in the UI)
+    db.commit()
+    return RedirectResponse("/settings?ok=profile", status_code=303)
+
+
+@app.post("/settings/password")
+def update_password(
+    request: Request,
+    password: str = Form(...),
+    new_password: str = Form(...),
+    confirm_password: str = Form(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    # 1) Validate inputs
+    if new_password != confirm_password:
+        # redirect with UI-friendly code (?err=nomatch)
+        return RedirectResponse("/settings?err=nomatch", status_code=303)
+    if len(new_password) < 8:
+        # keep this as a redirect too, or swap to your own message if you like
+        return RedirectResponse("/settings?err=nomatch", status_code=303)
+
+    # 2) Verify current password
+    if not verify_password(password, current_user.password_hash):
+        return RedirectResponse("/settings?err=badpwd", status_code=303)
+
+    # 3) Update in THIS db session
+    user = db.query(User).filter(User.id == current_user.id).first()
+    if not user:
+        # rare, but redirect back safely
+        return RedirectResponse("/settings", status_code=303)
+
+    user.password_hash = get_password_hash(new_password)
+    db.commit()
+
+    # 4) Success
+    return RedirectResponse("/settings?ok=pwd", status_code=303)
+
+
+@app.get("/register", response_class=HTMLResponse)
+def register_page(request: Request):
+    # Reuse login card styling
+    return templates.TemplateResponse("register.html", {"request": request, "error": None})
+
+
+@app.post("/register", response_class=HTMLResponse)
+def register_post(
+    request: Request,
+    name: str = Form(...),
+    surname: str = Form(...),
+    email: str = Form(...),
+    password: str = Form(...),
+    confirm_password: str = Form(...),
+    db: Session = Depends(get_db),
+):
+    # Basic checks
+    if password != confirm_password:
+        return templates.TemplateResponse("register.html", {"request": request, "error": "Passwords do not match."}, status_code=400)
+
+    # Check email not in users nor pending
+    existing_user = db.query(User).filter(User.email == email).first()
+    existing_pending = db.query(PendingUser).filter(
+        PendingUser.email == email).first()
+    if existing_user or existing_pending:
+        return templates.TemplateResponse("register.html", {"request": request, "error": "Email already exists or is pending approval."}, status_code=400)
+
+    hashed = get_password_hash(password)
+    pending = PendingUser(email=email.strip().lower(
+    ), password_hash=hashed, name=name.strip(), surname=surname.strip())
+    db.add(pending)
+    db.commit()
+
+    # After submission, send them back to login with a friendly note
+    return templates.TemplateResponse("login.html", {"request": request, "error": "Account request submitted. An admin will approve or deny."}, status_code=200)

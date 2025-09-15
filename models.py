@@ -1,7 +1,6 @@
 from sqlalchemy import Column, Integer, String, Float, DateTime, func, UniqueConstraint
-from sqlalchemy.ext.declarative import declarative_base
 
-Base = declarative_base()
+from database import Base
 
 
 class VodacomSubscription(Base):
@@ -49,6 +48,22 @@ class User(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     email = Column(String(255), nullable=False, unique=True, index=True)
     password_hash = Column(String(255), nullable=False)
+    name = Column(String(100), nullable=True)      # New field
+    surname = Column(String(100), nullable=True)   # New field
     created_at = Column(DateTime, server_default=func.now())
 
     __table_args__ = (UniqueConstraint('email', name='uq_users_email'),)
+
+
+class PendingUser(Base):
+    __tablename__ = "pending_users"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    email = Column(String(255), nullable=False, unique=True, index=True)
+    # hashed, never plaintext
+    password_hash = Column(String(255), nullable=False)
+    name = Column(String(100), nullable=False)
+    surname = Column(String(100), nullable=False)
+    created_at = Column(DateTime, server_default=func.now())
+
+    __table_args__ = (UniqueConstraint(
+        'email', name='uq_pending_users_email'),)

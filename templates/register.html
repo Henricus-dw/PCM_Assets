@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Create account</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="/static/styles.css" rel="stylesheet" />
+    <style>
+        /* mirror login card */
+        .login-wrap {
+            max-width: 420px;
+            margin: 10vh auto;
+            padding: 2rem;
+            border-radius: 14px;
+            background: #fff;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, .08)
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin: .35rem 0;
+            color: #333
+        }
+
+        input {
+            width: 100%;
+            padding: .75rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            box-sizing: border-box
+        }
+
+        input:focus {
+            border-color: #bfdbfe;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, .15);
+            outline: none
+        }
+
+        button {
+            width: 100%;
+            padding: .9rem 1rem;
+            border: 0;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            background: #111827;
+            color: #fff;
+            font-size: 1rem
+        }
+
+        .error {
+            color: #b91c1c;
+            margin-bottom: 1rem;
+            font-weight: 500
+        }
+    </style>
+</head>
+
+<body>
+    <main class="login-wrap">
+        <h1 style="text-align:center;">Create account</h1>
+        {% if error %}<div class="error">{{ error }}</div>{% endif %}
+        <form method="post" action="/register" autocomplete="on">
+            <label for="name">Name</label>
+            <input id="name" name="name" required />
+            <label for="surname">Surname</label>
+            <input id="surname" name="surname" required />
+            <label for="email">Email address</label>
+            <input id="email" name="email" type="email" required autocomplete="email" />
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" required autocomplete="new-password" />
+            <label for="confirm_password">Confirm password</label>
+            <input id="confirm_password" name="confirm_password" type="password" required autocomplete="new-password" />
+            <button type="submit" style="margin-top:10px;">Request approval</button>
+            <p style="text-align:center;margin-top:12px;"><a href="/login">Back to sign in</a></p>
+        </form>
+    </main>
+</body>
+
+</html>

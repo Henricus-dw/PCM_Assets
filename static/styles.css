@@ -25,6 +25,7 @@
     align-items: center;
     justify-content: center;
     box-shadow: 0 4px 12px rgba(0, 0, 0, .15);
+    transition: background-color 0.4s ease;
 }
 
 /* Icon styling */
@@ -67,16 +68,8 @@ body.sidebar-collapsed {
     --sidebar-space: var(--content-gap);
 }
 
-.sidebar-toggle {
-    margin-right: 12px;
-    background: #f6efe3;
-    border: 1px solid #2d2b26;
-    border-radius: 6px;
-    padding: 6px 10px;
-    cursor: pointer;
-    height: 28px;
-    line-height: 1;
-}
+
+
 
 .sidebar-scrim {
     position: fixed;
@@ -377,6 +370,8 @@ body.sidebar-collapsed .sidebar {
     position: relative;
     /* needed for ::after positioning */
 }
+
+
 
 .boxTopHeader::after {
     content: "";
@@ -1480,7 +1475,6 @@ table.sticky th {
 /* Clean hover background (unchanged) */
 .sidebar a:hover,
 .sidebar a:focus-visible {
-    background: #ffffff !important;
 
     box-shadow: inset 0 -1px 0 #ececee !important;
 }
@@ -1613,4 +1607,204 @@ body.sidebar-collapsed .sidebar {
     margin-top: auto;
     margin-bottom: 30px;
     /* pushes this section to the bottom */
+}
+
+.UserDetails {
+    background-color: #40426452;
+    margin-top: 30px;
+    margin-left: 30px;
+    margin-right: 30px;
+    height: 30px;
+    display: flex;
+    /* enable flexbox */
+    align-items: center;
+    justify-content: space-between;
+    /* vertically center text */
+    padding: 0 10px;
+    /* 10px spacing on left and right */
+    box-sizing: border-box;
+    position: relative;
+    box-shadow: 0 0 0 2px #4b5e70 inset;
+    border-radius: 14px;
+}
+
+.UserDetails::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    /* center horizontally & vertically */
+    width: 1px;
+    /* line thickness */
+    height: 20px;
+    /* shorter than box height */
+    background-color: #000000;
+    /* adjust color as needed */
+}
+
+.form_line {
+    position: relative;
+    /* anchor the ::after line */
+    height: 5px;
+    /* give it some height so the line has space */
+    margin-top: 12px;
+}
+
+.form_line::after {
+    content: "";
+    position: absolute;
+    left: 20px;
+    /* trims 20px from the left */
+    right: 20px;
+    /* trims 20px from the right */
+    bottom: 0;
+    /* sits at the bottom */
+    height: 2px;
+    /* line thickness */
+    background-color: #4b5e70;
+    /* line color */
+}
+
+.field-label {
+    flex: 1 1 50%;
+    white-space: nowrap;
+
+}
+
+.field-control {
+    flex: 1 1 50%;
+    display: flex;
+    justify-content: flex-end;
+    /* right-align value/input */
+    align-items: center;
+
+
+}
+
+.UserDetails input[type="text"] {
+    background: transparent;
+    border: none;
+    outline: none;
+    text-align: right;
+    /* type on the right */
+    width: 100%;
+    max-width: 220px;
+    padding: 0;
+    font: inherit;
+    line-height: 1;
+    margin-top: 17px;
+    font-size: 15px;
+
+}
+
+.readonly-value {
+    max-width: 100%;
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.field-control {
+    flex: 1 1 50%;
+    display: flex;
+    justify-content: flex-end;
+    /* right-align value/input */
+    align-items: center;
+}
+
+/* You already have this for text; duplicate for password */
+.UserDetails input[type="password"],
+.UserDetails input[type="text"] {
+    background: transparent;
+    border: none;
+    outline: none;
+    text-align: right;
+    /* type on the right */
+    width: 100%;
+    max-width: 220px;
+    padding: 0;
+    font: inherit;
+    line-height: 1;
+    margin-top: 17px;
+    /* you added this */
+    font-size: 15px;
+}
+
+.hidden {
+    display: none;
+}
+
+.form-message {
+    margin: 10px 30px 0 30px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 14px;
+}
+
+.form-message.success {
+    background: #154f30;
+    color: #d9f5e7;
+    border: 1px solid #1c7f4a;
+}
+
+.form-message.error {
+    background: #5a1a1a;
+    color: #ffd7d7;
+    border: 1px solid #992f2f;
+}
+
+/* red outline for specific rows when error happens */
+.UserDetails.error {
+    box-shadow: 0 0 0 2px #d9534f inset;
+    border-radius: 14px;
+}
+
+/* subtle highlight effect used by the Edit button */
+.flash-highlight {
+    animation: flashBg 1.2s ease;
+}
+
+@keyframes flashBg {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 255, 0, 0.6);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 255, 0, 0);
+    }
+}
+
+.form_settings--open {
+    max-height: none;
+    overflow: visible;
+}
+
+/* --- Sidebar handle: make the icon rotatable + animated --- */
+.sidebar-handle .handle-icon {
+    display: inline-block;
+    /* ensure transforms take effect */
+    transition: transform 200ms ease;
+    /* animate the rotation */
+    transform-origin: center;
+    /* good for SVGs */
+    /* for some SVGs you may also want: transform-box: fill-box; */
+}
+
+/* Rotate when collapsed */
+body.sidebar-collapsed .sidebar-handle .handle-icon {
+    transform: rotate(180deg);
+}
+
+/* If your JS now toggles `sidebar-open`, add this too (keeps intent explicit) */
+body.sidebar-open .sidebar-handle .handle-icon {
+    transform: rotate(0deg);
+}
+
+/* --- Bring back hover feedback (this block was removed) --- */
+.sidebar-handle:hover {
+    background: #4b5e70;
+    color: #fff;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, .25);
 }
