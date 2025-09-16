@@ -9,7 +9,7 @@
     transform: translateY(-50%);
     z-index: 120;
     /* above sidebar (100) and scrim (90) */
-    border: 1px solid #2d2b26;
+    border: 1px solid rgba(45, 43, 38, 0.2);
     border-left: none;
     /* flush with screen edge */
     background: #f6efe3;
@@ -24,8 +24,13 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, .15);
+    box-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.08),
+        0 3px 6px rgba(0, 0, 0, 0.12),
+        0 8px 16px rgba(0, 0, 0, 0.08),
+        inset 0 1px 2px rgba(255, 255, 255, 0.6);
     transition: background-color 0.4s ease;
+    backdrop-filter: blur(6px);
 }
 
 /* Icon styling */
@@ -393,14 +398,42 @@ body.sidebar-collapsed .sidebar {
     background-color: white;
     color: #4b5e70;
     text-align: center;
-    padding: 16px 24px;
+    padding: 16px 24px 30px;
     font-size: 1.2em;
     font-weight: bold;
     align-items: center;
-    border-radius: 8px 8px 0 0;
+    border-radius: 12px 12px 0 0;
     width: 100%;
     box-sizing: border-box;
+
 }
+
+.boxTopHeader2::after {
+    content: "";
+    position: absolute;
+    left: 350px;
+    /* trims 20px from the left */
+    right: 350px;
+    /* trims 20px from the right */
+    bottom: 10px;
+    height: 2px;
+
+    /* Base color */
+    background: linear-gradient(to right,
+            rgba(75, 94, 112, 0.9),
+            rgba(55, 69, 82, 0.9));
+
+    /* Dimensional effect */
+    box-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.25),
+        /* subtle drop shadow */
+        0 -1px 1px rgba(255, 255, 255, 0.3) inset;
+    /* highlight from above */
+
+    border-radius: 2px;
+    /* makes edges softer */
+}
+
 
 /* Header: shadow on TOP + SIDES only, absolutely NONE on bottom */
 .content3 {
@@ -417,7 +450,7 @@ body.sidebar-collapsed .sidebar {
     /* horizontal centering */
 
     /* rounded top only */
-    border-top-left-radius: 14px !important;
+    border-top-left-radius: 18px !important;
     border-top-right-radius: 14px !important;
     border-bottom-left-radius: 0 !important;
     border-bottom-right-radius: 0 !important;
@@ -448,10 +481,17 @@ body.sidebar-collapsed .sidebar {
     top: 28px;
     left: calc(var(--sidebar-space) + 10px);
     transition: all 300ms ease-out;
-    background-color: #f6efe3;
+    background: linear-gradient(145deg,
+            rgba(249, 245, 237, 0.85),
+            rgba(236, 229, 215, 0.85));
+    border: 1px solid rgba(45, 43, 38, 0.097);
     padding: 6px 12px;
-    border-radius: 4px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    box-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.08),
+        0 4px 8px rgba(0, 0, 0, 0.10),
+        inset 0 1px 2px rgba(255, 255, 255, 0.5);
+
     z-index: 50;
     display: flex;
     align-items: center;
@@ -459,7 +499,10 @@ body.sidebar-collapsed .sidebar {
     color: #333;
     height: 32px;
     width: 200px;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
 }
+
 
 .sort-overlay label {
     font-size: 12px;
@@ -474,14 +517,22 @@ body.sidebar-collapsed .sidebar {
 .sort-overlay select {
     font-size: 14px;
     padding: 4px 8px;
-    border: 1px solid #2d2b26;
-    border-radius: 4px;
-    background-color: #f6efe3;
-    border: 1px solid #2d2b26;
+    box-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.08),
+        0 3px 6px rgba(0, 0, 0, 0.12),
+        0 8px 16px rgba(0, 0, 0, 0.08);
+    backdrop-filter: blur(6px);
+    background-color: #ece5d7;
+
+    border-radius: 8px;
+
+
+    border: 1px solid rgba(45, 43, 38, 0.077);
+
     cursor: pointer;
     width: 140px;
-    /* make it wide enough */
-    transition: background-color 0.4s ease;
+
+    transition: background-color 0.6s ease;
     margin-left: 13px;
     position: relative;
     top: 6px;
@@ -489,7 +540,8 @@ body.sidebar-collapsed .sidebar {
 
 .sort-overlay select:hover,
 .sort-overlay select:focus {
-    background-color: #0b0f12;
+
+    background-color: #4b5e70;
     color: white;
     /* slightly darker on hover/focus */
     outline: none;
@@ -499,10 +551,17 @@ body.sidebar-collapsed .sidebar {
     position: fixed;
     top: 28px;
     right: 30px;
-    background-color: #f6efe3;
+    transition: all 300ms ease-out;
+    background: linear-gradient(145deg,
+            rgba(249, 245, 237, 0.85),
+            rgba(236, 229, 215, 0.85));
+    border: 1px solid rgba(45, 43, 38, 0.097);
     padding: 6px 12px;
-    border-radius: 4px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    box-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.08),
+        0 4px 8px rgba(0, 0, 0, 0.10),
+        inset 0 1px 2px rgba(255, 255, 255, 0.5);
     z-index: 50;
     display: flex;
     align-items: center;
@@ -510,7 +569,10 @@ body.sidebar-collapsed .sidebar {
     color: #333;
     height: 32px;
     width: 200px;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
 }
+
 
 .sort-overlay2 label {
     font-size: 12px;
@@ -725,22 +787,59 @@ button {
 .view-contracts-btn {
     font-size: 16px;
     height: 35px;
-    padding: 4px 10px;
-    background-color: #f6efe3;
-    color: black;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+    padding: 4px 14px;
     font-family: 'Inter', 'Segoe UI', sans-serif;
-    font-weight: 450;
-    border: 1px solid #2d2b26;
+    font-weight: 500;
+    cursor: pointer;
     margin: 0;
+    border-radius: 6px;
+
+    /* Soft gradient with transparency */
+    background: linear-gradient(145deg,
+            rgba(249, 245, 237, 0.9),
+            rgba(236, 229, 215, 0.9));
+    color: #333;
+
+    /* Border + polish */
+    border: 1px solid rgba(45, 43, 38, 0.15);
+
+    /* Dimensional shadows */
+    box-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.08),
+        0 4px 8px rgba(0, 0, 0, 0.10),
+        inset 0 1px 2px rgba(255, 255, 255, 0.5);
+
+    /* Glassy depth */
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+
+    /* Smooth transitions */
+    transition:
+        background 0.3s ease,
+        color 0.3s ease,
+        box-shadow 0.25s ease,
+        transform 0.25s ease;
 }
 
+/* Hover state — lift slightly */
 .view-contracts-btn:hover {
-    background-color: #4b5e70;
-    color: white;
+    background: linear-gradient(145deg, #4b5e70, #374552);
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow:
+        0 3px 6px rgba(0, 0, 0, 0.12),
+        0 6px 12px rgba(0, 0, 0, 0.12),
+        inset 0 1px 2px rgba(255, 255, 255, 0.3);
 }
+
+/* Active state — press down */
+.view-contracts-btn:active {
+    transform: translateY(0);
+    box-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.15),
+        inset 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
 
 /* ======================================= 6. TABLE STYLES ======================================= */
 table {
@@ -787,7 +886,7 @@ thead {
     display: none;
     padding: 5px 9px;
     font-size: 16px;
-    background: #f5eee0;
+    background: #ffffff;
     border-radius: 4px;
     border: 1px solid #2d2b26;
     outline: none;
@@ -796,21 +895,61 @@ thead {
 
 .filter-toggle {
     font-size: 16px;
-    color: white;
-    background-color: #4b5e70;
-    border: 1px solid #2d2b26;
-    padding: 4px 8px;
-    border-radius: 4px;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    font-weight: 500;
+    padding: 4px 12px;
+    border-radius: 6px;
     cursor: pointer;
-    transition: background-color 0.2s ease;
+
+    /* Default dark glassy background */
+    background: linear-gradient(145deg,
+            rgba(75, 94, 112, 0.95),
+            rgba(55, 69, 82, 0.95));
+    color: #fff;
+
+    /* Border + subtle highlight */
+    border: 1px solid rgba(45, 43, 38, 0.25);
+
+    /* Depth shadows */
+    box-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.12),
+        0 4px 8px rgba(0, 0, 0, 0.12),
+        inset 0 1px 2px rgba(255, 255, 255, 0.15);
+
+    /* Glassy blur */
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+
+    /* Smooth animations */
+    transition:
+        background 0.3s ease,
+        color 0.3s ease,
+        box-shadow 0.25s ease,
+        transform 0.25s ease;
 }
 
+/* Hover + active (light state) */
 .filter-toggle:hover,
 .filter-toggle.active {
-    background-color: #f6efe3;
-
+    background: linear-gradient(145deg,
+            rgba(249, 245, 237, 0.9),
+            rgba(236, 229, 215, 0.9));
     color: #333;
+    transform: translateY(-1px);
+    box-shadow:
+        0 3px 6px rgba(0, 0, 0, 0.1),
+        0 6px 12px rgba(0, 0, 0, 0.1),
+        inset 0 1px 2px rgba(255, 255, 255, 0.4);
 }
+
+/* Pressed down */
+.filter-toggle:active {
+    transform: translateY(0);
+    box-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.2),
+        inset 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
 
 th,
 td {
@@ -848,7 +987,7 @@ tbody tr:nth-child(even) {
 }
 
 tbody tr:hover {
-    background-color: #e7dbcd;
+    background-color: #e7e7e7bf;
 }
 
 /* Sticky headers and filters */
@@ -1482,7 +1621,7 @@ table.sticky th {
 /* ===== Underline (navy), centered, short, never clipped ===== */
 :root {
     --navy: #4b5e70;
-    --underline-offset: 4px;
+    --underline-offset: 8px;
 }
 
 /* dark navy; tweak if you have an exact brand code */
@@ -1807,4 +1946,51 @@ body.sidebar-open .sidebar-handle .handle-icon {
     background: #4b5e70;
     color: #fff;
     box-shadow: 0 6px 16px rgba(0, 0, 0, .25);
+}
+
+
+/* === DROP-IN: Dimensional Glass Sidebar (matches your overlay vibe) === */
+.sidebar {
+    /* soft glass gradient (same colors you liked) */
+    background: linear-gradient(145deg,
+            rgba(249, 245, 237, 0.85),
+            rgba(236, 229, 215, 0.85)) !important;
+
+    /* frosted look */
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+
+    /* hairline border like the overlay */
+    border-right: 1px solid rgba(45, 43, 38, 0.097) !important;
+
+    /* dimensional shadow stack (polished but not heavy) */
+    box-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.08),
+        0 4px 8px rgba(0, 0, 0, 0.10),
+        inset -1px 0 0 rgba(255, 255, 255, 0.50) !important;
+    /* subtle inner edge highlight */
+
+    /* clean edges; round only where it meets content (optional) */
+    border-top-right-radius: 8px !important;
+    border-bottom-right-radius: 8px !important;
+
+    /* undo earlier flatteners so depth shows */
+    clip-path: none !important;
+    overflow: hidden !important;
+    background-clip: padding-box !important;
+    isolation: isolate !important;
+}
+
+/* Optional: a whisper-thin seam catching light at the content edge */
+.sidebar::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 1px;
+    background: linear-gradient(to bottom,
+            rgba(255, 255, 255, 0.55),
+            rgba(255, 255, 255, 0.18));
+    pointer-events: none;
 }
