@@ -29,9 +29,9 @@
             <a href="/settings" class="{{ 'active' if section == 'settings' else '' }}"><span>Settings</span></a>
             <a href="/logout" class="{{ 'active' if section == 'logout' else '' }}"><span>Log Out</span></a>
         </div>
+        <button id="sidebarHandle" class="sidebar-handle" aria-label="Collapse sidebar" aria-pressed="false"
+            title="Collapse sidebar"> <span class="handle-icon" aria-hidden="true">⟨</span> </button>
     </div>
-    <button id="sidebarHandle" class="sidebar-handle" aria-label="Collapse sidebar" aria-pressed="false"
-        title="Collapse sidebar"> <span class="handle-icon" aria-hidden="true">⟨</span> </button>
 
     <!-- Main content (uses the 240px left margin defined in styles.css to clear the sidebar) -->
     <div class="content4">

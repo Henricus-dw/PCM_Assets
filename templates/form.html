@@ -23,14 +23,15 @@
         </div>
 
         <!-- Bottom navigation -->
+
         <div class="nav-bottom">
             <a href="/admin" class="{{ 'active' if section == 'admin' else '' }}"><span>Admin</span></a>
             <a href="/settings" class="{{ 'active' if section == 'settings' else '' }}"><span>Settings</span></a>
             <a href="/logout" class="{{ 'active' if section == 'logout' else '' }}"><span>Log Out</span></a>
         </div>
+        <button id="sidebarHandle" class="sidebar-handle" aria-label="Collapse sidebar" aria-pressed="false"
+            title="Collapse sidebar"> <span class="handle-icon" aria-hidden="true">⟨</span> </button>
     </div>
-    <button id="sidebarHandle" class="sidebar-handle" aria-label="Collapse sidebar" aria-pressed="false"
-        title="Collapse sidebar"> <span class="handle-icon" aria-hidden="true">⟨</span> </button>
     <!-- Main content area with 3 columns -->
     <div class="content">
         <!-- Block 1: The form -->

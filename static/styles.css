@@ -1,97 +1,3 @@
-/* Floating edge handle */
-.sidebar-handle {
-    position: fixed;
-    /* stays put even when sidebar slides away */
-    left: 0;
-    /* always on the left edge */
-    top: 50%;
-    /* vertically centered */
-    transform: translateY(-50%);
-    z-index: 120;
-    /* above sidebar (100) and scrim (90) */
-    border: 1px solid rgba(45, 43, 38, 0.2);
-    border-left: none;
-    /* flush with screen edge */
-    background: #f6efe3;
-    color: #2d2b26;
-    padding: 10px 10px;
-    width: 34px;
-    /* slim "tab" */
-    height: 56px;
-    /* nice hit area */
-    border-radius: 0 10px 10px 0;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow:
-        0 1px 2px rgba(0, 0, 0, 0.08),
-        0 3px 6px rgba(0, 0, 0, 0.12),
-        0 8px 16px rgba(0, 0, 0, 0.08),
-        inset 0 1px 2px rgba(255, 255, 255, 0.6);
-    transition: background-color 0.4s ease;
-    backdrop-filter: blur(6px);
-}
-
-/* Icon styling */
-.sidebar-handle .handle-icon {
-    font-size: 18px;
-    line-height: 1;
-    pointer-events: none;
-}
-
-/* When sidebar is OPEN, nudge the handle slightly right so it looks attached */
-body:not(.sidebar-collapsed) .sidebar-handle {
-    left: 0;
-    /* still at edge; looks attached to the left side */
-}
-
-/* Optional hover feedback */
-
-/* Flip the chevron depending on state */
-body.sidebar-collapsed .sidebar-handle .handle-icon {
-    /* pointing right to indicate "open" */
-    transform: rotate(180deg);
-}
-
-/* (Optional) On very small screens, keep it reachable above other UI */
-@media (max-width: 960px) {
-    .sidebar-handle {
-        z-index: 130;
-    }
-}
-
-:root {
-    --sidebar-width: 220px;
-    --content-gap: 20px;
-    /* effective left offset for content when sidebar is visible */
-    --sidebar-space: calc(var(--sidebar-width) + var(--content-gap));
-}
-
-/* When collapsed, sidebar takes 0 space; content hugs the left with standard gap */
-body.sidebar-collapsed {
-    --sidebar-space: var(--content-gap);
-}
-
-
-
-
-.sidebar-scrim {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, .35);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 200ms ease;
-    z-index: 90;
-}
-
-/* Show scrim when mobile drawer is open */
-body.sidebar-open .sidebar-scrim {
-    opacity: 1;
-    pointer-events: auto;
-}
-
 /* ======================================= 1. RESET & BASE STYLES ======================================= */
 /* Header row for forms */
 .form-header {
@@ -147,96 +53,6 @@ body {
     box-sizing: border-box;
 }
 
-.sidebar {
-    position: fixed;
-    inset: 0 auto 0 0;
-    /* top:0; left:0; bottom:0 */
-    width: var(--sidebar-width);
-    background-color: #f2f5f8;
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-    padding-top: 20px;
-    transform: translateX(0);
-    transition: transform 320ms ease-out;
-    z-index: 100;
-    border-top-right-radius: 10px !important;
-    border-bottom-right-radius: 10px !important;
-    /* above content, below modals */
-}
-
-/* Hide it off-screen when collapsed */
-body.sidebar-collapsed .sidebar {
-    transform: translateX(-100%);
-}
-
-/* Mobile drawer pattern: open state pulls it back */
-.sidebar a {
-    position: relative;
-    display: block;
-    width: 100%;
-    padding: 12px 20px;
-    text-decoration: none;
-    background-color: #000000d7;
-    color: #ffffff;
-    font-weight: 500;
-    overflow: hidden;
-    transition: color 0.4s ease;
-}
-
-.sidebar a::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    height: 1.5px;
-    width: 100%;
-    background-color: black;
-    transition: background-color 0.4s ease;
-}
-
-.sidebar a span {
-    position: relative;
-    z-index: 2;
-    display: inline-block;
-    transition: transform 0.3s ease, color 0.4s ease;
-}
-
-.sidebar a:hover span {
-    transform: translateX(5px);
-}
-
-.sidebar a::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    background-color: #fcf7f0;
-    transform: scaleX(0);
-    transform-origin: right;
-    /* background fills right-to-left */
-    transition: transform 0.4s ease;
-    z-index: 1;
-}
-
-.sidebar a.active::before {
-    transform: scaleX(1);
-}
-
-.sidebar a.active span {
-    color: #4b5e70;
-    /* instant color change with background */
-}
-
-.sidebar a.active::after {
-    background-color: #fcf7f0;
-}
-
-.sidebar a:hover {
-    cursor: pointer;
-}
 
 /* ======================================= 3. MAIN CONTENT LAYOUT ======================================= */
 .content,
@@ -1477,224 +1293,6 @@ table.sticky th {
     grid-template-rows: auto auto !important;
 }
 
-/* ================================
-   Sidebar underline — signature blue
-   ================================ */
-
-.sidebar a {
-    color: #000 !important;
-    /* black text */
-    font-size: 1.06rem;
-    font-weight: 400;
-    letter-spacing: -0.005em;
-    background: transparent !important;
-    padding: 12px 20px !important;
-    border: none !important;
-    border-radius: 0 !important;
-    position: relative;
-    box-sizing: border-box;
-    transition:
-        background-color .25s ease,
-        color .20s ease,
-        box-shadow .25s ease,
-        opacity .20s ease,
-        transform .25s ease;
-}
-
-/* underline element */
-.sidebar a::after {
-    content: "" !important;
-    position: absolute;
-    left: 50%;
-    bottom: 8px;
-    height: 4px;
-    width: min(60%, calc(100% - 40px));
-    transform: translateX(-50%) scaleX(0.0);
-    transform-origin: center;
-    border-radius: 3px;
-    opacity: 0;
-    /* darker version of signature app blue */
-    background: #1e40af;
-    /* deep blue (darker than #2563eb) */
-    transition:
-        transform .24s ease,
-        opacity .20s ease,
-        background-color .24s ease;
-}
-
-/* hover = subtle preview */
-.sidebar a:hover::after,
-.sidebar a:focus-visible::after {
-    opacity: .5;
-    transform: translateX(-50%) scaleX(0.75);
-}
-
-/* active = full underline */
-.sidebar a.active::after {
-    opacity: 1;
-    transform: translateX(-50%) scaleX(1);
-}
-
-/* ============================
-   Precise tweaks requested
-   (no layout/HTML/JS changes)
-   ============================ */
-
-/* Safety: never exceed sidebar width (220px) */
-.sidebar,
-.sidebar * {
-    box-sizing: border-box !important;
-    max-width: 100% !important;
-    /* hard cap to container width */
-}
-
-/* Keep the shell white and clean (unchanged) */
-.sidebar {
-    background: #fcf7f0 !important;
-    border-right: 1px solid #eaeaea !important;
-    overflow: hidden !important;
-    /* no scrollbars */
-    font-family: "Inter", "IBM Plex Sans", "Helvetica Neue", system-ui, -apple-system, Segoe UI, Arial, sans-serif;
-    box-shadow:
-        -2px 0 6px rgba(0, 0, 0, 0.10),
-        /* left */
-        2px 0 6px rgba(0, 0, 0, 0.10),
-        /* right */
-        0 -2px 6px rgba(0, 0, 0, 0.12);
-    /* top */
-
-    /* clip so the top edge is flush (no shadow allowed below) */
-    clip-path: inset(-10px -10px 0px -10px);
-}
-
-/* Center the PCM logo and size it up ~25% WITHOUT overflow */
-.sidebar>img {
-    display: block !important;
-    margin: 12px auto 12px auto !important;
-    /* center */
-    height: auto !important;
-    /* target “~25% larger” visually while strictly fitting inside 220px */
-    width: min(125%, calc(100% - 32px)) !important;
-    /* grow, but clamp inside */
-    max-width: calc(100% - 32px) !important;
-    /* never exceed container */
-}
-
-/* Links: black, slightly larger, skinny (unchanged) */
-.sidebar a {
-    color: #000000 !important;
-    font-size: 1.06rem !important;
-    font-weight: 400 !important;
-    /* skinny */
-    letter-spacing: -0.005em !important;
-    background: transparent !important;
-    padding: 12px 20px !important;
-    /* internal; stays inside 220px */
-    border: none !important;
-    border-radius: 0 !important;
-    position: relative !important;
-    white-space: nowrap !important;
-    /* avoid wrapping-induced overflow */
-    overflow: hidden !important;
-    /* keep underline inside */
-    text-overflow: ellipsis !important;
-    transition:
-        background-color .25s ease,
-        color .20s ease,
-        box-shadow .25s ease,
-        opacity .20s ease,
-        transform .25s ease !important;
-}
-
-/* Thin separators between items (visual only) */
-.sidebar a+a {
-    border-top: 1px solid #f2f2f2 !important;
-}
-
-/* Clean hover background (unchanged) */
-.sidebar a:hover,
-.sidebar a:focus-visible {
-
-    box-shadow: inset 0 -1px 0 #ececee !important;
-}
-
-/* ===== Underline (navy), centered, short, never clipped ===== */
-:root {
-    --navy: #4b5e70;
-    --underline-offset: 8px;
-}
-
-/* dark navy; tweak if you have an exact brand code */
-
-.sidebar a::after {
-    content: " " !important;
-    position: absolute !important;
-    left: 50% !important;
-    bottom: 8px !important;
-    height: 4px !important;
-    /* short line, clamped to fit inside left/right padding (20px each) */
-    width: min(60%, calc(100% - 40px)) !important;
-    transform: translateX(-50%) scaleX(0) !important;
-    transform-origin: center !important;
-    border-radius: 3px !important;
-    opacity: 0 !important;
-    background: var(--navy) !important;
-    /* NAVY underline */
-    transition:
-        transform .24s ease,
-        opacity .20s ease,
-        background-color .24s ease !important;
-}
-
-/* Hover: same width & navy (just lighter opacity), smoothly animated */
-.sidebar a:hover::after,
-.sidebar a:focus-visible::after {
-    opacity: .9 !important;
-    transform: translateX(-50%) scaleX(1) !important;
-    /* same width as selected */
-}
-
-/* Selected: underline in NAVY, text NAVY & bold as requested */
-.sidebar a.active {
-    background: transparent !important;
-    color: var(--navy) !important;
-    /* selected text = navy */
-    font-weight: 700 !important;
-    /* bold when selected */
-}
-
-.sidebar a.active::after {
-    opacity: 1 !important;
-    transform: translateX(-50%) scaleX(1) !important;
-    /* full short line, centered */
-    background: var(--navy) !important;
-}
-
-/* Collapsed state stays white and consistent */
-body.sidebar-collapsed .sidebar {
-    background: #fcf7f0 !important;
-    border-right: 1px solid #eaeaea !important;
-}
-
-/* --- Bigger PCM logo (~50%), extra gap, subtle divider --- */
-.sidebar>img {
-    display: block !important;
-    /* much wider, but still safely inside the 220px column */
-    width: calc(130% - 2px) !important;
-    max-width: calc(130% - 2px) !important;
-    height: auto !important;
-
-    /* more breathing room under the logo */
-    margin: 20px 20px 20px 15px !important;
-}
-
-/* gap + divider before the first nav item */
-.sidebar a:first-of-type {
-    margin-top: 8px !important;
-    padding-top: 14px !important;
-    border-top: 1px solid #eaeaea !important;
-    /* subtle line */
-}
 
 /* keep the header above everything so nothing bleeds over it */
 .content3 {
@@ -1726,27 +1324,6 @@ body.sidebar-collapsed .sidebar {
     z-index: 1;
 }
 
-.sidebar {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    /* ensure full height */
-}
-
-.sidebar .nav-top {
-    flex: 1;
-    /* fills available space */
-}
-
-.sidebar .nav-bottom {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    /* small spacing between Admin, Settings, Log Out */
-    margin-top: auto;
-    margin-bottom: 30px;
-    /* pushes this section to the bottom */
-}
 
 .UserDetails {
     background-color: #40426452;
@@ -1920,77 +1497,362 @@ body.sidebar-collapsed .sidebar {
     overflow: visible;
 }
 
-/* --- Sidebar handle: make the icon rotatable + animated --- */
+/* ================================== sidebar ================================== */
+/* Floating edge handle */
+.sidebar-handle {
+    position: absolute;
+    /* stays put even when sidebar slides away */
+    right: -15px;
+    /* always on the left edge */
+    top: 52%;
+    /* vertically centered */
+    transform: translateY(-50%);
+    z-index: 120;
+    /* above sidebar (100) and scrim (90) */
+    border: 1px solid rgba(45, 43, 38, 0.2);
+    border-left: none;
+    /* flush with screen edge */
+    background: transparent;
+    color: #2d2b26;
+    padding: 10px 10px;
+    width: 60px;
+    /* slim "tab" */
+    height: 56px;
+    /* nice hit area */
+    border-radius: 0 10px 10px 0;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow:
+
+        inset 0 1px 2px rgba(255, 255, 255, 0.6);
+    transition:
+        background-color 0.4s ease,
+        box-shadow 0.4s ease,
+        color 0.6s ease,
+        transform 0.6s ease;
+
+
+    backdrop-filter: blur(6px);
+}
+
+
+
+
+
+
+
+:root {
+    --sidebar-width: 220px;
+    --content-gap: 20px;
+    /* effective left offset for content when sidebar is visible */
+    --sidebar-space: calc(var(--sidebar-width) + var(--content-gap));
+}
+
+/* When collapsed, sidebar takes 0 space; content hugs the left with standard gap */
+body.sidebar-collapsed {
+    --sidebar-space: var(--content-gap);
+}
+
+
+
+
+
+
+
+
+
+.sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    /* top:0; left:0; bottom:0 */
+    width: var(--sidebar-width);
+    background-color: #f2f5f8;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    padding-top: 20px;
+    transform: translateX(0);
+    transition: transform 320ms ease-out;
+    z-index: 100;
+    border-top-right-radius: 14px !important;
+    border-bottom-right-radius: 14px !important;
+    /* above content, below modals */
+}
+
+/* Hide it off-screen when collapsed */
+body.sidebar-collapsed .sidebar {
+    transform: translateX(-100%);
+}
+
+/* Mobile drawer pattern: open state pulls it back */
+.sidebar a {
+    position: absolute;
+    right: -15;
+    display: block;
+    border-radius: 0 10px 10px 0;
+    padding: 12px 20px;
+    text-decoration: none;
+    background-color: #000000d7;
+    color: #ffffff;
+
+    overflow: hidden;
+    transition: color 0.4s ease;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Safety: never exceed sidebar width (220px) */
+
+
+/* Keep the shell white and clean (unchanged) */
+.sidebar {
+    background: transparent !important;
+
+    overflow: visible !important;
+
+    font-family: "Inter", "IBM Plex Sans", "Helvetica Neue", system-ui, -apple-system, Segoe UI, Arial, sans-serif;
+    box-shadow:
+        -2px 0 6px rgba(0, 0, 0, 0.10),
+
+        2px 0 6px rgba(0, 0, 0, 0.10),
+
+        0 -2px 6px rgba(0, 0, 0, 0.12);
+
+    border: 1px solid rgba(45, 43, 38, 0.2);
+    border-left: none;
+}
+
+/* Center the PCM logo and size it up ~25% WITHOUT overflow */
+.sidebar>img {
+    display: block !important;
+    margin: 12px auto 12px auto !important;
+    /* center */
+    height: auto !important;
+    /* target “~25% larger” visually while strictly fitting inside 220px */
+    width: min(125%, calc(100% - 32px)) !important;
+    /* grow, but clamp inside */
+    max-width: calc(100% - 32px) !important;
+    /* never exceed container */
+}
+
+/* Links: black, slightly larger, skinny (unchanged) */
+.sidebar a {
+    color: #000000 !important;
+    font-size: 1.06rem !important;
+    font-weight: 400 !important;
+    /* skinny */
+    letter-spacing: -0.005em !important;
+    transform: translateY(-50%);
+    z-index: 120;
+    /* above sidebar (100) and scrim (90) */
+    border: 1px solid rgba(45, 43, 38, 0.2);
+    border-left: none;
+    /* flush with screen edge */
+    background: transparent;
+    color: #2d2b26;
+    padding: 12px 20px !important;
+    position: relative !important;
+    white-space: nowrap !important;
+    /* avoid wrapping-induced overflow */
+    overflow: hidden !important;
+    /* keep underline inside */
+    text-overflow: ellipsis !important;
+    transition:
+        background-color .25s ease,
+        color .20s ease,
+        box-shadow .25s ease,
+        opacity .20s ease,
+        transform .25s ease !important;
+}
+
+/* Thin separators between items (visual only) */
+
+
+/* Clean hover background (unchanged) */
+
+
+/* ===== Underline (navy), centered, short, never clipped ===== */
+
+
+/* dark navy; tweak if you have an exact brand code */
+
+
+
+/* Hover: same width & navy (just lighter opacity), smoothly animated */
+
+
+/* Selected: underline in NAVY, text NAVY & bold as requested */
+
+
+
+
+/* Collapsed state stays white and consistent */
+
+/* --- Bigger PCM logo (~50%), extra gap, subtle divider --- */
+.sidebar>img {
+    display: block !important;
+    /* much wider, but still safely inside the 220px column */
+    width: calc(130% - 2px) !important;
+    max-width: calc(130% - 2px) !important;
+    height: auto !important;
+
+    /* more breathing room under the logo */
+    margin: 0px 20px 20px 15px !important;
+}
+
+/* gap + divider before the first nav item */
+.sidebar a:first-of-type {
+    margin-top: 8px !important;
+    padding-top: 14px !important;
+    border-top: 1px solid #eaeaea !important;
+    /* subtle line */
+}
+
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    max-width: 800px;
+    justify-content: center !important;
+
+    margin-top: 30px;
+    margin-bottom: 30px;
+}
+
+.sidebar .nav-top {
+    flex: 1;
+}
+
+.sidebar .nav-bottom {
+    display: flex;
+    flex-direction: column;
+
+    /* small spacing between Admin, Settings, Log Out */
+    margin-top: auto;
+    margin-bottom: 30px;
+    /* pushes this section to the bottom */
+}
+
+
 .sidebar-handle .handle-icon {
     display: inline-block;
-    /* ensure transforms take effect */
-    transition: transform 200ms ease;
-    /* animate the rotation */
+    margin-left: 20px;
+    transition: transform 600ms ease;
+    font-size: large;
     transform-origin: center;
-    /* good for SVGs */
-    /* for some SVGs you may also want: transform-box: fill-box; */
+
 }
 
-/* Rotate when collapsed */
-body.sidebar-collapsed .sidebar-handle .handle-icon {
-    transform: rotate(180deg);
-}
 
-/* If your JS now toggles `sidebar-open`, add this too (keeps intent explicit) */
-body.sidebar-open .sidebar-handle .handle-icon {
-    transform: rotate(0deg);
-}
 
 /* --- Bring back hover feedback (this block was removed) --- */
 .sidebar-handle:hover {
-    background: #4b5e70;
-    color: #fff;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, .25);
+    transform: translate(20px, -50%);
 }
 
+body.sidebar-collapsed .sidebar-handle .handle-icon {
+    transform: rotate(180deg);
 
-/* === DROP-IN: Dimensional Glass Sidebar (matches your overlay vibe) === */
+}
+
+.sidebar-handle {
+    transform: translate(0, -50%);
+}
+
+.sidebar-handle:hover {
+    transform: translate(20px, -50%);
+}
+
+body.sidebar-collapsed .sidebar-handle {
+    transform: translate(10px, -50%);
+}
+
+body.sidebar-collapsed .sidebar-handle:hover {
+    transform: translate(50px, -50%);
+}
+
+/* === Sidebar: dimensional white card === */
 .sidebar {
-    /* soft glass gradient (same colors you liked) */
-    background: linear-gradient(145deg,
-            rgba(249, 245, 237, 0.85),
-            rgba(236, 229, 215, 0.85)) !important;
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: var(--sidebar-width);
 
-    /* frosted look */
-    backdrop-filter: blur(8px) !important;
-    -webkit-backdrop-filter: blur(8px) !important;
+    background: #ffffff !important;
+    /* clean white */
+    border-radius: 14px !important;
+    /* same rounded corners */
 
-    /* hairline border like the overlay */
-    border-right: 1px solid rgba(45, 43, 38, 0.097) !important;
+    /* Multiple layered shadows for more depth */
+    box-shadow:
+        0 4px 6px rgba(0, 0, 0, 0.06),
+        0 8px 20px rgba(0, 0, 0, 0.10),
+        0 12px 28px rgba(0, 0, 0, 0.08);
 
-    /* dimensional shadow stack (polished but not heavy) */
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    /* faint edge for structure */
+
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    padding-top: 20px;
+
+    transform: translateX(0);
+    transition: transform 320ms ease-out, box-shadow 250ms ease;
+    z-index: 100;
+}
+
+/* Collapsed state */
+body.sidebar-collapsed .sidebar {
+    transform: translateX(-100%);
+    box-shadow: none;
+}
+
+/* Sidebar links with subtle dimension */
+.sidebar a {
+    background: #ffffff;
+    color: #000000 !important;
+    display: block;
+    padding: 12px 18px;
+    margin: 4px 10px 4px 0;
+    font-size: 1rem;
+    font-weight: 500;
     box-shadow:
         0 2px 4px rgba(0, 0, 0, 0.08),
-        0 4px 8px rgba(0, 0, 0, 0.10),
-        inset -1px 0 0 rgba(255, 255, 255, 0.50) !important;
-    /* subtle inner edge highlight */
+        0 4px 8px rgba(0, 0, 0, 0.10);
+    border-radius: 0px 10px 10px 0;
 
-    /* clean edges; round only where it meets content (optional) */
-    border-top-right-radius: 8px !important;
-    border-bottom-right-radius: 8px !important;
 
-    /* undo earlier flatteners so depth shows */
-    clip-path: none !important;
-    overflow: hidden !important;
-    background-clip: padding-box !important;
-    isolation: isolate !important;
+    transition:
+        background-color 0.5s ease,
+        box-shadow 0.2s ease,
+        transform 0.15s ease,
+        color 0.5s ease;
 }
 
-/* Optional: a whisper-thin seam catching light at the content edge */
-.sidebar::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: 1px;
-    background: linear-gradient(to bottom,
-            rgba(255, 255, 255, 0.55),
-            rgba(255, 255, 255, 0.18));
-    pointer-events: none;
+/* Hover effect = lift + glow */
+.sidebar a:hover {
+    background-color: #4b5e70;
+    color: #ffffff !important;
+
+}
+
+/* Active link = bolder + inset dimension */
+.sidebar a.active {
+    color: #ffffff !important;
+
+    background: #4b5e70;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
 }
