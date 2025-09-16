@@ -8,8 +8,9 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .admin-card {
-            margin: 20px;
+            margin-inline-start: 30px;
             padding: 20px;
+
             background: #fff;
             border-radius: 14px;
             box-shadow: 0 8px 20px rgba(0, 0, 0, .08);
@@ -176,7 +177,9 @@
         <div class="nav-bottom">
             <a href="/admin" class="{{ 'active' if section == 'admin' else '' }}"><span>Admin</span></a>
             <a href="/settings" class="{{ 'active' if section == 'settings' else '' }}"><span>Settings</span></a>
-            <a href="/logout" class="{{ 'active' if section == 'logout' else '' }}"><span>Log Out</span></a>
+            <a href="/logout" id="logoutLink" class="{{ 'active' if section == 'logout' else '' }}">
+                <span>Log Out</span>
+            </a>
         </div>
         <button id="sidebarHandle" class="sidebar-handle" aria-label="Collapse sidebar" aria-pressed="false"
             title="Collapse sidebar"> <span class="handle-icon" aria-hidden="true">⟨</span> </button>
@@ -220,12 +223,48 @@
             </div>
             {% endif %}
         </div>
+
+        <div id="adminUsersCard" class="admin-card">
+            <div class="admin-head">
+                <h2 class="admin-title">Active user accounts</h2>
+                <div class="_spacer"></div>
+                <button class="size-toggle" type="button" onclick="toggleCard('adminUsersCard', this)">Expand</button>
+            </div>
+
+            {% if not users %}
+            <div class="empty">No active users.</div>
+            {% else %}
+            <div class="req-list">
+                {% for u in users %}
+                <div class="req-row">
+                    <div class="req-info">
+                        <span>{{ u.name or '—' }}</span>
+                        <span>{{ u.surname or '—' }}</span>
+                        <span class="muted">{{ u.email }}</span>
+                    </div>
+                    <div class="req-actions">
+                        <form method="post" action="/admin/users/delete/{{ u.id }}"
+                            onsubmit="return confirm('Are you sure you want to delete this user?');">
+                            <button class="btn btn-deny" type="submit">Delete</button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+
+
     </div>
 
+    <!-- Existing Pending Requests card stays as-is -->
+
+    <!-- NEW: Active user accounts -->
+
+
+
     <script>
-
-
-
         document.addEventListener("DOMContentLoaded", () => {
             const handle = document.getElementById("sidebarHandle");
             const collapseBtn = document.getElementById("sidebarCollapse"); // optional header button
@@ -255,6 +294,27 @@
             el.classList.toggle('expanded');
             const btn = document.querySelector('.size-toggle');
             btn.textContent = el.classList.contains('expanded') ? 'Shrink' : 'Expand';
+        }
+        document.addEventListener("DOMContentLoaded", () => {
+            const logoutLink = document.getElementById("logoutLink");
+            if (logoutLink) {
+                logoutLink.addEventListener("click", function (e) {
+                    e.preventDefault(); // stop direct navigation
+                    const confirmed = confirm("Are you sure you want to log out?");
+                    if (confirmed) {
+                        window.location.href = this.href; // proceed to /logout
+                    }
+                });
+            }
+        });
+
+        function toggleCard(id, btnEl) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.classList.toggle('expanded');
+            if (btnEl) {
+                btnEl.textContent = el.classList.contains('expanded') ? 'Shrink' : 'Expand';
+            }
         }
     </script>
 

@@ -15,6 +15,7 @@ from typing import List, Optional
 from datetime import date, datetime, timedelta
 import calendar
 import os
+from starlette.responses import RedirectResponse
 
 from auth import get_current_user
 
@@ -734,10 +735,13 @@ def admin(request: Request, db: Session = Depends(get_db)):
     pending = db.query(PendingUser).order_by(
         PendingUser.created_at.desc()   # newest first
     ).all()
+    users = db.query(User).order_by(User.created_at.desc()).all()
+
     return templates.TemplateResponse("admin.html", {
         "request": request,
         "section": "admin",
         "pending": pending,
+        "users": users,
         "time": datetime.utcnow().timestamp(),
     })
 
@@ -773,6 +777,33 @@ def deny_user(pending_id: int = Path(...), db: Session = Depends(get_db), reques
     if not p:
         raise HTTPException(status_code=404, detail="Pending user not found")
     db.delete(p)
+    db.commit()
+    return RedirectResponse(url="/admin", status_code=303)
+
+
+@app.post("/admin/users/delete/{user_id}")
+def delete_user(
+    user_id: int = Path(...),
+    db: Session = Depends(get_db),
+    request: Request = None
+):
+    if not request.session.get("user_id"):
+        return RedirectResponse(url="/login", status_code=302)
+
+    # Optional: prevent deleting yourself
+    current_user_id = request.session.get("user_id")
+
+    u = db.query(User).filter(User.id == user_id).first()
+    if not u:
+        # Nothing to delete; just go back
+        return RedirectResponse(url="/admin", status_code=303)
+
+    if u.id == current_user_id:
+        # You can change to a friendlier UI flow if you prefer
+        raise HTTPException(
+            status_code=400, detail="You cannot delete your own account while logged in.")
+
+    db.delete(u)
     db.commit()
     return RedirectResponse(url="/admin", status_code=303)
 

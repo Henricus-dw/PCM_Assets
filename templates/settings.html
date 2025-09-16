@@ -102,7 +102,9 @@
         <div class="nav-bottom">
             <a href="/admin" class="{{ 'active' if section == 'admin' else '' }}"><span>Admin</span></a>
             <a href="/settings" class="{{ 'active' if section == 'settings' else '' }}"><span>Settings</span></a>
-            <a href="/logout" class="{{ 'active' if section == 'logout' else '' }}"><span>Log Out</span></a>
+            <a href="/logout" id="logoutLink" class="{{ 'active' if section == 'logout' else '' }}">
+                <span>Log Out</span>
+            </a>
         </div>
         <button id="sidebarHandle" class="sidebar-handle" aria-label="Collapse sidebar" aria-pressed="false"
             title="Collapse sidebar"> <span class="handle-icon" aria-hidden="true">⟨</span> </button>
@@ -180,14 +182,12 @@
                 const handle = document.getElementById("sidebarHandle");
                 const collapseBtn = document.getElementById("sidebarCollapse");
                 const scrim = document.getElementById("sidebarScrim");
-
                 function toggleSidebar() {
                     const collapsed = document.body.classList.toggle("sidebar-collapsed");
                     handle?.setAttribute("aria-pressed", String(!collapsed));
                     handle?.setAttribute("aria-label", collapsed ? "Expand sidebar" : "Collapse sidebar");
                     handle.title = collapsed ? "Expand sidebar" : "Collapse sidebar";
                 }
-
                 handle?.addEventListener("click", toggleSidebar);
                 collapseBtn?.addEventListener("click", toggleSidebar);
                 scrim?.addEventListener("click", () => document.body.classList.remove("sidebar-open"));
@@ -199,36 +199,34 @@
                 const confirm1 = document.getElementById('confirm1');
 
                 const editBtn = document.getElementById('editProfileBtn');
-
                 if (editBtn && nameInput && surnameInput) {
+                    // focus
                     editBtn.addEventListener('click', () => {
-                        // focus the Name field
                         nameInput.focus();
-                        // move caret to the end of the current value
                         const length = nameInput.value.length;
                         nameInput.setSelectionRange(length, length);
+                        // optional highlight toggle
+                        [nameInput, surnameInput].forEach(input => {
+                            const row = input.closest('.UserDetails');
+                            row?.classList.toggle('highlight-input');
+                        });
                     });
                 }
 
                 if (profileForm && confirm1) {
                     const initialName = (nameInput?.defaultValue ?? '').trim();
                     const initialSurname = (surnameInput?.defaultValue ?? '').trim();
-
                     function checkProfileChanged() {
                         const nameChanged = !!nameInput && nameInput.value.trim() !== initialName;
                         const surnameChanged = !!surnameInput && surnameInput.value.trim() !== initialSurname;
-                        const changed = nameChanged || surnameChanged;
-                        confirm1.style.visibility = changed ? 'visible' : 'hidden';
+                        confirm1.style.visibility = (nameChanged || surnameChanged) ? 'visible' : 'hidden';
                     }
-
                     nameInput?.addEventListener('input', checkProfileChanged);
                     surnameInput?.addEventListener('input', checkProfileChanged);
                     nameInput?.addEventListener('change', checkProfileChanged);
                     surnameInput?.addEventListener('change', checkProfileChanged);
-
-                    // Handle prefilled/autofill values
                     checkProfileChanged();
-                    setTimeout(checkProfileChanged, 200);
+                    setTimeout(checkProfileChanged, 200); // handle autofill
                 }
 
                 // --- Password form: show Confirm if any password field has text ---
@@ -237,13 +235,11 @@
                 const newPwd = passwordForm?.querySelector('input[name="new_password"]');
                 const confPwd = passwordForm?.querySelector('input[name="confirm_password"]');
                 const confirm2 = document.getElementById('confirm2');
-
                 if (passwordForm && confirm2) {
                     function checkPwdTyped() {
                         const anyTyped = (currPwd?.value || newPwd?.value || confPwd?.value || '').length > 0;
                         confirm2.style.visibility = anyTyped ? 'visible' : 'hidden';
                     }
-
                     [currPwd, newPwd, confPwd].forEach(el => el && el.addEventListener('input', checkPwdTyped));
                     checkPwdTyped();
                 }
@@ -251,8 +247,7 @@
                 // --- Messages + error borders from query params ---
                 const params = new URLSearchParams(window.location.search);
                 const ok = params.get('ok');   // 'profile' | 'pwd'
-                const err = params.get('err');  // 'badpwd' | 'nomatch'
-
+                const err = params.get('err'); // 'badpwd' | 'nomatch'
                 function showMessageAbove(formElem, text, isError) {
                     if (!formElem) return;
                     const msg = document.createElement('div');
@@ -263,7 +258,6 @@
                     msg.style.color = isError ? '#b00020' : '#0a7a3c';
                     formElem.parentElement.insertBefore(msg, formElem);
                 }
-
                 function redBorderForInput(input) {
                     const row = input?.closest('.UserDetails');
                     if (row) {
@@ -271,43 +265,30 @@
                         row.style.borderRadius = '14px';
                     }
                 }
-
-                if (ok === 'profile') {
-                    showMessageAbove(profileForm, 'Profile details updated successfully', false);
-                } else if (ok === 'pwd') {
-                    showMessageAbove(passwordForm, 'Password changed successfully', false);
-                }
-
-                if (err === 'badpwd') {
-                    showMessageAbove(passwordForm, 'Incorrect password', true);
-                    redBorderForInput(currPwd);
-                } else if (err === 'nomatch') {
-                    showMessageAbove(passwordForm, 'Password does not match', true);
-                    redBorderForInput(newPwd);
-                    redBorderForInput(confPwd);
-                }
-
-                // Clean URL so refresh doesn’t re-show messages
+                if (ok === 'profile') showMessageAbove(profileForm, 'Profile details updated successfully', false);
+                else if (ok === 'pwd') showMessageAbove(passwordForm, 'Password changed successfully', false);
+                if (err === 'badpwd') { showMessageAbove(passwordForm, 'Incorrect password', true); redBorderForInput(currPwd); }
+                else if (err === 'nomatch') { showMessageAbove(passwordForm, 'Password does not match', true); redBorderForInput(newPwd); redBorderForInput(confPwd); }
                 if (ok || err) {
                     const url = new URL(window.location.href);
                     url.searchParams.delete('ok');
                     url.searchParams.delete('err');
                     window.history.replaceState({}, '', url.toString());
                 }
-            });
-            const editBtn = document.getElementById('editProfileBtn');
 
-            if (editBtn && nameInput && surnameInput) {
-                editBtn.addEventListener('click', () => {
-                    // toggle highlight on Name and Surname rows
-                    [nameInput, surnameInput].forEach(input => {
-                        const row = input.closest('.UserDetails');
-                        row?.classList.toggle('highlight-input');
+                // --- Logout confirm (now runs because no ReferenceError) ---
+                const logoutLink = document.getElementById("logoutLink");
+                if (logoutLink) {
+                    logoutLink.addEventListener("click", function (e) {
+                        e.preventDefault();
+                        if (confirm("Are you sure you want to log out?")) {
+                            window.location.href = this.href;
+                        }
                     });
-                });
-            }
-
+                }
+            });
         </script>
+
 
 
 
