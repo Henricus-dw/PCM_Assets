@@ -17,6 +17,20 @@
             width: 50%;
             max-height: 40vh;
             overflow: auto;
+            transition: background 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+            will-change: transform;
+        }
+
+        .admin-card:hover {
+            background: #fff;
+            transform: translateY(-1px);
+            /* same lift as .home-dashboard .card:hover */
+            box-shadow: 0 14px 34px rgba(0, 0, 0, 0.10);
+            /* same shadow depth */
+        }
+
+        .admin-card:active {
+            transform: translateY(0);
         }
 
         .admin-card.expanded {
@@ -316,6 +330,25 @@
                 btnEl.textContent = el.classList.contains('expanded') ? 'Shrink' : 'Expand';
             }
         }
+
+
+        document.addEventListener("DOMContentLoaded", () => {
+            /* … your existing sidebar JS … */
+
+            // === NEW: play the active-link intro animation on page load (skip Log Out) ===
+            const activeLinks = Array.from(document.querySelectorAll(".sidebar a.active"))
+                .filter(a => a.id !== "logoutLink");
+
+            // Start them in “hover” pose and animate into “active”
+            activeLinks.forEach(a => a.classList.add("just-activated"));
+
+            // After 1s (box-shadow fade done), clean up the temp class
+            setTimeout(() => {
+                activeLinks.forEach(a => a.classList.remove("just-activated"));
+            }, 1050);
+        });
+
+
     </script>
 
 </body>

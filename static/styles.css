@@ -82,7 +82,7 @@ body {
 
 .content {
     display: flex;
-    gap: 25px;
+    gap: 10px;
     align-items: stretch;
     border-radius: 8px;
     flex-wrap: wrap;
@@ -121,10 +121,10 @@ body {
 /* Floating effect for .content2 block */
 .content2 {
     display: flex;
-    gap: 20px;
+    gap: 30px;
     align-items: stretch;
     max-height: calc(100vh - 50px - 80px);
-
+    position: relative;
     background: #ffffff;
     border-top-left-radius: 0 !important;
     border-top-right-radius: 0 !important;
@@ -133,6 +133,7 @@ body {
 
 
 }
+
 
 .contentInner {
     background-color: white;
@@ -147,20 +148,38 @@ body {
     max-width: none;
     height: calc(100vh - 50px);
     overflow-y: auto;
-    flex: 1
+    flex: 1;
+    margin-left: 20px;
+    transition: transform 0.8s ease, box-shadow 0.5s ease;
+    will-change: transform;
+}
+
+.contentInner:hover {
+
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.2);
 }
 
 .contentInner2 {
     background-color: white;
 
-    border-radius: 14px 14px 14px 14px;
+    border-radius: 0px 0px 14px 14px;
     display: flex;
     flex-direction: column;
     width: 100%;
     height: calc(100vh - 100px);
     overflow-y: auto;
     position: relative;
+
+
+    transition: transform 0.8s ease, box-shadow 0.5s ease;
+    will-change: transform;
 }
+
+.contentInner2:hover {
+
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.2);
+}
+
 
 /* Content header inside contentInner */
 .deviceCheckContainer {
@@ -272,16 +291,14 @@ body {
     border-bottom-right-radius: 0 !important;
 
     /* apply shadow normally */
-    box-shadow:
-        -2px 0 6px rgba(0, 0, 0, 0.10),
-        /* left */
-        2px 0 6px rgba(0, 0, 0, 0.10),
-        /* right */
-        0 -2px 6px rgba(0, 0, 0, 0.12);
-    /* top */
 
-    /* clip so the top edge is flush (no shadow allowed below) */
-    clip-path: inset(-10px -10px 0px -10px);
+
+
+
+
+
+
+    clip-path: inset(-10px -40px 2px -10px);
 
     position: relative;
     z-index: 3;
@@ -1303,26 +1320,21 @@ table.sticky th {
 /* .content2 floats with shadow on sides + bottom, none on top */
 .content2 {
     display: flex;
-    gap: 20px;
+    gap: 30px;
     align-items: stretch;
     max-height: calc(100vh - 50px - 45px);
 
     background: #ffffff;
     border-radius: 0 0 14px 14px !important;
-
-    /* shadow: left + right + bottom only (no top) */
-    box-shadow:
-        -2px 0 6px rgba(0, 0, 0, 0.12),
-        /* left */
-        2px 0 6px rgba(0, 0, 0, 0.12),
-        /* right */
-        0 -2px 6px rgba(0, 0, 0, 0.15);
-    /* bottom */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, .08) !important;
 
     overflow: visible;
     position: relative;
     z-index: 1;
 }
+
+
+
 
 
 .UserDetails {
@@ -1545,7 +1557,7 @@ table.sticky th {
 
 :root {
     --sidebar-width: 220px;
-    --content-gap: 20px;
+    --content-gap: 40px;
     /* effective left offset for content when sidebar is visible */
     --sidebar-space: calc(var(--sidebar-width) + var(--content-gap));
 }
@@ -1555,40 +1567,50 @@ body.sidebar-collapsed {
     --sidebar-space: var(--content-gap);
 }
 
-
-
-
-
-
-
-
-
 .sidebar {
+    /* from lowest block (wins on overlaps) */
     position: fixed;
     inset: 0 auto 0 0;
-    /* top:0; left:0; bottom:0 */
     width: var(--sidebar-width);
-    background-color: #f2f5f8;
+    background: #ffffff !important;
+    border-radius: 19px !important;
+    box-shadow:
+        0 4px 6px rgba(0, 0, 0, 0.06),
+        0 8px 20px rgba(0, 0, 0, 0.10),
+        0 12px 28px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(0, 0, 0, 0.04);
     display: flex;
     flex-direction: column;
-    overflow-y: auto;
+    overflow-y: visible;
     padding-top: 20px;
     transform: translateX(0);
-    transition: transform 320ms ease-out;
+    transition: transform 320ms ease-out, box-shadow 250ms ease, box-shadow .25s ease;
     z-index: 100;
-    border-top-right-radius: 14px !important;
-    border-bottom-right-radius: 14px !important;
-    /* above content, below modals */
+    height: auto;
+    max-width: 800px;
+    justify-content: center !important;
+    margin-top: 20px;
+    margin-bottom: 25px;
 }
 
-/* Hide it off-screen when collapsed */
+.sidebar:hover {
+
+    box-shadow:
+        10px 10px 20px rgba(0, 0, 0, 0.06),
+        10px 10px 20px rgba(0, 0, 0, 0.1),
+        10px 16px 28px rgba(0, 0, 0, 0.08);
+
+
+}
+
+
 body.sidebar-collapsed .sidebar {
     transform: translateX(-100%);
 }
 
-/* Mobile drawer pattern: open state pulls it back */
+
 .sidebar a {
-    position: absolute;
+    position: relative;
     right: -15;
     display: block;
     border-radius: 0 10px 10px 0;
@@ -1602,106 +1624,41 @@ body.sidebar-collapsed .sidebar {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-/* Safety: never exceed sidebar width (220px) */
-
-
-/* Keep the shell white and clean (unchanged) */
-.sidebar {
-    background: transparent !important;
-
-    overflow: visible !important;
-
-    font-family: "Inter", "IBM Plex Sans", "Helvetica Neue", system-ui, -apple-system, Segoe UI, Arial, sans-serif;
-    box-shadow:
-        -2px 0 6px rgba(0, 0, 0, 0.10),
-
-        2px 0 6px rgba(0, 0, 0, 0.10),
-
-        0 -2px 6px rgba(0, 0, 0, 0.12);
-
-    border: 1px solid rgba(45, 43, 38, 0.2);
-    border-left: none;
-}
-
-/* Center the PCM logo and size it up ~25% WITHOUT overflow */
 .sidebar>img {
     display: block !important;
     margin: 12px auto 12px auto !important;
-    /* center */
     height: auto !important;
-    /* target “~25% larger” visually while strictly fitting inside 220px */
     width: min(125%, calc(100% - 32px)) !important;
-    /* grow, but clamp inside */
     max-width: calc(100% - 32px) !important;
-    /* never exceed container */
+    /
 }
 
-/* Links: black, slightly larger, skinny (unchanged) */
+
 .sidebar a {
     color: #000000 !important;
     font-size: 1.06rem !important;
     font-weight: 400 !important;
-    /* skinny */
     letter-spacing: -0.005em !important;
     transform: translateY(-50%);
     z-index: 120;
-    /* above sidebar (100) and scrim (90) */
     border: 1px solid rgba(45, 43, 38, 0.2);
     border-left: none;
-    /* flush with screen edge */
     background: transparent;
     color: #2d2b26;
     padding: 12px 20px !important;
     position: relative !important;
     white-space: nowrap !important;
-    /* avoid wrapping-induced overflow */
     overflow: hidden !important;
-    /* keep underline inside */
     text-overflow: ellipsis !important;
     transition:
         background-color .25s ease,
         color .20s ease,
         box-shadow .25s ease,
         opacity .20s ease,
-        transform .25s ease !important;
+        transform .4s ease !important;
 }
 
-/* Thin separators between items (visual only) */
 
-
-/* Clean hover background (unchanged) */
-
-
-/* ===== Underline (navy), centered, short, never clipped ===== */
-
-
-/* dark navy; tweak if you have an exact brand code */
-
-
-
-/* Hover: same width & navy (just lighter opacity), smoothly animated */
-
-
-/* Selected: underline in NAVY, text NAVY & bold as requested */
-
-
-
-
-/* Collapsed state stays white and consistent */
-
-/* --- Bigger PCM logo (~50%), extra gap, subtle divider --- */
 .sidebar>img {
     display: block !important;
     /* much wider, but still safely inside the 220px column */
@@ -1721,16 +1678,7 @@ body.sidebar-collapsed .sidebar {
     /* subtle line */
 }
 
-.sidebar {
-    display: flex;
-    flex-direction: column;
-    height: auto;
-    max-width: 800px;
-    justify-content: center !important;
 
-    margin-top: 20px;
-    margin-bottom: 25px;
-}
 
 .sidebar .nav-top {
     flex: 1;
@@ -1785,34 +1733,7 @@ body.sidebar-collapsed .sidebar-handle:hover {
 }
 
 /* === Sidebar: dimensional white card === */
-.sidebar {
-    position: fixed;
-    inset: 0 auto 0 0;
-    width: var(--sidebar-width);
 
-    background: #ffffff !important;
-    /* clean white */
-    border-radius: 19px !important;
-    /* same rounded corners */
-
-    /* Multiple layered shadows for more depth */
-    box-shadow:
-        0 4px 6px rgba(0, 0, 0, 0.06),
-        0 8px 20px rgba(0, 0, 0, 0.10),
-        0 12px 28px rgba(0, 0, 0, 0.08);
-
-    border: 1px solid rgba(0, 0, 0, 0.04);
-    /* faint edge for structure */
-
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-    padding-top: 20px;
-
-    transform: translateX(0);
-    transition: transform 320ms ease-out, box-shadow 250ms ease;
-    z-index: 100;
-}
 
 /* Collapsed state */
 body.sidebar-collapsed .sidebar {
@@ -1822,17 +1743,16 @@ body.sidebar-collapsed .sidebar {
 
 /* Sidebar links with subtle dimension */
 .sidebar a {
+    will-change: transform;
     background: #ffffff;
     color: #000000 !important;
     display: block;
     padding: 12px 18px;
-    margin: 4px 10px 4px 0;
+    margin: 4px 5px 4px 5px;
     font-size: 1rem;
     font-weight: 500;
-    box-shadow:
-        0 2px 4px rgba(0, 0, 0, 0.08),
-        0 4px 8px rgba(0, 0, 0, 0.10);
-    border-radius: 0px 10px 10px 0;
+    box-shadow: 0 8px 8px rgba(2, 2, 2, .2);
+    border-radius: 16px 16px 16px 16px;
 
 
     transition:
@@ -1840,19 +1760,181 @@ body.sidebar-collapsed .sidebar {
         box-shadow 0.2s ease,
         transform 0.15s ease,
         color 0.5s ease;
+
+
 }
 
 /* Hover effect = lift + glow */
-.sidebar a:hover {
-    background-color: #4b5e70;
-    color: #ffffff !important;
+.sidebar a:not(.active):hover {
+    background-color: #ffffff;
+    color: black !important;
+    transform: translateY(-27px)translateX(10px);
+
+    box-shadow:
+        10px 10px 20px rgba(0, 0, 0, 0.06),
+        10px 10px 20px rgba(0, 0, 0, 0.10),
+        10px 16px 28px rgba(0, 0, 0, 0.08) !important;
 
 }
 
 /* Active link = bolder + inset dimension */
 .sidebar a.active {
     color: #ffffff !important;
-
     background: #4b5e70;
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+    transform: translateY(-25px)translateX(0px);
+    /* Multiple inset shadows for depth */
+    box-shadow:
+        inset 0 3px 6px rgba(0, 0, 0, 0.7),
+
+        inset 0 -2px 4px rgba(255, 255, 255, 0.1);
+
+    transition: background-color 0.6s ease-in-out,
+        box-shadow 0.6s ease-in-out,
+        transform 0.6s ease-in-out !important;
+
+
+    transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+}
+
+/* === Active-on-load animation helpers === */
+/* === Active-on-load animation helpers === */
+@keyframes activeLift {
+    from {
+        transform: translateY(-27px) translateX(10px);
+        background-color: #ffffff;
+        /* same as hover background */
+        color: #000000;
+        /* same as hover text */
+    }
+
+    to {
+        transform: translateY(-25px) translateX(0);
+        background-color: #4b5e70;
+        /* same as your .active background */
+        color: #ffffff;
+        /* same as your .active text */
+    }
+}
+
+/* Inset shadow fade-in still separate */
+@keyframes insetFadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* Active link base state */
+.sidebar a.active {
+    position: relative;
+    overflow: visible;
+    color: #ffffff;
+    background-color: #4b5e70;
+    transform: translateY(-25px) translateX(0);
+    transition: background-color 1s ease, color 1s ease;
+}
+
+/* Just-activated (start in hover pose) */
+.sidebar a.active.just-activated {
+    box-shadow:
+        10px 10px 20px rgba(0, 0, 0, 0.06),
+        10px 10px 20px rgba(0, 0, 0, 0.10),
+        10px 16px 28px rgba(0, 0, 0, 0.08);
+
+    animation: activeLift 1s ease forwards;
+}
+
+/* Inset shadow fade in */
+.sidebar a.active.just-activated::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow:
+        inset 0 3px 6px rgba(0, 0, 0, 0.7),
+        inset 0 -2px 4px rgba(255, 255, 255, 0.1);
+    opacity: 0;
+    animation: insetFadeIn 1s ease forwards;
+}
+
+/* === Row hover "editbtn" that lives OUTSIDE the table/content boxes === */
+.editbtn {
+    position: absolute;
+    /* we place it relative to the page */
+    width: 30px;
+    /* fixed width */
+    height: 0;
+    /* JS sets this to match row height */
+    left: -9999px;
+    /* hidden off-screen by default */
+    top: -9999px;
+    background: transparent;
+    /* invisible background */
+    border: none;
+    padding: 0;
+    margin: 0;
+    display: none;
+    /* shown on row hover */
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 9999;
+    /* above content2/contentInner2/table */
+    pointer-events: auto;
+    /* it must be hoverable itself */
+}
+
+.editbtn__dots {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    /* spacing between the three dots */
+    align-items: center;
+    justify-content: center;
+}
+
+.editbtn__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #000;
+    /* black dots */
+    opacity: 0;
+    /* animated in on show */
+}
+
+/* Animate dots in sequence when the button becomes visible */
+@keyframes dotIn {
+    from {
+        opacity: 0;
+        transform: translateY(4px) scale(0.8);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.editbtn--visible .editbtn__dot:nth-child(1) {
+    animation: dotIn 160ms ease forwards 0ms;
+}
+
+.editbtn--visible .editbtn__dot:nth-child(2) {
+    animation: dotIn 160ms ease forwards 120ms;
+}
+
+.editbtn--visible .editbtn__dot:nth-child(3) {
+    animation: dotIn 160ms ease forwards 240ms;
+}
+
+/* Make sure the main container doesn't clip the button that sticks outside */
+.content2,
+.contentInner2,
+table.sticky {
+    overflow: visible !important;
 }
