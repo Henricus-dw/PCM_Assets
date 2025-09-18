@@ -130,7 +130,7 @@
                 </thead>
                 <tbody>
                     {% for device in devices %}
-                    <tr>
+                    <tr data-device-id="{{ device.id }}">
                         <td>{{ device.Name_ }}</td>
                         <td>{{ device.Surname_ }}</td>
                         <td>{{ device.Personnel_nr }}</td>
@@ -176,6 +176,16 @@
             </div>
         </div>
     </div>
+    <div id="editRowModal" class="modal" style="display:none;">
+        <div class="modal-content" style="max-width:800px;">
+            <span class="close" onclick="closeEditRowModal()">&times;</span>
+            <h2>Edit Device</h2>
+            <div id="editRowBody"></div>
+            <div id="editSubmitWrap" style="text-align:center; margin-top:16px; display:none;">
+                <button id="submitChangesBtn" class="confirm">Submit Changes</button>
+            </div>
+        </div>
+    </div>
 
     <style>
         .modal {
@@ -205,368 +215,382 @@
         }
     </style>
 
-
     <script>
+
         document.addEventListener("DOMContentLoaded", () => {
-            const table = document.querySelector("table.sticky");
-            const tbody = table.querySelector("tbody");
-            const rows = Array.from(tbody.querySelectorAll("tr"));
-            const filters = {};
-
-            // === Filtering ===
-            document.querySelectorAll(".filter-toggle").forEach(btn => {
-                const col = btn.dataset.col;
-                const th = btn.closest("th");
-                const input = th.querySelector(".header-filter");
-
-                btn.addEventListener("click", () => {
-                    btn.style.display = "none";
-                    input.style.display = "inline-block";
-                    input.focus();
-                });
-
-                input.addEventListener("input", () => {
-                    filters[col] = input.value.toLowerCase().trim();
-                    applyFilters();
-                });
-
-                input.addEventListener("blur", () => {
-                    if (!input.value.trim()) {
-                        input.style.display = "none";
-                        btn.style.display = "inline-block";
-                    }
-                });
-
-                input.addEventListener("keydown", (e) => {
-                    if (e.key === "Escape") {
-                        input.value = "";
-                        filters[col] = "";
-                        input.style.display = "none";
-                        btn.style.display = "inline-block";
-                        applyFilters();
-                    }
-                });
-            });
-
-            function applyFilters() {
-                rows.forEach(row => {
-                    let visible = true;
-                    for (let col in filters) {
-                        const val = filters[col];
-                        const cellText = row.cells[col].textContent.toLowerCase().trim();
-                        if (val && !cellText.includes(val)) {
-                            visible = false;
-                            break;
-                        }
-                    }
-                    row.style.display = visible ? "" : "none";
-                });
-            }
-
-            // === Sorting ===
-            const sortSelect = document.getElementById("sort-select");
-
-            if (sortSelect) {
-                sortSelect.addEventListener("change", () => {
-                    const sortBy = sortSelect.value;
-                    const rowsArray = Array.from(tbody.querySelectorAll("tr"));
-
-                    let colIndex;
-                    let isDate = false;
-
-                    switch (sortBy) {
-                        case "inception_date":
-                            colIndex = 0;
-                            isDate = true;
-                            break;
-                        case "termination_date":
-                            colIndex = 1;
-                            isDate = true;
-                            break;
-                        case "monthly_costs":
-                            colIndex = 5;
-                            break;
-                        default:
-                            return;
-                    }
-
-
-                    rowsArray.sort((a, b) => {
-                        let valA = a.cells[colIndex].textContent.trim();
-                        let valB = b.cells[colIndex].textContent.trim();
-
-                        if (isDate) {
-                            valA = new Date(valA);
-                            valB = new Date(valB);
-                            return valA - valB;
+            try {
+                const saved = JSON.parse(sessionStorage.getItem("devices_restore") || "null");
+                if (saved) {
+                    // scroll
+                    if (saved.scroll?.type === "window") {
+                        window.scrollTo(saved.scroll.left || 0, saved.scroll.top || 0);
+                    } else {
+                        const el = document.querySelector(".contentInner2");
+                        if (el) {
+                            el.scrollTop = saved.scroll?.top || 0;
+                            el.scrollLeft = saved.scroll?.left || 0;
                         } else {
-                            valA = parseFloat(valA) || 0;
-                            valB = parseFloat(valB) || 0;
-                            return valB - valA;
+                            // fallback to window if container not found
+                            window.scrollTo(saved.scroll.left || 0, saved.scroll.top || 0);
+                        }
+                    }
+                    // highlight the updated row
+                    if (saved.highlightId) {
+                        const r = document.querySelector(`table.sticky tbody tr[data-device-id="${saved.highlightId}"]`);
+                        if (r) {
+                            r.classList.add("just-updated");
+                            setTimeout(() => r.classList.remove("just-updated"), 2400);
+                        }
+                    }
+                    sessionStorage.removeItem("devices_restore");
+                }
+            } catch (e) {
+                // ignore restore errors quietly
+            }
+            // ------------------------------------
+            // Base elements
+            // ------------------------------------
+            const table = document.querySelector("table.sticky");
+            if (!table) return;
+
+            // Your scroll container (adjust if different)
+            const scroller = document.querySelector(".contentInner2") || window;
+
+            // ------------------------------------
+            // Header map (for in-place patch after save)
+            // ------------------------------------
+            const headerIndex = (() => {
+                const map = {};
+                const ths = table.querySelectorAll("thead th");
+                ths.forEach((th, i) => {
+                    // Your headers often wrap text in .header-label; fallback to th text
+                    const labelEl = th.querySelector(".header-label");
+                    const label = (labelEl ? labelEl.textContent : th.textContent).trim().toLowerCase();
+                    map[label] = i;
+                });
+                return map;
+            })();
+
+            function norm(s) { return (s || "").toString().trim().toLowerCase(); }
+
+            const keyToHeaderLabels = {
+                Name_: ["name"],
+                Surname_: ["surname"],
+                Personnel_nr: ["personnel number", "personnel nr", "personnel no"],
+                Company: ["company"],
+                Client_Division: ["client division", "division"],
+                Device_Name: ["device name", "device"],
+                Serial_Number: ["serial number", "serial #", "serial"],
+                Device_Description: ["description", "device description"],
+                insurance: ["insurance"]
+            };
+
+            function columnIndexForKey(key) {
+                const labels = keyToHeaderLabels[key] || [];
+                for (const label of labels) {
+                    const idx = headerIndex[norm(label)];
+                    if (idx != null) return idx;
+                }
+                return null;
+            }
+
+            function patchActiveRowCells(rowEl, changedObj) {
+                if (!rowEl || !changedObj) return;
+                for (const [key, val] of Object.entries(changedObj)) {
+                    const colIdx = columnIndexForKey(key);
+                    if (colIdx != null && rowEl.cells[colIdx]) {
+                        rowEl.cells[colIdx].textContent = (val ?? "").toString();
+                    }
+                }
+            }
+
+            // ------------------------------------
+            // Floating rail + button (outside overflow)
+            // ------------------------------------
+            const rail = document.createElement("div");
+            rail.className = "editbtn-rail";
+            document.body.appendChild(rail);
+
+            const editBtn = document.createElement("button");
+            editBtn.className = "editbtn";
+            editBtn.type = "button";
+            editBtn.setAttribute("aria-label", "Edit row");
+            editBtn.innerHTML = `
+    <div class="editbtn__dots">
+      <span class="editbtn__dot"></span>
+      <span class="editbtn__dot"></span>
+      <span class="editbtn__dot"></span>
+    </div>`;
+            rail.appendChild(editBtn);
+
+            let activeRow = null;
+            let hideTimer = null;
+
+            function rect(el) { return el.getBoundingClientRect(); }
+
+            function positionRailForCell(firstCell) {
+                const clipR = (scroller === window)
+                    ? document.documentElement.getBoundingClientRect()
+                    : scroller.getBoundingClientRect();
+
+                if (scroller !== window) {
+                    rail.style.position = "fixed";
+                    rail.style.left = (clipR.left - 30) + "px";
+                    rail.style.top = clipR.top + "px";
+                    rail.style.height = clipR.height + "px";
+                } else {
+                    const cellR = firstCell.getBoundingClientRect();
+                    rail.style.position = "absolute";
+                    rail.style.left = (cellR.left + window.scrollX - 30) + "px";
+                    rail.style.top = (clipR.top + window.scrollY) + "px";
+                    rail.style.height = clipR.height + "px";
+                }
+            }
+
+            function positionButtonForRow(row) {
+                const rowR = row.getBoundingClientRect();
+                const clipR = (scroller === window)
+                    ? document.documentElement.getBoundingClientRect()
+                    : scroller.getBoundingClientRect();
+                editBtn.style.top = (rowR.top - clipR.top) + "px"; // relative to rail top
+                editBtn.style.height = rowR.height + "px";
+            }
+
+
+            function showForRow(row) {
+                const firstCell = row.cells[0];
+                if (!firstCell) return;
+                clearTimeout(hideTimer);
+                activeRow = row;
+                positionRailForCell(firstCell);
+                positionButtonForRow(row);
+                editBtn.style.display = "flex";
+                editBtn.classList.remove("editbtn--visible");
+                requestAnimationFrame(() => editBtn.classList.add("editbtn--visible"));
+            }
+
+            function hideIfAllowed() {
+                if (!activeRow) return;
+                const overRow = activeRow.matches(":hover");
+                const overBtn = editBtn.matches(":hover");
+                if (!overRow && !overBtn) {
+                    editBtn.style.display = "none";
+                    editBtn.classList.remove("editbtn--visible");
+                    activeRow = null;
+                }
+            }
+
+            function relayout() {
+                if (!activeRow) return;
+                positionRailForCell(activeRow.cells[0]);
+                positionButtonForRow(activeRow);
+            }
+
+            // Bind to tbody rows (exclude header)
+            const bodyRows = table.tBodies[0] ? Array.from(table.tBodies[0].rows) : [];
+            bodyRows.forEach(row => {
+                row.addEventListener("pointerenter", () => showForRow(row));
+                row.addEventListener("pointerleave", (e) => {
+                    if (e.relatedTarget && (e.relatedTarget === editBtn || editBtn.contains(e.relatedTarget))) return;
+                    clearTimeout(hideTimer);
+                    hideTimer = setTimeout(hideIfAllowed, 140);
+                });
+            });
+
+            editBtn.addEventListener("pointerenter", () => clearTimeout(hideTimer));
+            editBtn.addEventListener("pointerleave", (e) => {
+                if (activeRow && e.relatedTarget && (e.relatedTarget === activeRow || activeRow.contains(e.relatedTarget))) return;
+                clearTimeout(hideTimer);
+                hideTimer = setTimeout(hideIfAllowed, 100);
+            });
+
+            (scroller === window ? window : scroller).addEventListener("scroll", relayout, { passive: true });
+            window.addEventListener("resize", relayout);
+
+            // ------------------------------------
+            // Modal + backend wiring
+            // ------------------------------------
+            const editModal = document.getElementById("editRowModal");
+            const editBody = document.getElementById("editRowBody");
+            const submitWrap = document.getElementById("editSubmitWrap");
+            const submitBtn = document.getElementById("submitChangesBtn");
+
+            let pending = {};
+            let deviceData = {};
+            let currentDeviceId = null;
+
+            function getActiveRowFromButton() {
+                const rows = document.querySelectorAll("table.sticky tbody tr");
+                for (const r of rows) if (r.matches(":hover")) return r;
+                // fallback: nearest center match
+                const btnRect = editBtn.getBoundingClientRect();
+                let best = null, bestDist = Infinity;
+                for (const r of rows) {
+                    const rr = r.getBoundingClientRect();
+                    const center = rr.top + rr.height / 2;
+                    const dist = Math.abs(center - (btnRect.top + btnRect.height / 2));
+                    if (dist < bestDist) { bestDist = dist; best = r; }
+                }
+                return best;
+            }
+
+            function showModal() { if (editModal) editModal.style.display = "block"; }
+            window.closeEditRowModal = function () { if (editModal) editModal.style.display = "none"; }
+
+            function openEditRowModal(rowEl) {
+                pending = {};
+                submitWrap.style.display = "none";
+                editBody.innerHTML = "Loading…";
+
+                const id = rowEl?.dataset?.deviceId;
+                currentDeviceId = id || null;
+
+                if (!id) { editBody.textContent = "No device id found on row."; showModal(); return; }
+
+                fetch(`/api/devices/${id}`)
+                    .then(r => { if (!r.ok) throw new Error("Failed to load device"); return r.json(); })
+                    .then(data => { deviceData = data; renderEditTable(data); showModal(); })
+                    .catch(err => { editBody.textContent = err.message || "Error loading device."; showModal(); });
+            }
+
+            function renderEditTable(data) {
+                const fields = [
+                    ["Name_", "Name"],
+                    ["Surname_", "Surname"],
+                    ["Personnel_nr", "Personnel Number"],
+                    ["Company", "Company"],
+                    ["Client_Division", "Client Division"],
+                    ["Device_Name", "Device Name"],
+                    ["Serial_Number", "Serial Number"],
+                    ["Device_Description", "Description"],
+                    ["insurance", "Insurance"]
+                ];
+
+                const editTable = document.createElement("table");
+                editTable.style.width = "100%";
+                editTable.style.borderCollapse = "collapse";
+                editTable.innerHTML = `
+      <thead>
+        <tr>
+          <th style="text-align:left; padding:8px;">Field</th>
+          <th style="text-align:left; padding:8px;">Current Value</th>
+          <th style="text-align:left; padding:8px;">&nbsp;</th>
+          <th style="text-align:left; padding:8px;">New Value</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    `;
+                const tbody = editTable.querySelector("tbody");
+
+                fields.forEach(([key, label]) => {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+        <td style="padding:8px; vertical-align:top; font-weight:600;">${label}</td>
+        <td style="padding:8px; vertical-align:top;">${(data[key] ?? "").toString()}</td>
+        <td style="padding:8px; vertical-align:top;">
+          <button type="button" class="confirm edit-row-btn" data-key="${key}" style="max-width:160px;">Edit</button>
+        </td>
+        <td style="padding:8px; vertical-align:top;">
+          <div class="edit-input-wrap" data-key="${key}" style="display:none;">
+            <input type="text" class="edit-input" style="max-width:320px;" value="">
+          </div>
+        </td>
+      `;
+                    tbody.appendChild(tr);
+                });
+
+                editBody.innerHTML = "";
+                editBody.appendChild(editTable);
+
+                // Delegate clicks for any ".edit-row-btn" (bind once)
+                if (!editBody._delegationBound) {
+                    editBody._delegationBound = true;
+                    editBody.addEventListener("click", (e) => {
+                        const btn = e.target.closest(".edit-row-btn");
+                        if (!btn) return;
+
+                        const key = btn.dataset.key;
+                        const wrap = editBody.querySelector(`.edit-input-wrap[data-key="${key}"]`);
+                        if (!wrap) return;
+
+                        wrap.style.display = "block";
+                        const input = wrap.querySelector(".edit-input");
+                        input.value = (deviceData[key] ?? "");
+                        input.focus();
+
+                        if (!input._bound) {
+                            input._bound = true;
+                            input.addEventListener("input", () => {
+                                const current = (deviceData[key] ?? "").toString();
+                                const next = input.value;
+                                if (next !== current) { pending[key] = next; }
+                                else { delete pending[key]; }
+                                submitWrap.style.display = Object.keys(pending).length ? "block" : "none";
+                            });
                         }
                     });
+                }
 
-                    // Re-insert sorted rows
-                    while (tbody.firstChild) {
-                        tbody.removeChild(tbody.firstChild);
+                // Submit handler (set/replace each render so it uses latest pending/deviceData)
+                submitBtn.onclick = async () => {
+                    // Need a target row and at least one changed field
+                    if (!currentDeviceId) return;
+                    if (!Object.keys(pending).length) {
+                        if (typeof closeEditRowModal === "function") closeEditRowModal();
+                        return;
                     }
-                    rowsArray.forEach(row => tbody.appendChild(row));
-                });
-            }
 
-            // === Export to CSV ===
-            const exportBtn = document.getElementById("export-btn");
-
-            if (exportBtn) {
-                exportBtn.addEventListener("click", () => {
-                    const rowsToExport = Array.from(table.querySelectorAll("tr"));
-                    const csv = rowsToExport.map(row => {
-                        const cols = row.querySelectorAll("td, th");
-                        const rowData = Array.from(cols).map((col, index) => {
-                            let text = col.textContent.trim();
-
-                            // Prevent Excel from misinterpreting date columns
-                            if (index === 10 || index === 11) {
-                                text = `="${text}"`; // Force Excel to treat as text
-                            }
-
-                            // Escape double quotes
-                            return `"${text.replace(/"/g, '""')}"`;
-                        }).join(",");
-                        return rowData;
-                    }).join("\n");
-
-                    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-                    const url = URL.createObjectURL(blob);
-
-                    const a = document.createElement("a");
-                    a.href = url;
-                    a.download = "vodacom_dashboard_export.csv";
-                    a.style.display = "none";
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                });
-            }
-        });
-        document.addEventListener("DOMContentLoaded", () => {
-            const pdfBtn = document.getElementById("export-pdf-btn");
-            const table = document.querySelector("table.sticky");
-
-            if (pdfBtn && table) {
-                pdfBtn.addEventListener("click", () => {
-                    const { jsPDF } = window.jspdf;
-                    const doc = new jsPDF('landscape'); // Use landscape for wide tables
-
-                    const headers = [];
-                    const data = [];
-
-                    // Extract table headers
-                    const ths = table.querySelectorAll("thead th");
-                    ths.forEach(th => {
-                        const label = th.querySelector(".header-label");
-                        headers.push(label ? label.textContent.trim() : th.textContent.trim());
-                    });
-
-                    // Extract table data
-                    const rows = table.querySelectorAll("tbody tr");
-                    rows.forEach(row => {
-                        const rowData = [];
-                        row.querySelectorAll("td").forEach((td, index) => {
-                            let text = td.textContent.trim();
-
-                            // Keep date formatting
-                            if (index === 10 || index === 11) {
-                                text = text;
-                            }
-
-                            rowData.push(text);
+                    submitBtn.disabled = true;
+                    try {
+                        const resp = await fetch(`/api/devices/${currentDeviceId}`, {
+                            method: "PUT",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(pending)
                         });
-                        data.push(rowData);
-                    });
+                        if (!resp.ok) throw new Error("Failed to update device");
+                        const res = await resp.json();
 
-                    doc.text("Vodacom Dashboard Export", 14, 15);
-                    doc.autoTable({
-                        head: [headers],
-                        body: data,
-                        startY: 20,
-                        styles: { fontSize: 8, cellPadding: 2 }
-                    });
+                        if (res.updated) {
+                            // Save scroll position (either inside .contentInner2 or window) and the row to highlight
+                            const container = document.querySelector(".contentInner2");
+                            const scrollState = container
+                                ? { type: "element", top: container.scrollTop, left: container.scrollLeft }
+                                : { type: "window", top: window.scrollY, left: window.scrollX };
 
-                    doc.save("vodacom_dashboard_export.pdf");
-                });
-            }
-        });
+                            sessionStorage.setItem("devices_restore", JSON.stringify({
+                                scroll: scrollState,
+                                highlightId: String(currentDeviceId)
+                            }));
 
-        function showContractsModal(deviceId) {
-            fetch(`/devices/${deviceId}/contract`)
-                .then(res => res.json())
-                .then(contract => {
-                    const body = document.getElementById("deviceModalBody"); // ✅ FIXED ID
-                    if (!contract || Object.keys(contract).length === 0) {
-                        body.innerHTML = "<p>No contract linked to this device.</p>";
-                    } else {
-                        body.innerHTML = `
-                    <table border="1" width="100%" cellpadding="5">
-                        <thead>
-                            <tr>
-                                <th>Name</th><th>Surname</th><th>Personnel #</th><th>Company</th>
-                                <th>Client Division</th><th>Contract Type</th><th>Monthly Costs</th>
-                                <th>VAT</th><th>Cost (Excl. VAT)</th><th>Term</th>
-                                <th>Inception</th><th>Termination</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>${contract.Name_}</td>
-                                <td>${contract.Surname_}</td>
-                                <td>${contract.Personnel_nr}</td>
-                                <td>${contract.Company}</td>
-                                <td>${contract.Client_Division}</td>
-                                <td>${contract.Contract_Type}</td>
-                                <td>${contract.Monthly_Costs}</td>
-                                <td>${contract.VAT}</td>
-                                <td>${contract.Monthly_Cost_Excl_VAT}</td>
-                                <td>${contract.Contract_Term}</td>
-                                <td>${contract.Inception_Date || ''}</td>
-                                <td>${contract.Termination_Date || ''}</td>
-                            </tr>
-                        </tbody>
-                    </table>`;
+                            // Reload so the dashboard reflects the DB write without losing position
+                            location.reload();
+                            return; // stop execution after triggering reload
+                        } else {
+                            alert(res.message || "No changes were applied.");
+                            if (typeof closeEditRowModal === "function") closeEditRowModal();
+                        }
+                    } catch (err) {
+                        alert(err?.message || "Failed to update device.");
+                    } finally {
+                        submitBtn.disabled = false;
                     }
-                    document.getElementById("deviceModal").style.display = "block"; // ✅ FIXED ID
-                });
-        }
+                };
 
-
-
-        function closeDevicesModal() {
-            document.getElementById("deviceModal").style.display = "none";
-        }
-        document.addEventListener("DOMContentLoaded", () => {
-            const collapse = document.getElementById("sidebarCollapse");
-            const scrim = document.getElementById("sidebarScrim");
-            const burger = document.getElementById("openSidebar"); // optional top-left hamburger
-
-            // Collapse/expand on desktop
-            collapse?.addEventListener("click", () => {
-                document.body.classList.toggle("sidebar-collapsed");
-            });
-
-            // Mobile open/close
-            burger?.addEventListener("click", () => {
-                document.body.classList.add("sidebar-open");
-            });
-            scrim?.addEventListener("click", () => {
-                document.body.classList.remove("sidebar-open");
-            });
-        });
-        function showOwnersModal(deviceId) {
-            fetch(`/devices/${deviceId}/past_owners`)
-                .then(r => r.json())
-                .then(data => {
-                    const body = document.getElementById("deviceModalBody");
-                    if (!data || data.length === 0) {
-                        body.innerHTML = "<p>No previous owners archived for this device.</p>";
-                    } else {
-                        body.innerHTML = `
-          <table border="1" width="100%" cellpadding="5">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Surname</th>
-                <th>Personnel #</th>
-                <th>Company</th>
-                <th>Client Division</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${data.map(p => `
-                <tr>
-                  <td>${p.Name_}</td>
-                  <td>${p.Surname_}</td>
-                  <td>${p.Personnel_nr}</td>
-                  <td>${p.Company}</td>
-                  <td>${p.Client_Division}</td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
-        `;
-                    }
-                    document.getElementById("deviceModal").style.display = "block";
-                })
-                .catch(err => {
-                    document.getElementById("deviceModalBody").innerHTML =
-                        `<p style="color:#b00020;">Error loading previous owners.</p>`;
-                    document.getElementById("deviceModal").style.display = "block";
-                    console.error(err);
-                });
-        }
-        document.addEventListener("DOMContentLoaded", () => {
-            const handle = document.getElementById("sidebarHandle");
-            const collapseBtn = document.getElementById("sidebarCollapse"); // optional header button
-            const scrim = document.getElementById("sidebarScrim");
-
-            function toggleSidebar() {
-                const collapsed = document.body.classList.toggle("sidebar-collapsed");
-
-                handle?.setAttribute("aria-pressed", String(!collapsed ? true : false));
-                handle?.setAttribute(
-                    "aria-label",
-                    collapsed ? "Expand sidebar" : "Collapse sidebar"
-                );
-                handle.title = collapsed ? "Expand sidebar" : "Collapse sidebar";
             }
 
-            handle?.addEventListener("click", toggleSidebar);
-            collapseBtn?.addEventListener("click", toggleSidebar);
+            // Open modal when clicking the floating edit button
+            editBtn.addEventListener("click", () => {
+                const row = getActiveRowFromButton();
+                if (!row) return;
+                activeRow = row; // needed for post-save patch
+                openEditRowModal(row);
+            });
 
-            scrim?.addEventListener("click", () => {
-                document.body.classList.remove("sidebar-open");
+            // Close on backdrop click
+            editModal?.addEventListener("click", (e) => {
+                if (e.target === editModal) closeEditRowModal();
             });
         });
-        document.addEventListener("DOMContentLoaded", () => {
-            const logoutLink = document.getElementById("logoutLink");
-            if (logoutLink) {
-                logoutLink.addEventListener("click", function (e) {
-                    e.preventDefault(); // stop direct navigation
-                    const confirmed = confirm("Are you sure you want to log out?");
-                    if (confirmed) {
-                        window.location.href = this.href; // proceed to /logout
-                    }
-                });
-            }
-        });
-        document.addEventListener("DOMContentLoaded", () => {
-            const logoutLink = document.getElementById("logoutLink");
-            if (logoutLink) {
-                logoutLink.addEventListener("click", function (e) {
-                    e.preventDefault(); // stop direct navigation
-                    const confirmed = confirm("Are you sure you want to log out?");
-                    if (confirmed) {
-                        window.location.href = this.href; // proceed to /logout
-                    }
-                });
-            }
-        });
-        document.addEventListener("DOMContentLoaded", () => {
-            /* … your existing sidebar JS … */
-
-            // === NEW: play the active-link intro animation on page load (skip Log Out) ===
-            const activeLinks = Array.from(document.querySelectorAll(".sidebar a.active"))
-                .filter(a => a.id !== "logoutLink");
-
-            // Start them in “hover” pose and animate into “active”
-            activeLinks.forEach(a => a.classList.add("just-activated"));
-
-            // After 1s (box-shadow fade done), clean up the temp class
-            setTimeout(() => {
-                activeLinks.forEach(a => a.classList.remove("just-activated"));
-            }, 1050);
-        });
-
     </script>
 
 

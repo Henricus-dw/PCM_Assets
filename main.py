@@ -1,3 +1,4 @@
+from fastapi import Body
 from sqlalchemy import desc   # already imported at top, but make sure
 from datetime import datetime  # (already imported above in your file)
 from sqlalchemy import text, Column, Integer, String, Float, DateTime, func, or_, exc
@@ -915,3 +916,73 @@ def register_post(
 
     # After submission, send them back to login with a friendly note
     return templates.TemplateResponse("login.html", {"request": request, "error": "Account request submitted. An admin will approve or deny."}, status_code=200)
+
+
+# === Devices API (fetch + patch) ===
+
+
+@app.get("/api/devices/{device_id}")
+def api_get_device(device_id: int, request: Request, db: Session = Depends(get_db)):
+    # session-guard like the rest of your app
+    if not request.session.get("user_id"):
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    device = db.query(Device).filter(Device.id == device_id).first()
+    if not device:
+        raise HTTPException(status_code=404, detail="Device not found")
+
+    # Return the fields you show in the dashboard
+    return {
+        "id": device.id,
+        "Name_": device.Name_,
+        "Surname_": device.Surname_,
+        "Personnel_nr": device.Personnel_nr,
+        "Company": device.Company,
+        "Client_Division": device.Client_Division,
+        "Device_Name": device.Device_Name,
+        "Serial_Number": device.Serial_Number,
+        "Device_Description": device.Device_Description,
+        "insurance": device.insurance,
+        "vd_id": getattr(device, "vd_id", None),
+    }
+
+
+@app.put("/api/devices/{device_id}")
+def api_update_device(
+    device_id: int,
+    request: Request,
+    # e.g. {"Company": "PCM", "Device_Name": "New name"}
+    updates: dict = Body(...),
+    db: Session = Depends(get_db)
+):
+    if not request.session.get("user_id"):
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    device = db.query(Device).filter(Device.id == device_id).first()
+    if not device:
+        raise HTTPException(status_code=404, detail="Device not found")
+
+    # Only allow known fields
+    allowed = {
+        "Name_",
+        "Surname_",
+        "Personnel_nr",
+        "Company",
+        "Client_Division",
+        "Device_Name",
+        "Serial_Number",
+        "Device_Description",
+        "insurance",
+    }
+    changed = {}
+    for k, v in updates.items():
+        if k in allowed:
+            setattr(device, k, v)
+            changed[k] = v
+
+    if not changed:
+        return {"updated": False, "message": "No valid fields provided."}
+
+    db.add(device)
+    db.commit()
+    return {"updated": True, "id": device.id, "changed": changed}

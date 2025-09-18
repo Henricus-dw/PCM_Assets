@@ -520,6 +520,80 @@ label {
     margin-top: 15px;
 }
 
+.confirm {
+    width: auto;
+    height: auto;
+    color: white;
+    background-color: #4b5e70;
+    border: none;
+    border-radius: 14px;
+    padding: 4px 14px 6px 14px;
+    font: inherit;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    margin: 0 auto;
+    margin-top: 20px;
+    transition: background-color 0.2s ease;
+
+}
+
+
+
+.confirm:hover {
+    background-color: #f6efe3;
+
+    color: #333;
+}
+
+.confirm2:hover {
+    background-color: #f6efe3;
+
+    color: #333;
+}
+
+.confirm2 {
+    width: auto;
+    height: 20px;
+    color: white;
+    background-color: #4b5e70;
+    border: none;
+    border-radius: 14px;
+    padding: 2px 14px 12px 14px;
+    font: inherit;
+    cursor: pointer;
+    display: block;
+    /* no flexbox here */
+    margin-left: auto;
+    /* pushes it to the right */
+    margin-right: 30px;
+    font-size: 12px;
+    margin-bottom: -20px;
+    transition: background-color 0.2s ease;
+}
+
+
+/* Confirm buttons reserve their space but start hidden */
+#confirm1,
+#confirm2 {
+    visibility: hidden;
+}
+
+
+
+.form_settings {
+    height: auto;
+    max-height: 200px;
+    overflow: hidden;
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
 input,
 select,
 button {
@@ -1861,53 +1935,64 @@ body.sidebar-collapsed .sidebar {
     animation: insetFadeIn 1s ease forwards;
 }
 
-/* === Row hover "editbtn" that lives OUTSIDE the table/content boxes === */
+/* A 30px-wide portal that lives on <body> so nothing gets clipped */
+.editbtn-rail {
+    position: absolute;
+    /* we position it from JS */
+    left: -9999px;
+    top: -9999px;
+    width: 30px;
+    height: 0;
+    pointer-events: none;
+    /* only the button receives events */
+    z-index: 999999;
+    /* above app chrome */
+}
+
+/* The actual button */
 .editbtn {
     position: absolute;
-    /* we place it relative to the page */
+    left: 0;
+    top: 0;
     width: 30px;
-    /* fixed width */
     height: 0;
-    /* JS sets this to match row height */
-    left: -9999px;
-    /* hidden off-screen by default */
-    top: -9999px;
     background: transparent;
-    /* invisible background */
-    border: none;
+    border: 0;
     padding: 0;
     margin: 0;
     display: none;
-    /* shown on row hover */
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    z-index: 9999;
-    /* above content2/contentInner2/table */
     pointer-events: auto;
-    /* it must be hoverable itself */
+    transition: background-color 0.3s ease;
+    border-radius: 10px 0 0 10px;
 }
 
 .editbtn__dots {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    /* spacing between the three dots */
+    gap: 4px;
     align-items: center;
-    justify-content: center;
 }
 
 .editbtn__dot {
-    width: 6px;
-    height: 6px;
+    width: 5px;
+    height: 5px;
     border-radius: 50%;
     background: #000;
-    /* black dots */
     opacity: 0;
-    /* animated in on show */
+    transition: background-color 0.3s ease;
 }
 
-/* Animate dots in sequence when the button becomes visible */
+.editbtn:hover {
+    background-color: #4b5e70;
+}
+
+.editbtn:hover .editbtn__dot {
+    background-color: #fff;
+}
+
 @keyframes dotIn {
     from {
         opacity: 0;
@@ -1930,11 +2015,4 @@ body.sidebar-collapsed .sidebar {
 
 .editbtn--visible .editbtn__dot:nth-child(3) {
     animation: dotIn 160ms ease forwards 240ms;
-}
-
-/* Make sure the main container doesn't clip the button that sticks outside */
-.content2,
-.contentInner2,
-table.sticky {
-    overflow: visible !important;
 }
