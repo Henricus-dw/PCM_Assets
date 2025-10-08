@@ -1095,10 +1095,12 @@ table.sticky th {
     --ok: #16a34a;
     --warn: #f59e0b;
     --danger: #dc2626;
+
 }
 
 /* keep the sidebar offset intact; do not touch .sidebar */
 .home-dashboard .content4 {
+    height: 100vh;
     display: flex;
     align-items: stretch;
     min-height: calc(100vh - 40px);
@@ -1108,7 +1110,7 @@ table.sticky th {
     width: 100%;
     display: flex;
     flex-direction: column;
-
+    height: 100%;
     border-radius: 12px;
 
     padding: 0;
@@ -1358,14 +1360,14 @@ table.sticky th {
     }
 
     .home-dashboard .chart-wrap {
-        min-height: 160px;
+        min-height: 240px;
     }
 }
 
 /* Cap the height of Card #2 (Upcoming Terminations) so it can't push the row taller */
 .home-dashboard .dash-grid>.card:nth-child(2) {
-    max-height: 360px;
-    /* tune to taste: 340–380px usually feels right on laptops */
+
+
     overflow: hidden;
     /* ensures inner scroll doesn't spill over the card’s edges */
     display: flex;
@@ -1399,7 +1401,7 @@ table.sticky th {
 /* Keep the inner scroller, and ensure 20px space after the last cards */
 .home-dashboard .contentInner4 {
     /* override earlier fixed heights */
-    height: auto !important;
+
     min-height: calc(100vh - 100px);
     overflow-y: auto;
     padding-bottom: 20px;
@@ -1409,8 +1411,17 @@ table.sticky th {
 
 
 .home-dashboard .dash-grid {
-    grid-template-rows: auto !important;
-    grid-auto-rows: minmax(340px, auto);
+    height: 100%;
+
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: 1fr 1fr;
+
+    gap: var(--gap);
+
+    align-items: stretch;
+    min-height: 0;
+
     overflow: visible;
 
 }
@@ -1427,23 +1438,14 @@ table.sticky th {
     max-height: 160px !important;
 }
 
-/* Untrap the container so content doesn't get chopped */
 .home-dashboard .content4 {
     overflow: visible !important;
-    height: auto !important;
-    /* was 100% in an earlier rule */
-}
-
-/* Let the grid size rows naturally (not forced) */
-.home-dashboard .dash-grid {
-    padding-bottom: 20px !important;
-    /* the gap you want */
-    box-sizing: border-box;
-    grid-template-rows: auto auto !important;
+    height: 100vh;
 }
 
 
-/* keep the header above everything so nothing bleeds over it */
+
+
 .content3 {
     position: relative;
     z-index: 3;
