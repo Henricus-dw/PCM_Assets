@@ -280,24 +280,14 @@ body {
     height: 60px;
     display: flex;
     align-items: center;
-    /* vertical centering */
     justify-content: center;
-    /* horizontal centering */
 
-    /* rounded top only */
+
+
     border-top-left-radius: 18px !important;
     border-top-right-radius: 14px !important;
     border-bottom-left-radius: 0 !important;
     border-bottom-right-radius: 0 !important;
-
-    /* apply shadow normally */
-
-
-
-
-
-
-
     clip-path: inset(-10px -40px 2px -10px);
 
     position: relative;
@@ -1118,9 +1108,9 @@ table.sticky th {
     width: 100%;
     display: flex;
     flex-direction: column;
-    background: linear-gradient(180deg, #f8fafc, #ffffff);
+
     border-radius: 12px;
-    box-shadow: inset 0 1px 0 #fff, 0 1px 0 #f1f5f9;
+
     padding: 0;
 }
 
@@ -1281,9 +1271,50 @@ table.sticky th {
 }
 
 /* Table */
+/* TABLE AREA: the only scroller inside the card */
 .home-dashboard .table-wrap {
+    /* layout behavior (keep these if you already added them) */
+    flex: 1 1 auto;
+    min-height: 0;
     overflow: auto;
+
+    /* Firefox (quantum) – slim, light */
+    scrollbar-width: thin;
+    /* slim */
+    scrollbar-color: rgba(0, 0, 0, .25) transparent;
+    /* light thumb on transparent track */
 }
+
+/* WebKit browsers (Chrome/Edge/Safari) */
+.home-dashboard .table-wrap::-webkit-scrollbar {
+    width: 6px;
+    /* slim vertical */
+    height: 6px;
+    /* slim horizontal (just in case) */
+}
+
+.home-dashboard .table-wrap::-webkit-scrollbar-track {
+    background: transparent;
+    /* light/clean */
+}
+
+.home-dashboard .table-wrap::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.25);
+    /* light grey */
+    border-radius: 999px;
+}
+
+.home-dashboard .table-wrap::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.35);
+    /* slightly darker on hover */
+}
+
+/* Remove the little arrow buttons in older WebKit UIs */
+.home-dashboard .table-wrap::-webkit-scrollbar-button {
+    display: none;
+}
+
+
 
 .home-dashboard .small-table {
     width: 100%;
@@ -1331,6 +1362,32 @@ table.sticky th {
     }
 }
 
+/* Cap the height of Card #2 (Upcoming Terminations) so it can't push the row taller */
+.home-dashboard .dash-grid>.card:nth-child(2) {
+    max-height: 360px;
+    /* tune to taste: 340–380px usually feels right on laptops */
+    overflow: hidden;
+    /* ensures inner scroll doesn't spill over the card’s edges */
+    display: flex;
+    /* reinforce flex column (already on .card, harmless here) */
+    flex-direction: column;
+}
+
+/* Within Card #2, the table area takes the remaining space and scrolls */
+.home-dashboard .dash-grid>.card:nth-child(2) .table-tools {
+    flex: 0 0 auto;
+    /* tools stay fixed height */
+}
+
+.home-dashboard .dash-grid>.card:nth-child(2) .table-wrap {
+    flex: 1 1 auto;
+    /* table stretch */
+    min-height: 0;
+    /* can shrink within the capped card height */
+    overflow: auto;
+    /* scroll here (not the card) */
+}
+
 /* === Dashboard (home) — transparent bg + bottom spacing === */
 .home-dashboard .content4,
 .home-dashboard .contentInner4 {
@@ -1346,15 +1403,16 @@ table.sticky th {
     min-height: calc(100vh - 100px);
     overflow-y: auto;
     padding-bottom: 20px;
-    /* <-- the 20px you asked for */
+    overflow: visible;
+
 }
 
-/* Let rows size naturally to avoid clipping on smaller screens */
+
 .home-dashboard .dash-grid {
     grid-template-rows: auto !important;
-    /* overrides the fixed rows rule */
     grid-auto-rows: minmax(340px, auto);
-    /* matches your .card min-height */
+    overflow: visible;
+
 }
 
 .home-dashboard .dash-grid>.card:nth-child(4) .chart-wrap {
