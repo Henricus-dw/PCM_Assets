@@ -2016,3 +2016,144 @@ body.sidebar-collapsed .sidebar {
 .editbtn--visible .editbtn__dot:nth-child(3) {
     animation: dotIn 160ms ease forwards 240ms;
 }
+
+
+/* ===== Edit Row Modal — Clean Card, No Table Look ===== */
+
+/* Card container */
+#editRowModal .modal-content {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, .12),
+        0 2px 8px rgba(0, 0, 0, .06);
+}
+
+/* Use the table as a layout grid (compact) */
+#editRowModal .editgrid {
+    width: 100%;
+    border-collapse: separate !important;
+    border-spacing: 8px 3px !important;
+    background: #fff;
+    padding: 4px 8px;
+    min-height: 26px;
+    align-items: center;
+}
+
+/* Hide the header row completely */
+#editRowModal .editgrid thead {
+    display: none;
+}
+
+/* Reset ONLY table cells so buttons (e.g., .confirm) keep their styles */
+#editRowModal .editgrid td,
+#editRowModal .editgrid th {
+    border: 0 !important;
+    background: transparent !important;
+    padding: 0 !important;
+    line-height: 1.2;
+    vertical-align: middle !important;
+}
+
+/* Kill any zebra striping from global styles */
+#editRowModal .editgrid tbody tr:nth-child(even),
+#editRowModal .editgrid tbody tr:nth-child(odd),
+#editRowModal .editgrid tbody tr.even,
+#editRowModal .editgrid tbody tr.odd {
+    background: transparent !important;
+}
+
+/* Column sizing / roles */
+#editRowModal .field-col {
+    width: 24%;
+    color: #2a3b4c;
+    font-weight: 700;
+}
+
+#editRowModal .value-col,
+#editRowModal .new-col {
+    width: 36%;
+}
+
+#editRowModal .edit-col {
+    width: 140px;
+    white-space: nowrap;
+}
+
+/* Light-blue “pills” for Current/New values (Edit column excluded) */
+#editRowModal .pill {
+    background: #eaf4ff;
+    border-radius: 16px;
+    padding: 6px 10px;
+    /* base padding */
+    min-height: 32px;
+    /* base height */
+    display: flex;
+    align-items: center;
+    /* vertical center contents */
+    gap: 8px;
+    border: 1px solid rgba(0, 0, 0, .06);
+    color: #2a3b4c;
+    /* match value text color */
+    font-weight: 400;
+    /* match value text weight */
+}
+
+
+#editRowModal .value-col .pill,
+#editRowModal .new-col .pill {
+    padding: 6px 10px;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+}
+
+
+#editRowModal .value-col .pill>*,
+#editRowModal .new-col .pill>* {
+    margin: 0;
+    padding: 0;
+    font: inherit;
+    color: inherit;
+    line-height: 1.2;
+}
+
+#editRowModal .new-col .pill .edit-input {
+    width: 100%;
+    border: 0;
+    outline: none;
+    background: transparent;
+    font: inherit;
+    color: inherit;
+    line-height: 1.2;
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+#editRowModal .new-col .pill .edit-input::placeholder {
+    color: #6b7c8e;
+}
+
+#editRowModal .pill:has(.edit-input:focus) {
+    box-shadow: 0 0 0 3px rgba(102, 172, 255, .35);
+    border-color: rgba(0, 0, 0, .08);
+}
+
+#editSubmitWrap {
+    text-align: center;
+    margin-top: 12px;
+}
+
+#editRowModal .edit-col {
+    position: relative !important;
+    vertical-align: middle !important;
+    padding: 0 !important;
+}
+
+#editRowModal .edit-col .edit-row-btn {
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    margin: 0;
+}

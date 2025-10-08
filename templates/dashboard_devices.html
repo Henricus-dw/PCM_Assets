@@ -214,29 +214,25 @@
             cursor: pointer;
         }
     </style>
-
     <script>
-
         document.addEventListener("DOMContentLoaded", () => {
+            // ------------------------------------
+            // Restore scroll + highlight after a save/reload
+            // ------------------------------------
             try {
                 const saved = JSON.parse(sessionStorage.getItem("devices_restore") || "null");
                 if (saved) {
-                    // scroll
-                    if (saved.scroll?.type === "window") {
-                        window.scrollTo(saved.scroll.left || 0, saved.scroll.top || 0);
+                    const container = document.querySelector(".contentInner2");
+                    if (saved.scroll?.type === "element" && container) {
+                        container.scrollTop = saved.scroll.top || 0;
+                        container.scrollLeft = saved.scroll.left || 0;
                     } else {
-                        const el = document.querySelector(".contentInner2");
-                        if (el) {
-                            el.scrollTop = saved.scroll?.top || 0;
-                            el.scrollLeft = saved.scroll?.left || 0;
-                        } else {
-                            // fallback to window if container not found
-                            window.scrollTo(saved.scroll.left || 0, saved.scroll.top || 0);
-                        }
+                        window.scrollTo(saved.scroll?.left || 0, saved.scroll?.top || 0);
                     }
-                    // highlight the updated row
                     if (saved.highlightId) {
-                        const r = document.querySelector(`table.sticky tbody tr[data-device-id="${saved.highlightId}"]`);
+                        const r = document.querySelector(
+                            `table.sticky tbody tr[data-device-id="${saved.highlightId}"]`
+                        );
                         if (r) {
                             r.classList.add("just-updated");
                             setTimeout(() => r.classList.remove("just-updated"), 2400);
@@ -244,35 +240,294 @@
                     }
                     sessionStorage.removeItem("devices_restore");
                 }
-            } catch (e) {
-                // ignore restore errors quietly
-            }
+            } catch (_) { }
+
             // ------------------------------------
-            // Base elements
+            // Base table refs
             // ------------------------------------
             const table = document.querySelector("table.sticky");
             if (!table) return;
-
-            // Your scroll container (adjust if different)
-            const scroller = document.querySelector(".contentInner2") || window;
+            const tbody = table.tBodies[0];
+            const rows = Array.from(tbody.querySelectorAll("tr"));
 
             // ------------------------------------
-            // Header map (for in-place patch after save)
+            // Filtering (header search toggles)
+            // ------------------------------------
+            const filters = {};
+            document.querySelectorAll(".filter-toggle").forEach(btn => {
+                const col = btn.dataset.col;
+                const th = btn.closest("th");
+                const input = th.querySelector(".header-filter");
+
+                btn.addEventListener("click", () => {
+                    btn.style.display = "none";
+                    input.style.display = "inline-block";
+                    input.focus();
+                });
+
+                input.addEventListener("input", () => {
+                    filters[col] = input.value.toLowerCase().trim();
+                    applyFilters();
+                });
+
+                input.addEventListener("blur", () => {
+                    if (!input.value.trim()) {
+                        input.style.display = "none";
+                        btn.style.display = "inline-block";
+                    }
+                });
+
+                input.addEventListener("keydown", (e) => {
+                    if (e.key === "Escape") {
+                        input.value = "";
+                        filters[col] = "";
+                        input.style.display = "none";
+                        btn.style.display = "inline-block";
+                        applyFilters();
+                    }
+                });
+            });
+
+            function applyFilters() {
+                rows.forEach(row => {
+                    let visible = true;
+                    for (let col in filters) {
+                        const val = filters[col];
+                        const cellText = row.cells[col].textContent.toLowerCase().trim();
+                        if (val && !cellText.includes(val)) {
+                            visible = false;
+                            break;
+                        }
+                    }
+                    row.style.display = visible ? "" : "none";
+                });
+            }
+
+            // ------------------------------------
+            // Sorting (kept as in your original; no-op unless you use those headers)
+            // ------------------------------------
+            const sortSelect = document.getElementById("sort-select");
+            if (sortSelect) {
+                sortSelect.addEventListener("change", () => {
+                    const sortBy = sortSelect.value;
+                    const rowsArray = Array.from(tbody.querySelectorAll("tr"));
+                    let colIndex;
+                    let isDate = false;
+
+                    switch (sortBy) {
+                        case "inception_date": colIndex = 0; isDate = true; break;
+                        case "termination_date": colIndex = 1; isDate = true; break;
+                        case "monthly_costs": colIndex = 5; break;
+                        default: return;
+                    }
+
+                    rowsArray.sort((a, b) => {
+                        let valA = a.cells[colIndex].textContent.trim();
+                        let valB = b.cells[colIndex].textContent.trim();
+                        if (isDate) {
+                            return new Date(valA) - new Date(valB);
+                        } else {
+                            return (parseFloat(valB) || 0) - (parseFloat(valA) || 0);
+                        }
+                    });
+
+                    tbody.innerHTML = "";
+                    rowsArray.forEach(row => tbody.appendChild(row));
+                });
+            }
+
+            // ------------------------------------
+            // Export to CSV (original behavior)
+            // ------------------------------------
+            const exportBtn = document.getElementById("export-btn");
+            if (exportBtn) {
+                exportBtn.addEventListener("click", () => {
+                    const rowsToExport = Array.from(table.querySelectorAll("tr"));
+                    const csv = rowsToExport.map(row => {
+                        const cols = row.querySelectorAll("td, th");
+                        const rowData = Array.from(cols).map((col, index) => {
+                            let text = col.textContent.trim();
+                            if (index === 10 || index === 11) text = `="${text}"`; // keep Excel from parsing
+                            return `"${text.replace(/"/g, '""')}"`;
+                        }).join(",");
+                        return rowData;
+                    }).join("\n");
+
+                    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = "vodacom_dashboard_export.csv"; // original name
+                    a.style.display = "none";
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                });
+            }
+
+            // ------------------------------------
+            // Export to PDF (original behavior)
+            // ------------------------------------
+            const pdfBtn = document.getElementById("export-pdf-btn");
+            if (pdfBtn && table) {
+                pdfBtn.addEventListener("click", () => {
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF('landscape');
+
+                    const headers = [];
+                    const data = [];
+                    const ths = table.querySelectorAll("thead th");
+                    ths.forEach(th => {
+                        const label = th.querySelector(".header-label");
+                        headers.push(label ? label.textContent.trim() : th.textContent.trim());
+                    });
+                    const trs = table.querySelectorAll("tbody tr");
+                    trs.forEach(row => {
+                        const rowData = [];
+                        row.querySelectorAll("td").forEach((td, index) => {
+                            let text = td.textContent.trim();
+                            rowData.push(text);
+                        });
+                        data.push(rowData);
+                    });
+
+                    doc.text("Vodacom Dashboard Export", 14, 15);
+                    doc.autoTable({
+                        head: [headers],
+                        body: data,
+                        startY: 20,
+                        styles: { fontSize: 8, cellPadding: 2 }
+                    });
+                    doc.save("vodacom_dashboard_export.pdf");
+                });
+            }
+
+            // ------------------------------------
+            // View Contracts modal (original behavior)
+            // ------------------------------------
+            window.showContractsModal = function (deviceId) {
+                fetch(`/devices/${deviceId}/contract`)
+                    .then(res => res.json())
+                    .then(contract => {
+                        const body = document.getElementById("deviceModalBody");
+                        if (!contract || Object.keys(contract).length === 0) {
+                            body.innerHTML = "<p>No contract linked to this device.</p>";
+                        } else {
+                            body.innerHTML = `
+            <table border="1" width="100%" cellpadding="5">
+              <thead>
+                <tr>
+                  <th>Name</th><th>Surname</th><th>Personnel #</th><th>Company</th>
+                  <th>Client Division</th><th>Contract Type</th><th>Monthly Costs</th>
+                  <th>VAT</th><th>Cost (Excl. VAT)</th><th>Term</th>
+                  <th>Inception</th><th>Termination</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>${contract.Name_}</td>
+                  <td>${contract.Surname_}</td>
+                  <td>${contract.Personnel_nr}</td>
+                  <td>${contract.Company}</td>
+                  <td>${contract.Client_Division}</td>
+                  <td>${contract.Contract_Type}</td>
+                  <td>${contract.Monthly_Costs}</td>
+                  <td>${contract.VAT}</td>
+                  <td>${contract.Monthly_Cost_Excl_VAT}</td>
+                  <td>${contract.Contract_Term}</td>
+                  <td>${contract.Inception_Date || ''}</td>
+                  <td>${contract.Termination_Date || ''}</td>
+                </tr>
+              </tbody>
+            </table>`;
+                        }
+                        document.getElementById("deviceModal").style.display = "block";
+                    });
+            };
+            window.closeDevicesModal = function () {
+                document.getElementById("deviceModal").style.display = "none";
+            };
+
+            // (Optional helper retained)
+            window.showOwnersModal = function (deviceId) {
+                fetch(`/devices/${deviceId}/past_owners`)
+                    .then(r => r.json())
+                    .then(data => {
+                        const body = document.getElementById("deviceModalBody");
+                        if (!data || data.length === 0) {
+                            body.innerHTML = "<p>No previous owners archived for this device.</p>";
+                        } else {
+                            body.innerHTML = `
+            <table border="1" width="100%" cellpadding="5">
+              <thead>
+                <tr>
+                  <th>Name</th><th>Surname</th><th>Personnel #</th><th>Company</th><th>Client Division</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${data.map(p => `
+                  <tr>
+                    <td>${p.Name_}</td>
+                    <td>${p.Surname_}</td>
+                    <td>${p.Personnel_nr}</td>
+                    <td>${p.Company}</td>
+                    <td>${p.Client_Division}</td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>`;
+                        }
+                        document.getElementById("deviceModal").style.display = "block";
+                    })
+                    .catch(err => {
+                        document.getElementById("deviceModalBody").innerHTML =
+                            `<p style="color:#b00020;">Error loading previous owners.</p>`;
+                        document.getElementById("deviceModal").style.display = "block";
+                        console.error(err);
+                    });
+            };
+
+            // ------------------------------------
+            // Sidebar handle + active link animation + logout confirm (original)
+            // ------------------------------------
+            const handle = document.getElementById("sidebarHandle");
+            function toggleSidebar() {
+                const collapsed = document.body.classList.toggle("sidebar-collapsed");
+                handle?.setAttribute("aria-pressed", String(!collapsed ? true : false));
+                handle?.setAttribute("aria-label", collapsed ? "Expand sidebar" : "Collapse sidebar");
+                handle.title = collapsed ? "Expand sidebar" : "Collapse sidebar";
+            }
+            handle?.addEventListener("click", toggleSidebar);
+
+            const activeLinks = Array.from(document.querySelectorAll(".sidebar a.active"))
+                .filter(a => a.id !== "logoutLink");
+            activeLinks.forEach(a => a.classList.add("just-activated"));
+            setTimeout(() => activeLinks.forEach(a => a.classList.remove("just-activated")), 1050);
+
+            const logoutLink = document.getElementById("logoutLink");
+            if (logoutLink) {
+                logoutLink.addEventListener("click", function (e) {
+                    e.preventDefault();
+                    if (confirm("Are you sure you want to log out?")) {
+                        window.location.href = this.href;
+                    }
+                });
+            }
+
+            // ------------------------------------
+            // Header map for in-place patch (if you skip reload later)
             // ------------------------------------
             const headerIndex = (() => {
                 const map = {};
                 const ths = table.querySelectorAll("thead th");
                 ths.forEach((th, i) => {
-                    // Your headers often wrap text in .header-label; fallback to th text
                     const labelEl = th.querySelector(".header-label");
                     const label = (labelEl ? labelEl.textContent : th.textContent).trim().toLowerCase();
                     map[label] = i;
                 });
                 return map;
             })();
-
-            function norm(s) { return (s || "").toString().trim().toLowerCase(); }
-
             const keyToHeaderLabels = {
                 Name_: ["name"],
                 Surname_: ["surname"],
@@ -284,7 +539,7 @@
                 Device_Description: ["description", "device description"],
                 insurance: ["insurance"]
             };
-
+            const norm = s => (s || "").toString().trim().toLowerCase();
             function columnIndexForKey(key) {
                 const labels = keyToHeaderLabels[key] || [];
                 for (const label of labels) {
@@ -293,7 +548,6 @@
                 }
                 return null;
             }
-
             function patchActiveRowCells(rowEl, changedObj) {
                 if (!rowEl || !changedObj) return;
                 for (const [key, val] of Object.entries(changedObj)) {
@@ -305,11 +559,20 @@
             }
 
             // ------------------------------------
-            // Floating rail + button (outside overflow)
+            // Left "three-dots" edit rail (non-blocking, fixed position)
             // ------------------------------------
             const rail = document.createElement("div");
             rail.className = "editbtn-rail";
             document.body.appendChild(rail);
+            Object.assign(rail.style, {
+                position: "fixed",
+                width: "30px",
+                height: "0px",
+                left: "-9999px",
+                top: "-9999px",
+                pointerEvents: "none", // rail never blocks clicks
+                zIndex: "999999"
+            });
 
             const editBtn = document.createElement("button");
             editBtn.className = "editbtn";
@@ -322,73 +585,67 @@
       <span class="editbtn__dot"></span>
     </div>`;
             rail.appendChild(editBtn);
+            Object.assign(editBtn.style, {
+                position: "absolute",
+                left: "0",
+                top: "0",
+                width: "30px",
+                height: "0px",
+                display: "none",
+                pointerEvents: "auto" // only the button is clickable
+            });
 
-            let activeRow = null;
+            const scroller = document.querySelector(".contentInner2") || window;
+            let activeRowForBtn = null;
             let hideTimer = null;
 
-            function rect(el) { return el.getBoundingClientRect(); }
-
-            function positionRailForCell(firstCell) {
+            function positionRailForCell() {
                 const clipR = (scroller === window)
                     ? document.documentElement.getBoundingClientRect()
                     : scroller.getBoundingClientRect();
-
-                if (scroller !== window) {
-                    rail.style.position = "fixed";
-                    rail.style.left = (clipR.left - 30) + "px";
-                    rail.style.top = clipR.top + "px";
-                    rail.style.height = clipR.height + "px";
-                } else {
-                    const cellR = firstCell.getBoundingClientRect();
-                    rail.style.position = "absolute";
-                    rail.style.left = (cellR.left + window.scrollX - 30) + "px";
-                    rail.style.top = (clipR.top + window.scrollY) + "px";
-                    rail.style.height = clipR.height + "px";
-                }
+                rail.style.left = (clipR.left - 30) + "px"; // always pinned to visible left
+                rail.style.top = clipR.top + "px";
+                rail.style.height = clipR.height + "px";
             }
-
             function positionButtonForRow(row) {
                 const rowR = row.getBoundingClientRect();
                 const clipR = (scroller === window)
                     ? document.documentElement.getBoundingClientRect()
                     : scroller.getBoundingClientRect();
-                editBtn.style.top = (rowR.top - clipR.top) + "px"; // relative to rail top
+                editBtn.style.top = (rowR.top - clipR.top) + "px";
                 editBtn.style.height = rowR.height + "px";
             }
-
-
             function showForRow(row) {
-                const firstCell = row.cells[0];
-                if (!firstCell) return;
                 clearTimeout(hideTimer);
-                activeRow = row;
-                positionRailForCell(firstCell);
+                activeRowForBtn = row;
+                positionRailForCell();
                 positionButtonForRow(row);
                 editBtn.style.display = "flex";
                 editBtn.classList.remove("editbtn--visible");
                 requestAnimationFrame(() => editBtn.classList.add("editbtn--visible"));
             }
-
             function hideIfAllowed() {
-                if (!activeRow) return;
-                const overRow = activeRow.matches(":hover");
+                if (!activeRowForBtn) return;
+                const overRow = activeRowForBtn.matches(":hover");
                 const overBtn = editBtn.matches(":hover");
                 if (!overRow && !overBtn) {
                     editBtn.style.display = "none";
                     editBtn.classList.remove("editbtn--visible");
-                    activeRow = null;
+                    activeRowForBtn = null;
+                }
+            }
+            function relayoutRail() {
+                if (activeRowForBtn) {
+                    positionRailForCell();
+                    positionButtonForRow(activeRowForBtn);
+                } else {
+                    // keep rail pinned even when hidden
+                    positionRailForCell();
                 }
             }
 
-            function relayout() {
-                if (!activeRow) return;
-                positionRailForCell(activeRow.cells[0]);
-                positionButtonForRow(activeRow);
-            }
-
-            // Bind to tbody rows (exclude header)
-            const bodyRows = table.tBodies[0] ? Array.from(table.tBodies[0].rows) : [];
-            bodyRows.forEach(row => {
+            // Bind to tbody rows
+            rows.forEach(row => {
                 row.addEventListener("pointerenter", () => showForRow(row));
                 row.addEventListener("pointerleave", (e) => {
                     if (e.relatedTarget && (e.relatedTarget === editBtn || editBtn.contains(e.relatedTarget))) return;
@@ -396,33 +653,33 @@
                     hideTimer = setTimeout(hideIfAllowed, 140);
                 });
             });
-
             editBtn.addEventListener("pointerenter", () => clearTimeout(hideTimer));
             editBtn.addEventListener("pointerleave", (e) => {
-                if (activeRow && e.relatedTarget && (e.relatedTarget === activeRow || activeRow.contains(e.relatedTarget))) return;
+                if (activeRowForBtn && e.relatedTarget && (e.relatedTarget === activeRowForBtn || activeRowForBtn.contains(e.relatedTarget))) return;
                 clearTimeout(hideTimer);
                 hideTimer = setTimeout(hideIfAllowed, 100);
             });
-
-            (scroller === window ? window : scroller).addEventListener("scroll", relayout, { passive: true });
-            window.addEventListener("resize", relayout);
+            (scroller === window ? window : scroller).addEventListener("scroll", relayoutRail, { passive: true });
+            window.addEventListener("resize", relayoutRail);
+            relayoutRail(); // initial
 
             // ------------------------------------
-            // Modal + backend wiring
+            // Edit modal plumbing (GET/PUT)
             // ------------------------------------
             const editModal = document.getElementById("editRowModal");
             const editBody = document.getElementById("editRowBody");
             const submitWrap = document.getElementById("editSubmitWrap");
-            const submitBtn = document.getElementById("submitChangesBtn");
+            const submitBtn2 = document.getElementById("submitChangesBtn");
 
             let pending = {};
             let deviceData = {};
             let currentDeviceId = null;
 
             function getActiveRowFromButton() {
-                const rows = document.querySelectorAll("table.sticky tbody tr");
-                for (const r of rows) if (r.matches(":hover")) return r;
-                // fallback: nearest center match
+                // Prefer the hovered row
+                const hovered = table.querySelector("tbody tr:hover");
+                if (hovered) return hovered;
+                // Fallback: closest by vertical center
                 const btnRect = editBtn.getBoundingClientRect();
                 let best = null, bestDist = Infinity;
                 for (const r of rows) {
@@ -434,7 +691,7 @@
                 return best;
             }
 
-            function showModal() { if (editModal) editModal.style.display = "block"; }
+            function showEditModal() { if (editModal) editModal.style.display = "block"; }
             window.closeEditRowModal = function () { if (editModal) editModal.style.display = "none"; }
 
             function openEditRowModal(rowEl) {
@@ -445,12 +702,12 @@
                 const id = rowEl?.dataset?.deviceId;
                 currentDeviceId = id || null;
 
-                if (!id) { editBody.textContent = "No device id found on row."; showModal(); return; }
+                if (!id) { editBody.textContent = "No device id found on row."; showEditModal(); return; }
 
                 fetch(`/api/devices/${id}`)
                     .then(r => { if (!r.ok) throw new Error("Failed to load device"); return r.json(); })
-                    .then(data => { deviceData = data; renderEditTable(data); showModal(); })
-                    .catch(err => { editBody.textContent = err.message || "Error loading device."; showModal(); });
+                    .then(data => { deviceData = data; renderEditTable(data); showEditModal(); })
+                    .catch(err => { editBody.textContent = err.message || "Error loading device."; showEditModal(); });
             }
 
             function renderEditTable(data) {
@@ -467,42 +724,43 @@
                 ];
 
                 const editTable = document.createElement("table");
-                editTable.style.width = "100%";
-                editTable.style.borderCollapse = "collapse";
+                editTable.className = "editgrid";
                 editTable.innerHTML = `
-      <thead>
-        <tr>
-          <th style="text-align:left; padding:8px;">Field</th>
-          <th style="text-align:left; padding:8px;">Current Value</th>
-          <th style="text-align:left; padding:8px;">&nbsp;</th>
-          <th style="text-align:left; padding:8px;">New Value</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    `;
-                const tbody = editTable.querySelector("tbody");
+    <thead>
+      <tr>
+        <th>Field</th>
+        <th>Current Value</th>
+        <th></th>
+        <th>New Value</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  `;
+                const tBody = editTable.querySelector("tbody");
 
                 fields.forEach(([key, label]) => {
                     const tr = document.createElement("tr");
                     tr.innerHTML = `
-        <td style="padding:8px; vertical-align:top; font-weight:600;">${label}</td>
-        <td style="padding:8px; vertical-align:top;">${(data[key] ?? "").toString()}</td>
-        <td style="padding:8px; vertical-align:top;">
-          <button type="button" class="confirm edit-row-btn" data-key="${key}" style="max-width:160px;">Edit</button>
-        </td>
-        <td style="padding:8px; vertical-align:top;">
-          <div class="edit-input-wrap" data-key="${key}" style="display:none;">
-            <input type="text" class="edit-input" style="max-width:320px;" value="">
-          </div>
-        </td>
-      `;
-                    tbody.appendChild(tr);
+      <td class="field-col">${label}</td>
+      <td class="value-col">
+        <div class="pill">${(data[key] ?? "").toString()}</div>
+      </td>
+      <td class="edit-col">
+        <button type="button" class="confirm edit-row-btn" data-key="${key}">Edit</button>
+      </td>
+      <td class="new-col">
+        <div class="pill edit-input-wrap" data-key="${key}" style="display:none;">
+          <input type="text" class="edit-input" value="">
+        </div>
+      </td>
+    `;
+                    tBody.appendChild(tr);
                 });
 
                 editBody.innerHTML = "";
                 editBody.appendChild(editTable);
 
-                // Delegate clicks for any ".edit-row-btn" (bind once)
+                // Delegate clicks to show inputs (bind once)
                 if (!editBody._delegationBound) {
                     editBody._delegationBound = true;
                     editBody.addEventListener("click", (e) => {
@@ -513,7 +771,7 @@
                         const wrap = editBody.querySelector(`.edit-input-wrap[data-key="${key}"]`);
                         if (!wrap) return;
 
-                        wrap.style.display = "block";
+                        wrap.style.display = "flex"; // reveal pill with input
                         const input = wrap.querySelector(".edit-input");
                         input.value = (deviceData[key] ?? "");
                         input.focus();
@@ -523,24 +781,20 @@
                             input.addEventListener("input", () => {
                                 const current = (deviceData[key] ?? "").toString();
                                 const next = input.value;
-                                if (next !== current) { pending[key] = next; }
-                                else { delete pending[key]; }
+                                if (next !== current) pending[key] = next;
+                                else delete pending[key];
                                 submitWrap.style.display = Object.keys(pending).length ? "block" : "none";
                             });
                         }
                     });
                 }
 
-                // Submit handler (set/replace each render so it uses latest pending/deviceData)
-                submitBtn.onclick = async () => {
-                    // Need a target row and at least one changed field
+                // Submit handler (yours, unchanged apart from using currentDeviceId)
+                submitBtn2.onclick = async () => {
                     if (!currentDeviceId) return;
-                    if (!Object.keys(pending).length) {
-                        if (typeof closeEditRowModal === "function") closeEditRowModal();
-                        return;
-                    }
+                    if (!Object.keys(pending).length) { closeEditRowModal(); return; }
 
-                    submitBtn.disabled = true;
+                    submitBtn2.disabled = true;
                     try {
                         const resp = await fetch(`/api/devices/${currentDeviceId}`, {
                             method: "PUT",
@@ -551,38 +805,34 @@
                         const res = await resp.json();
 
                         if (res.updated) {
-                            // Save scroll position (either inside .contentInner2 or window) and the row to highlight
+                            // Persist scroll + highlight and reload (as we decided earlier)
                             const container = document.querySelector(".contentInner2");
                             const scrollState = container
                                 ? { type: "element", top: container.scrollTop, left: container.scrollLeft }
                                 : { type: "window", top: window.scrollY, left: window.scrollX };
-
                             sessionStorage.setItem("devices_restore", JSON.stringify({
                                 scroll: scrollState,
                                 highlightId: String(currentDeviceId)
                             }));
-
-                            // Reload so the dashboard reflects the DB write without losing position
                             location.reload();
-                            return; // stop execution after triggering reload
+                            return;
                         } else {
                             alert(res.message || "No changes were applied.");
-                            if (typeof closeEditRowModal === "function") closeEditRowModal();
+                            closeEditRowModal();
                         }
                     } catch (err) {
                         alert(err?.message || "Failed to update device.");
                     } finally {
-                        submitBtn.disabled = false;
+                        submitBtn2.disabled = false;
                     }
                 };
-
             }
 
-            // Open modal when clicking the floating edit button
+
+            // Open modal when clicking the floating button
             editBtn.addEventListener("click", () => {
                 const row = getActiveRowFromButton();
                 if (!row) return;
-                activeRow = row; // needed for post-save patch
                 openEditRowModal(row);
             });
 
@@ -592,6 +842,8 @@
             });
         });
     </script>
+
+
 
 
 </body>
