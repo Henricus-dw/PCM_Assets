@@ -272,10 +272,58 @@
 
     </div>
 
-    <!-- Existing Pending Requests card stays as-is -->
 
-    <!-- NEW: Active user accounts -->
+    <div class="content" style="margin:20px var(--content-gap) 20px var(--sidebar-space);">
+        <div id="adminEditsCard" class="admin-card">
+            <div class="admin-head">
+                <h2 class="admin-title">Edit requests</h2>
+                <div class="_spacer"></div>
+                <button class="size-toggle" type="button" onclick="toggleCard('adminEditsCard', this)">Expand</button>
+            </div>
 
+            {% if not edit_requests %}
+            <div class="empty">No edit requests.</div>
+            {% else %}
+            <div class="req-list">
+                {% for r in edit_requests %}
+                <div class="req-row">
+                    <div class="req-info" style="gap:16px; flex-wrap:wrap">
+                        <span class="muted">{{ r.requester_email }}</span>
+                        <span>Device #{{ r.device_id }}</span>
+                        <!-- Friendly inline summary if server provided parsed dict -->
+                        {% if r.changes %}
+                        <span class="muted">
+                            {% set parts = [] %}
+                            {% for k, v in r.changes.items() %}
+                            {% set _ = parts.append(k ~ ' → ' ~ v) %}
+                            {% endfor %}
+                            {{ parts|join(', ') }}
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    <div class="req-actions">
+                        <form method="post" action="/admin/edit-requests/{{ r.id }}/approve">
+                            <button class="btn btn-approve" type="submit">Approve</button>
+                        </form>
+                        <form method="post" action="/admin/edit-requests/{{ r.id }}/deny">
+                            <button class="btn btn-deny" type="submit">Deny</button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        <!-- Invisible spacer to maintain vertical rhythm -->
+        <div class="admin-card" style="opacity:0; pointer-events:none; visibility:hidden;">
+            <div class="admin-head">
+                <h2 class="admin-title">Placeholder</h2>
+            </div>
+            <div class="empty">Spacer</div>
+        </div>
+
+    </div>
 
 
     <script>

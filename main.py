@@ -17,11 +17,12 @@ from datetime import date, datetime, timedelta
 import calendar
 import os
 from starlette.responses import RedirectResponse
+import json
 
 from auth import get_current_user
 
 # ---- Your models & DB ----
-from models import VodacomSubscription, Device, User, PendingUser
+from models import VodacomSubscription, Device, User, PendingUser, DeviceEditRequest
 from database import SessionLocal, engine, Base
 
 # Create all tables (only needed once)
@@ -729,24 +730,6 @@ def get_home_data(request: Request, db: Session = Depends(get_db)):
     }
 
 
-@app.get("/admin", response_class=HTMLResponse)
-def admin(request: Request, db: Session = Depends(get_db)):
-    if not request.session.get("user_id"):
-        return RedirectResponse(url="/login", status_code=302)
-    pending = db.query(PendingUser).order_by(
-        PendingUser.created_at.desc()   # newest first
-    ).all()
-    users = db.query(User).order_by(User.created_at.desc()).all()
-
-    return templates.TemplateResponse("admin.html", {
-        "request": request,
-        "section": "admin",
-        "pending": pending,
-        "users": users,
-        "time": datetime.utcnow().timestamp(),
-    })
-
-
 @app.post("/admin/approve/{pending_id}")
 def approve_user(pending_id: int = Path(...), db: Session = Depends(get_db), request: Request = None):
     if not request.session.get("user_id"):
@@ -986,3 +969,231 @@ def api_update_device(
     db.add(device)
     db.commit()
     return {"updated": True, "id": device.id, "changed": changed}
+
+
+ALLOWED_DEVICE_FIELDS = {
+    "Name_", "Surname_", "Personnel_nr", "Company", "Client_Division",
+    "Device_Name", "Serial_Number", "Device_Description", "insurance"
+}
+
+
+def _current_user_email(db: Session, request: Request) -> str:
+    uid = request.session.get("user_id")
+    if not uid:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    u = db.query(User).filter(User.id == uid).first()
+    if not u:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    return u.email
+
+
+@app.post("/api/edit-requests")
+def create_device_edit_request(
+    request: Request,
+    # { "device_id": 123, "changes": { "Company": "PCM", ... } }
+    payload: dict = Body(...),
+    db: Session = Depends(get_db)
+):
+    if not request.session.get("user_id"):
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    device_id = payload.get("device_id")
+    changes = payload.get("changes") or {}
+    if not device_id or not isinstance(changes, dict) or not changes:
+        raise HTTPException(
+            status_code=400, detail="Missing device_id or changes")
+
+    # validate device exists
+    dev = db.query(Device).filter(Device.id == device_id).first()
+    if not dev:
+        raise HTTPException(status_code=404, detail="Device not found")
+
+    # filter to allowed fields only
+    cleaned = {k: v for k, v in changes.items() if k in ALLOWED_DEVICE_FIELDS}
+    if not cleaned:
+        raise HTTPException(status_code=400, detail="No valid fields provided")
+
+    req = DeviceEditRequest(
+        device_id=device_id,
+        requester_email=_current_user_email(db, request),
+        changes_json=json.dumps(cleaned, ensure_ascii=False)
+    )
+    db.add(req)
+    db.commit()
+    return {"queued": True, "request_id": req.id}
+
+
+@app.post("/admin/edit-requests/{req_id}/approve")
+def approve_edit_request(req_id: int, request: Request, db: Session = Depends(get_db)):
+    if not request.session.get("user_id"):
+        return RedirectResponse(url="/login", status_code=302)
+
+    req = db.query(DeviceEditRequest).filter(
+        DeviceEditRequest.id == req_id).with_for_update().first()
+    if not req:
+        raise HTTPException(status_code=404, detail="Edit request not found")
+
+    dev = db.query(Device).filter(
+        Device.id == req.device_id).with_for_update().first()
+    if not dev:
+        # drop invalid queue item
+        db.delete(req)
+        db.commit()
+        raise HTTPException(status_code=404, detail="Device not found")
+
+    changes = json.loads(req.changes_json or "{}")
+    for k, v in changes.items():
+        if k in ALLOWED_DEVICE_FIELDS:
+            setattr(dev, k, v)
+
+    db.add(dev)
+    db.delete(req)
+    db.commit()
+
+    return RedirectResponse(url="/admin", status_code=303)
+
+
+@app.post("/admin/edit-requests/{req_id}/deny")
+def deny_edit_request(req_id: int, request: Request, db: Session = Depends(get_db)):
+    if not request.session.get("user_id"):
+        return RedirectResponse(url="/login", status_code=302)
+
+    req = db.query(DeviceEditRequest).filter(
+        DeviceEditRequest.id == req_id).first()
+    if req:
+        db.delete(req)
+        db.commit()
+    return RedirectResponse(url="/admin", status_code=303)
+
+
+@app.post("/api/devices/{device_id}/edit-requests")
+def create_edit_request(
+    device_id: int,
+    request: Request,
+    updates: dict = Body(...),
+    db: Session = Depends(get_db)
+):
+    # Require login like your other APIs
+    if not request.session.get("user_id"):
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    # Basic device check
+    device = db.query(Device).filter(Device.id == device_id).first()
+    if not device:
+        raise HTTPException(status_code=404, detail="Device not found")
+
+    # Get requester email from current user
+    current_user_id = request.session.get("user_id")
+    user = db.query(User).filter(User.id == current_user_id).first()
+    requester_email = user.email if user else "unknown@local"
+
+    # Only allow known fields (same allowlist you already use)
+    allowed = {
+        "Name_", "Surname_", "Personnel_nr", "Company", "Client_Division",
+        "Device_Name", "Serial_Number", "Device_Description", "insurance",
+    }
+    filtered = {k: v for k, v in updates.items() if k in allowed}
+    if not filtered:
+        return {"created": False, "message": "No valid fields provided."}
+
+    req = DeviceEditRequest(
+        device_id=device_id,
+        requester_email=requester_email,
+        changes_json=json.dumps(filtered),
+        status="pending"
+    )
+    db.add(req)
+    db.commit()
+    db.refresh(req)
+    return {"created": True, "request_id": req.id}
+
+
+@app.get("/admin", response_class=HTMLResponse)
+def admin(request: Request, db: Session = Depends(get_db)):
+    if not request.session.get("user_id"):
+        return RedirectResponse(url="/login", status_code=302)
+
+    pending = db.query(PendingUser).order_by(
+        PendingUser.created_at.desc()).all()
+    users = db.query(User).order_by(User.created_at.desc()).all()
+
+    # NEW: load pending device edit requests (oldest first or newest first; your pick)
+    edit_reqs = db.query(DeviceEditRequest)\
+        .filter(DeviceEditRequest.status == "pending")\
+        .order_by(DeviceEditRequest.created_at.asc())\
+        .all()
+
+    # Parse JSON so the template can iterate safely
+    for r in edit_reqs:
+        try:
+            r.changes = json.loads(r.changes_json)
+        except Exception:
+            r.changes = {}
+
+    return templates.TemplateResponse("admin.html", {
+        "request": request,
+        "section": "admin",
+        "pending": pending,
+        "users": users,
+        "edit_requests": edit_reqs,   # <-- pass to template
+        "time": datetime.utcnow().timestamp(),
+    })
+
+
+@app.post("/admin/edit-requests/{req_id}/approve")
+def approve_edit_request(
+    req_id: int,
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    if not request.session.get("user_id"):
+        return RedirectResponse(url="/login", status_code=302)
+
+    req = db.query(DeviceEditRequest).filter(
+        DeviceEditRequest.id == req_id).first()
+    if not req or req.status != "pending":
+        raise HTTPException(
+            status_code=404, detail="Request not found or already processed")
+
+    device = db.query(Device).filter(Device.id == req.device_id).first()
+    if not device:
+        raise HTTPException(status_code=404, detail="Device not found")
+
+    # Apply changes
+    changes = json.loads(req.changes_json)
+    for k, v in changes.items():
+        setattr(device, k, v)
+
+    db.add(device)
+    # mark request processed
+    req.status = "approved"
+    req.processed_by = request.session.get("user_id")
+    req.processed_at = datetime.utcnow()
+    db.add(req)
+    db.commit()
+
+    return RedirectResponse(url="/admin", status_code=303)
+
+
+@app.post("/admin/edit-requests/{req_id}/deny")
+def deny_edit_request(
+    req_id: int,
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    if not request.session.get("user_id"):
+        return RedirectResponse(url="/login", status_code=302)
+
+    req = db.query(DeviceEditRequest).filter(
+        DeviceEditRequest.id == req_id).first()
+    if not req or req.status != "pending":
+        raise HTTPException(
+            status_code=404, detail="Request not found or already processed")
+
+    req.status = "denied"
+    req.processed_by = request.session.get("user_id")
+    req.processed_at = datetime.utcnow()
+    db.add(req)
+    db.commit()
+
+    return RedirectResponse(url="/admin", status_code=303)

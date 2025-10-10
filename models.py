@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, func, UniqueConstraint
+from sqlalchemy import Column, Integer, String, Float, DateTime, func, UniqueConstraint, Text
 
 from database import Base
 
@@ -67,3 +67,19 @@ class PendingUser(Base):
 
     __table_args__ = (UniqueConstraint(
         'email', name='uq_pending_users_email'),)
+
+
+# Edit requests go through admin approval before touching devices
+class DeviceEditRequest(Base):
+    __tablename__ = "device_edit_requests"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    device_id = Column(Integer, nullable=False)
+    requester_email = Column(String(255), nullable=False)
+    # JSON blob of requested changes, e.g. {"Company": "PCM", "Device_Name": "iPhone 15"}
+    changes_json = Column(String, nullable=False)
+    # pending | approved | denied
+    status = Column(String(20), nullable=False, default="pending")
+    created_at = Column(DateTime, server_default=func.now())
+    processed_by = Column(Integer, nullable=True)  # user id of approver
+    processed_at = Column(DateTime, nullable=True)

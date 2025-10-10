@@ -789,43 +789,47 @@
                     });
                 }
 
-                // Submit handler (yours, unchanged apart from using currentDeviceId)
+
                 submitBtn2.onclick = async () => {
                     if (!currentDeviceId) return;
-                    if (!Object.keys(pending).length) { closeEditRowModal(); return; }
+                    if (!Object.keys(pending).length) {
+                        closeEditRowModal();
+                        return;
+                    }
 
                     submitBtn2.disabled = true;
                     try {
-                        const resp = await fetch(`/api/devices/${currentDeviceId}`, {
-                            method: "PUT",
+                        // ⬇️ Queue the edit request for admin approval (NOT a direct PUT anymore)
+                        const resp = await fetch(`/api/edit-requests`, {
+                            method: "POST",
                             headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify(pending)
+                            body: JSON.stringify({
+                                device_id: Number(currentDeviceId),
+                                changes: pending
+                            })
                         });
-                        if (!resp.ok) throw new Error("Failed to update device");
+
+                        if (!resp.ok) throw new Error("Failed to queue edit request");
                         const res = await resp.json();
 
-                        if (res.updated) {
-                            // Persist scroll + highlight and reload (as we decided earlier)
-                            const container = document.querySelector(".contentInner2");
-                            const scrollState = container
-                                ? { type: "element", top: container.scrollTop, left: container.scrollLeft }
-                                : { type: "window", top: window.scrollY, left: window.scrollX };
-                            sessionStorage.setItem("devices_restore", JSON.stringify({
-                                scroll: scrollState,
-                                highlightId: String(currentDeviceId)
-                            }));
-                            location.reload();
-                            return;
+                        if (res.queued || res.created) {
+                            alert("Edit request submitted for approval.");
+                            closeEditRowModal();
+                            // optional: refresh the page so the row clears any local UI state
+                            // location.reload();
                         } else {
-                            alert(res.message || "No changes were applied.");
+                            alert(res.message || "Could not queue request.");
                             closeEditRowModal();
                         }
                     } catch (err) {
-                        alert(err?.message || "Failed to update device.");
+                        alert(err?.message || "Failed to queue edit request.");
                     } finally {
                         submitBtn2.disabled = false;
                     }
                 };
+
+
+
             }
 
 
