@@ -83,3 +83,17 @@ class DeviceEditRequest(Base):
     created_at = Column(DateTime, server_default=func.now())
     processed_by = Column(Integer, nullable=True)  # user id of approver
     processed_at = Column(DateTime, nullable=True)
+
+
+class ContractEditRequest(Base):
+    __tablename__ = "contract_edit_requests"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    contract_id = Column(Integer, nullable=False)
+    requester_email = Column(String(255), nullable=False)
+    changes_json = Column(Text, nullable=False)
+    # pending|approved|denied
+    status = Column(String(20), nullable=False, default="pending")
+    created_at = Column(DateTime, server_default=func.now())
+    processed_by = Column(Integer, nullable=True)
+    processed_at = Column(DateTime, nullable=True)

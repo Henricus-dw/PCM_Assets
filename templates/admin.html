@@ -289,8 +289,12 @@
                 <div class="req-row">
                     <div class="req-info" style="gap:16px; flex-wrap:wrap">
                         <span class="muted">{{ r.requester_email }}</span>
-                        <span>Device #{{ r.device_id }}</span>
-                        <!-- Friendly inline summary if server provided parsed dict -->
+                        {% if r.kind == 'contract' %}
+                        <span>Contract #{{ r.ref_id }}</span>
+                        {% else %}
+                        <span>Device #{{ r.ref_id }}</span>
+                        {% endif %}
+
                         {% if r.changes %}
                         <span class="muted">
                             {% set parts = [] %}
@@ -303,12 +307,21 @@
                     </div>
 
                     <div class="req-actions">
+                        {% if r.kind == 'contract' %}
+                        <form method="post" action="/admin/contract-edit-requests/{{ r.id }}/approve">
+                            <button class="btn btn-approve" type="submit">Approve</button>
+                        </form>
+                        <form method="post" action="/admin/contract-edit-requests/{{ r.id }}/deny">
+                            <button class="btn btn-deny" type="submit">Deny</button>
+                        </form>
+                        {% else %}
                         <form method="post" action="/admin/edit-requests/{{ r.id }}/approve">
                             <button class="btn btn-approve" type="submit">Approve</button>
                         </form>
                         <form method="post" action="/admin/edit-requests/{{ r.id }}/deny">
                             <button class="btn btn-deny" type="submit">Deny</button>
                         </form>
+                        {% endif %}
                     </div>
                 </div>
                 {% endfor %}

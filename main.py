@@ -22,7 +22,7 @@ import json
 from auth import get_current_user
 
 # ---- Your models & DB ----
-from models import VodacomSubscription, Device, User, PendingUser, DeviceEditRequest
+from models import VodacomSubscription, Device, User, PendingUser, DeviceEditRequest, ContractEditRequest
 from database import SessionLocal, engine, Base
 
 # Create all tables (only needed once)
@@ -976,6 +976,12 @@ ALLOWED_DEVICE_FIELDS = {
     "Device_Name", "Serial_Number", "Device_Description", "insurance"
 }
 
+ALLOWED_CONTRACT_FIELDS = {
+    "Name_", "Surname_", "Personnel_nr", "Company", "Client_Division",
+    "Contract_Type", "Monthly_Costs", "VAT", "Monthly_Cost_Excl_VAT",
+    "Contract_Term", "Inception_Date", "Termination_Date", "Sim_Card_Number", "due_upgrade"
+}
+
 
 def _current_user_email(db: Session, request: Request) -> str:
     uid = request.session.get("user_id")
@@ -1117,25 +1123,32 @@ def admin(request: Request, db: Session = Depends(get_db)):
         PendingUser.created_at.desc()).all()
     users = db.query(User).order_by(User.created_at.desc()).all()
 
-    # NEW: load pending device edit requests (oldest first or newest first; your pick)
-    edit_reqs = db.query(DeviceEditRequest)\
+    device_reqs = db.query(DeviceEditRequest)\
         .filter(DeviceEditRequest.status == "pending")\
-        .order_by(DeviceEditRequest.created_at.asc())\
-        .all()
+        .order_by(DeviceEditRequest.created_at.desc()).all()
+    for r in device_reqs:
+        r.kind = "device"
+        r.ref_id = r.device_id
+        r.changes = json.loads(r.changes_json or "{}")
 
-    # Parse JSON so the template can iterate safely
-    for r in edit_reqs:
-        try:
-            r.changes = json.loads(r.changes_json)
-        except Exception:
-            r.changes = {}
+    contract_reqs = db.query(ContractEditRequest)\
+        .filter(ContractEditRequest.status == "pending")\
+        .order_by(ContractEditRequest.created_at.desc()).all()
+    for r in contract_reqs:
+        r.kind = "contract"
+        r.ref_id = r.contract_id
+        r.changes = json.loads(r.changes_json or "{}")
+
+    # Merge & sort newest first
+    edit_reqs = sorted([*device_reqs, *contract_reqs],
+                       key=lambda x: x.created_at or datetime.min, reverse=True)
 
     return templates.TemplateResponse("admin.html", {
         "request": request,
         "section": "admin",
         "pending": pending,
         "users": users,
-        "edit_requests": edit_reqs,   # <-- pass to template
+        "edit_requests": edit_reqs,
         "time": datetime.utcnow().timestamp(),
     })
 
@@ -1196,4 +1209,163 @@ def deny_edit_request(
     db.add(req)
     db.commit()
 
+
+@app.post("/api/contracts/{contract_id}/edit-requests")
+def create_contract_edit_request(
+    contract_id: int,
+    request: Request,
+    payload: dict = Body(...),
+    db: Session = Depends(get_db)
+):
+    if not request.session.get("user_id"):
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    contract = db.query(VodacomSubscription).filter(
+        VodacomSubscription.id == contract_id).first()
+    if not contract:
+        raise HTTPException(status_code=404, detail="Contract not found")
+
+    # Filter fields to allow list
+    cleaned = {k: v for (k, v) in (payload or {}).items()
+               if k in ALLOWED_CONTRACT_FIELDS}
+    if not cleaned:
+        return {"created": False, "message": "No valid fields provided."}
+
+    # If dates come in as strings, we keep them as strings in JSON; we only parse on approve
+    req = ContractEditRequest(
+        contract_id=contract_id,
+        requester_email=_current_user_email(db, request),
+        changes_json=json.dumps(cleaned, ensure_ascii=False),
+        status="pending"
+    )
+    db.add(req)
+    db.commit()
+    db.refresh(req)
+    return {"created": True, "request_id": req.id}
+
+
+@app.post("/admin/contract-edit-requests/{req_id}/approve")
+def approve_contract_edit_request(req_id: int, request: Request, db: Session = Depends(get_db)):
+    if not request.session.get("user_id"):
+        return RedirectResponse(url="/login", status_code=302)
+
+    req = db.query(ContractEditRequest).filter(
+        ContractEditRequest.id == req_id).first()
+    if not req or req.status != "pending":
+        raise HTTPException(
+            status_code=404, detail="Request not found or already processed")
+
+    contract = db.query(VodacomSubscription).filter(
+        VodacomSubscription.id == req.contract_id).first()
+    if not contract:
+        raise HTTPException(status_code=404, detail="Contract not found")
+
+    changes = json.loads(req.changes_json) if req.changes_json else {}
+    # Apply, parsing dates if needed
+    for k, v in changes.items():
+        if k in ("Inception_Date", "Termination_Date") and isinstance(v, str) and v.strip():
+            try:
+                v = datetime.strptime(v[:10], "%Y-%m-%d")
+            except Exception:
+                pass
+        setattr(contract, k, v)
+
+    req.status = "approved"
+    req.processed_by = request.session.get("user_id")
+    req.processed_at = datetime.utcnow()
+
+    db.add(contract)
+    db.add(req)
+    db.commit()
+
+    return RedirectResponse(url="/admin", status_code=303)
+
+
+@app.post("/admin/contract-edit-requests/{req_id}/deny")
+def deny_contract_edit_request(req_id: int, request: Request, db: Session = Depends(get_db)):
+    if not request.session.get("user_id"):
+        return RedirectResponse(url="/login", status_code=302)
+
+    req = db.query(ContractEditRequest).filter(
+        ContractEditRequest.id == req_id).first()
+    if not req or req.status != "pending":
+        raise HTTPException(
+            status_code=404, detail="Request not found or already processed")
+
+    req.status = "denied"
+    req.processed_by = request.session.get("user_id")
+    req.processed_at = datetime.utcnow()
+    db.add(req)
+    db.commit()
+
+    return RedirectResponse(url="/admin", status_code=303)
+
+# ---------------------------------------------------------------------------
+# Contract edit request approval/denial (Vodacom)
+# ---------------------------------------------------------------------------
+
+
+@app.post("/admin/contract-edit-requests/{req_id}/approve")
+def approve_contract_edit_request(
+    req_id: int, request: Request, db: Session = Depends(get_db)
+):
+    if not request.session.get("user_id"):
+        return RedirectResponse(url="/login", status_code=302)
+
+    req = db.query(ContractEditRequest).filter(
+        ContractEditRequest.id == req_id).first()
+    if not req or req.status != "pending":
+        raise HTTPException(
+            status_code=404, detail="Request not found or already processed")
+
+    contract = (
+        db.query(VodacomSubscription)
+        .filter(VodacomSubscription.id == req.contract_id)
+        .first()
+    )
+    if not contract:
+        raise HTTPException(status_code=404, detail="Contract not found")
+
+    changes = json.loads(req.changes_json or "{}")
+
+    def _parse_date(s):
+        if not s:
+            return None
+        try:
+            return datetime.strptime(s, "%Y-%m-%d").date()
+        except ValueError:
+            return None
+
+    for k, v in changes.items():
+        if k in ("Inception_Date", "Termination_Date") and isinstance(v, str):
+            v = _parse_date(v)
+        setattr(contract, k, v)
+
+    db.add(contract)
+    req.status = "approved"
+    req.processed_by = request.session.get("user_id")
+    req.processed_at = datetime.utcnow()
+    db.add(req)
+    db.commit()
+    return RedirectResponse(url="/admin", status_code=303)
+
+
+@app.post("/admin/contract-edit-requests/{req_id}/deny")
+def deny_contract_edit_request(
+    req_id: int, request: Request, db: Session = Depends(get_db)
+):
+    if not request.session.get("user_id"):
+        return RedirectResponse(url="/login", status_code=302)
+
+    req = db.query(ContractEditRequest).filter(
+        ContractEditRequest.id == req_id).first()
+    if not req or req.status != "pending":
+        raise HTTPException(
+            status_code=404, detail="Request not found or already processed")
+
+    req.status = "denied"
+    req.processed_by = request.session.get("user_id")
+    req.processed_at = datetime.utcnow()
+    db.add(req)
+    db.commit()
     return RedirectResponse(url="/admin", status_code=303)
