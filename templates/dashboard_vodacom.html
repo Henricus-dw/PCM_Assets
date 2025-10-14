@@ -26,7 +26,11 @@
 
         <!-- Bottom navigation -->
         <div class="nav-bottom">
+            {% if request.session.get('is_admin') %}
             <a href="/admin" class="{{ 'active' if section == 'admin' else '' }}"><span>Admin</span></a>
+            {% endif %}
+
+
             <a href="/settings" class="{{ 'active' if section == 'settings' else '' }}"><span>Settings</span></a>
             <a href="/logout" id="logoutLink" class="{{ 'active' if section == 'logout' else '' }}">
                 <span>Log Out</span>
@@ -724,6 +728,12 @@
             handle?.addEventListener("click", toggleSidebar);
             collapseBtn?.addEventListener("click", toggleSidebar);
             scrim?.addEventListener("click", () => document.body.classList.remove("sidebar-open"));
+            // Briefly animate the active sidebar link (kick-back effect)
+            const activeLinks = Array.from(document.querySelectorAll(".sidebar a.active"))
+                .filter(a => a.id !== "logoutLink");
+
+            activeLinks.forEach(a => a.classList.add("just-activated"));
+            setTimeout(() => activeLinks.forEach(a => a.classList.remove("just-activated")), 1050);
 
             // Export to PDF (mirrors Devices) — keeping this here too
             const pdfBtn2 = document.getElementById("export-pdf-btn");

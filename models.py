@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, func, UniqueConstraint, Text
+from sqlalchemy import Column, Integer, String, Float, DateTime, func, UniqueConstraint, Text, Boolean, text
 
 from database import Base
 
@@ -51,6 +51,8 @@ class User(Base):
     name = Column(String(100), nullable=True)      # New field
     surname = Column(String(100), nullable=True)   # New field
     created_at = Column(DateTime, server_default=func.now())
+    is_admin = Column(Boolean, nullable=False,
+                      server_default=text("0"), default=False)
 
     __table_args__ = (UniqueConstraint('email', name='uq_users_email'),)
 

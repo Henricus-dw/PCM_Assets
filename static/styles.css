@@ -2217,3 +2217,21 @@ body.sidebar-collapsed .sidebar {
     transform: translate(-50%, -50%) !important;
     margin: 0;
 }
+
+.badge {
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
+.badge-admin {
+    background: #4a80d28b;
+    color: #ffffff;
+}
+
+.badge-user {
+    background: #e5e7eb;
+    color: #111827;
+}

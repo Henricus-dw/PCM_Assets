@@ -1,6 +1,6 @@
 from fastapi import Body
-from sqlalchemy import desc   # already imported at top, but make sure
-from datetime import datetime  # (already imported above in your file)
+from sqlalchemy import desc
+from datetime import datetime
 from sqlalchemy import text, Column, Integer, String, Float, DateTime, func, or_, exc
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
@@ -19,11 +19,12 @@ import os
 from starlette.responses import RedirectResponse
 import json
 
-from auth import get_current_user
+from auth import get_current_user, require_admin
 
 # ---- Your models & DB ----
 from models import VodacomSubscription, Device, User, PendingUser, DeviceEditRequest, ContractEditRequest
 from database import SessionLocal, engine, Base
+
 
 # Create all tables (only needed once)
 Base.metadata.create_all(bind=engine)
@@ -102,7 +103,8 @@ def login_post(
             {"request": request, "error": "Invalid email or password."},
             status_code=400,
         )
-    request.session["user_id"] = user.id  # signed, HttpOnly cookie
+    request.session["user_id"] = user.id
+    request.session["is_admin"] = bool(getattr(user, "is_admin", False))
     return RedirectResponse(url="/", status_code=302)
 
 
@@ -731,32 +733,30 @@ def get_home_data(request: Request, db: Session = Depends(get_db)):
 
 
 @app.post("/admin/approve/{pending_id}")
-def approve_user(pending_id: int = Path(...), db: Session = Depends(get_db), request: Request = None):
-    if not request.session.get("user_id"):
-        return RedirectResponse(url="/login", status_code=302)
-
-    # Move inside a transaction so it's atomic
+def approve_user(
+    pending_id: int = Path(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
+):
     with db.begin():
         p = db.query(PendingUser).filter(PendingUser.id ==
                                          pending_id).with_for_update().first()
         if not p:
             raise HTTPException(
                 status_code=404, detail="Pending user not found")
-
-        # Create real User (will 409 if email taken)
         user = User(email=p.email, password_hash=p.password_hash,
                     name=p.name, surname=p.surname)
         db.add(user)
         db.delete(p)
-
     return RedirectResponse(url="/admin", status_code=303)
 
 
 @app.post("/admin/deny/{pending_id}")
-def deny_user(pending_id: int = Path(...), db: Session = Depends(get_db), request: Request = None):
-    if not request.session.get("user_id"):
-        return RedirectResponse(url="/login", status_code=302)
-
+def deny_user(
+    pending_id: int = Path(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
+):
     p = db.query(PendingUser).filter(PendingUser.id == pending_id).first()
     if not p:
         raise HTTPException(status_code=404, detail="Pending user not found")
@@ -769,21 +769,13 @@ def deny_user(pending_id: int = Path(...), db: Session = Depends(get_db), reques
 def delete_user(
     user_id: int = Path(...),
     db: Session = Depends(get_db),
-    request: Request = None
+    current_user: User = Depends(require_admin),
 ):
-    if not request.session.get("user_id"):
-        return RedirectResponse(url="/login", status_code=302)
-
-    # Optional: prevent deleting yourself
-    current_user_id = request.session.get("user_id")
-
     u = db.query(User).filter(User.id == user_id).first()
     if not u:
-        # Nothing to delete; just go back
         return RedirectResponse(url="/admin", status_code=303)
 
-    if u.id == current_user_id:
-        # You can change to a friendlier UI flow if you prefer
+    if u.id == current_user.id:
         raise HTTPException(
             status_code=400, detail="You cannot delete your own account while logged in.")
 
@@ -1030,10 +1022,11 @@ def create_device_edit_request(
 
 
 @app.post("/admin/edit-requests/{req_id}/approve")
-def approve_edit_request(req_id: int, request: Request, db: Session = Depends(get_db)):
-    if not request.session.get("user_id"):
-        return RedirectResponse(url="/login", status_code=302)
-
+def approve_edit_request(
+    req_id: int = Path(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
+):
     req = db.query(DeviceEditRequest).filter(
         DeviceEditRequest.id == req_id).with_for_update().first()
     if not req:
@@ -1042,7 +1035,6 @@ def approve_edit_request(req_id: int, request: Request, db: Session = Depends(ge
     dev = db.query(Device).filter(
         Device.id == req.device_id).with_for_update().first()
     if not dev:
-        # drop invalid queue item
         db.delete(req)
         db.commit()
         raise HTTPException(status_code=404, detail="Device not found")
@@ -1052,23 +1044,12 @@ def approve_edit_request(req_id: int, request: Request, db: Session = Depends(ge
         if k in ALLOWED_DEVICE_FIELDS:
             setattr(dev, k, v)
 
+    req.status = "approved"
+    req.processed_by = current_user.id
+    req.processed_at = datetime.utcnow()
     db.add(dev)
-    db.delete(req)
+    db.add(req)
     db.commit()
-
-    return RedirectResponse(url="/admin", status_code=303)
-
-
-@app.post("/admin/edit-requests/{req_id}/deny")
-def deny_edit_request(req_id: int, request: Request, db: Session = Depends(get_db)):
-    if not request.session.get("user_id"):
-        return RedirectResponse(url="/login", status_code=302)
-
-    req = db.query(DeviceEditRequest).filter(
-        DeviceEditRequest.id == req_id).first()
-    if req:
-        db.delete(req)
-        db.commit()
     return RedirectResponse(url="/admin", status_code=303)
 
 
@@ -1115,10 +1096,11 @@ def create_edit_request(
 
 
 @app.get("/admin", response_class=HTMLResponse)
-def admin(request: Request, db: Session = Depends(get_db)):
-    if not request.session.get("user_id"):
-        return RedirectResponse(url="/login", status_code=302)
-
+def admin(
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)
+):
     pending = db.query(PendingUser).order_by(
         PendingUser.created_at.desc()).all()
     users = db.query(User).order_by(User.created_at.desc()).all()
@@ -1150,64 +1132,26 @@ def admin(request: Request, db: Session = Depends(get_db)):
         "users": users,
         "edit_requests": edit_reqs,
         "time": datetime.utcnow().timestamp(),
+        "current_user": current_user,
     })
-
-
-@app.post("/admin/edit-requests/{req_id}/approve")
-def approve_edit_request(
-    req_id: int,
-    request: Request,
-    db: Session = Depends(get_db)
-):
-    if not request.session.get("user_id"):
-        return RedirectResponse(url="/login", status_code=302)
-
-    req = db.query(DeviceEditRequest).filter(
-        DeviceEditRequest.id == req_id).first()
-    if not req or req.status != "pending":
-        raise HTTPException(
-            status_code=404, detail="Request not found or already processed")
-
-    device = db.query(Device).filter(Device.id == req.device_id).first()
-    if not device:
-        raise HTTPException(status_code=404, detail="Device not found")
-
-    # Apply changes
-    changes = json.loads(req.changes_json)
-    for k, v in changes.items():
-        setattr(device, k, v)
-
-    db.add(device)
-    # mark request processed
-    req.status = "approved"
-    req.processed_by = request.session.get("user_id")
-    req.processed_at = datetime.utcnow()
-    db.add(req)
-    db.commit()
-
-    return RedirectResponse(url="/admin", status_code=303)
 
 
 @app.post("/admin/edit-requests/{req_id}/deny")
 def deny_edit_request(
-    req_id: int,
-    request: Request,
-    db: Session = Depends(get_db)
+    req_id: int = Path(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
 ):
-    if not request.session.get("user_id"):
-        return RedirectResponse(url="/login", status_code=302)
-
     req = db.query(DeviceEditRequest).filter(
         DeviceEditRequest.id == req_id).first()
-    if not req or req.status != "pending":
-        raise HTTPException(
-            status_code=404, detail="Request not found or already processed")
-
+    if not req:
+        raise HTTPException(status_code=404, detail="Edit request not found")
     req.status = "denied"
-    req.processed_by = request.session.get("user_id")
+    req.processed_by = current_user.id
     req.processed_at = datetime.utcnow()
     db.add(req)
     db.commit()
+    return RedirectResponse(url="/admin", status_code=303)
 
 
 @app.post("/api/contracts/{contract_id}/edit-requests")
@@ -1245,10 +1189,11 @@ def create_contract_edit_request(
 
 
 @app.post("/admin/contract-edit-requests/{req_id}/approve")
-def approve_contract_edit_request(req_id: int, request: Request, db: Session = Depends(get_db)):
-    if not request.session.get("user_id"):
-        return RedirectResponse(url="/login", status_code=302)
-
+def approve_contract_edit_request(
+    req_id: int = Path(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
+):
     req = db.query(ContractEditRequest).filter(
         ContractEditRequest.id == req_id).first()
     if not req or req.status != "pending":
@@ -1260,79 +1205,13 @@ def approve_contract_edit_request(req_id: int, request: Request, db: Session = D
     if not contract:
         raise HTTPException(status_code=404, detail="Contract not found")
 
-    changes = json.loads(req.changes_json) if req.changes_json else {}
-    # Apply, parsing dates if needed
-    for k, v in changes.items():
-        if k in ("Inception_Date", "Termination_Date") and isinstance(v, str) and v.strip():
-            try:
-                v = datetime.strptime(v[:10], "%Y-%m-%d")
-            except Exception:
-                pass
-        setattr(contract, k, v)
-
-    req.status = "approved"
-    req.processed_by = request.session.get("user_id")
-    req.processed_at = datetime.utcnow()
-
-    db.add(contract)
-    db.add(req)
-    db.commit()
-
-    return RedirectResponse(url="/admin", status_code=303)
-
-
-@app.post("/admin/contract-edit-requests/{req_id}/deny")
-def deny_contract_edit_request(req_id: int, request: Request, db: Session = Depends(get_db)):
-    if not request.session.get("user_id"):
-        return RedirectResponse(url="/login", status_code=302)
-
-    req = db.query(ContractEditRequest).filter(
-        ContractEditRequest.id == req_id).first()
-    if not req or req.status != "pending":
-        raise HTTPException(
-            status_code=404, detail="Request not found or already processed")
-
-    req.status = "denied"
-    req.processed_by = request.session.get("user_id")
-    req.processed_at = datetime.utcnow()
-    db.add(req)
-    db.commit()
-
-    return RedirectResponse(url="/admin", status_code=303)
-
-# ---------------------------------------------------------------------------
-# Contract edit request approval/denial (Vodacom)
-# ---------------------------------------------------------------------------
-
-
-@app.post("/admin/contract-edit-requests/{req_id}/approve")
-def approve_contract_edit_request(
-    req_id: int, request: Request, db: Session = Depends(get_db)
-):
-    if not request.session.get("user_id"):
-        return RedirectResponse(url="/login", status_code=302)
-
-    req = db.query(ContractEditRequest).filter(
-        ContractEditRequest.id == req_id).first()
-    if not req or req.status != "pending":
-        raise HTTPException(
-            status_code=404, detail="Request not found or already processed")
-
-    contract = (
-        db.query(VodacomSubscription)
-        .filter(VodacomSubscription.id == req.contract_id)
-        .first()
-    )
-    if not contract:
-        raise HTTPException(status_code=404, detail="Contract not found")
-
     changes = json.loads(req.changes_json or "{}")
 
     def _parse_date(s):
         if not s:
             return None
         try:
-            return datetime.strptime(s, "%Y-%m-%d").date()
+            return datetime.strptime(s[:10], "%Y-%m-%d").date()
         except ValueError:
             return None
 
@@ -1341,10 +1220,10 @@ def approve_contract_edit_request(
             v = _parse_date(v)
         setattr(contract, k, v)
 
-    db.add(contract)
     req.status = "approved"
-    req.processed_by = request.session.get("user_id")
+    req.processed_by = current_user.id
     req.processed_at = datetime.utcnow()
+    db.add(contract)
     db.add(req)
     db.commit()
     return RedirectResponse(url="/admin", status_code=303)
@@ -1352,20 +1231,61 @@ def approve_contract_edit_request(
 
 @app.post("/admin/contract-edit-requests/{req_id}/deny")
 def deny_contract_edit_request(
-    req_id: int, request: Request, db: Session = Depends(get_db)
+    req_id: int = Path(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
 ):
-    if not request.session.get("user_id"):
-        return RedirectResponse(url="/login", status_code=302)
-
     req = db.query(ContractEditRequest).filter(
-        ContractEditRequest.id == req_id).first()
+        ContractEditRequest.id == req_id
+    ).first()
     if not req or req.status != "pending":
         raise HTTPException(
             status_code=404, detail="Request not found or already processed")
 
     req.status = "denied"
-    req.processed_by = request.session.get("user_id")
+    req.processed_by = current_user.id
     req.processed_at = datetime.utcnow()
     db.add(req)
     db.commit()
+    return RedirectResponse(url="/admin", status_code=303)
+
+
+@app.post("/admin/users/{user_id}/make-admin")
+def make_admin(
+    user_id: int = Path(...),
+    request: Request = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
+):
+    u = db.query(User).filter(User.id == user_id).first()
+    if not u:
+        raise HTTPException(status_code=404, detail="User not found")
+    if not u.is_admin:
+        u.is_admin = True
+        db.commit()
+        if request and current_user.id == u.id:
+            request.session["is_admin"] = True
+    return RedirectResponse(url="/admin", status_code=303)
+
+
+@app.post("/admin/users/{user_id}/revoke-admin")
+def revoke_admin(
+    user_id: int = Path(...),
+    request: Request = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
+):
+    u = db.query(User).filter(User.id == user_id).first()
+    if not u:
+        raise HTTPException(status_code=404, detail="User not found")
+    if u.is_admin:
+        admin_count = db.query(func.count(User.id)).filter(
+            User.is_admin == True).scalar() or 0
+        if admin_count <= 1:
+            raise HTTPException(
+                status_code=400, detail="Cannot revoke the last remaining admin.")
+        u.is_admin = False
+        db.commit()
+        if request and current_user.id == u.id:
+            request.session["is_admin"] = False
     return RedirectResponse(url="/admin", status_code=303)

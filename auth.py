@@ -35,3 +35,13 @@ def get_current_user(request: Request, db: Session = Depends(get_db)) -> User:
         )
 
     return user
+
+
+def require_admin(user: User = Depends(get_current_user)) -> User:
+    # coalesce to bool in case of NULLs on legacy rows
+    if not bool(getattr(user, "is_admin", False)):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin privileges required"
+        )
+    return user

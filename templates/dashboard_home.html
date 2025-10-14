@@ -25,7 +25,11 @@
 
         <!-- Bottom navigation -->
         <div class="nav-bottom">
+            {% if request.session.get('is_admin') %}
             <a href="/admin" class="{{ 'active' if section == 'admin' else '' }}"><span>Admin</span></a>
+            {% endif %}
+
+
             <a href="/settings" class="{{ 'active' if section == 'settings' else '' }}"><span>Settings</span></a>
             <a href="/logout" id="logoutLink" class="{{ 'active' if section == 'logout' else '' }}">
                 <span>Log Out</span>
