@@ -79,7 +79,7 @@ class DeviceEditRequest(Base):
     device_id = Column(Integer, nullable=False)
     requester_email = Column(String(255), nullable=False)
     # JSON blob of requested changes, e.g. {"Company": "PCM", "Device_Name": "iPhone 15"}
-    changes_json = Column(String, nullable=False)
+    changes_json = Column(Text, nullable=False)
     # pending | approved | denied
     status = Column(String(20), nullable=False, default="pending")
     created_at = Column(DateTime, server_default=func.now())
