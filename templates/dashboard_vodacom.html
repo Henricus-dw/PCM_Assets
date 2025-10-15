@@ -238,63 +238,96 @@
 
 
     <script>
-        const keyToHeader = {
-            Name_: ["name"],
-            Surname_: ["surname"],
-            Personnel_nr: ["personnel", "personnel #", "personnel nr"],
-            Company: ["company"],
-            Client_Division: ["client division"],
-            Contract_Type: ["contract type"],
-            Monthly_Costs: ["monthly costs", "monthly cost"],
-            VAT: ["vat"],
-            Monthly_Cost_Excl_VAT: ["monthly cost(excl.vat)", "cost (excl. vat)"],
-            Contract_Term: ["contract term", "term"],
-            Inception_Date: ["inception date"],
-            Termination_Date: ["termination date"],
-            Sim_Card_Number: ["sim card number", "sim"],
-            due_upgrade: ["due upgrade", "upgrade"]
-        };
+        (() => {
+            // Namespace to avoid globals
+            const VodaDash = (window.VodaDash = window.VodaDash || {});
 
-        const FIELD_KEYS = [
-            "Name_", "Surname_", "Personnel_nr", "Company", "Client_Division",
-            "Contract_Type", "Monthly_Costs", "VAT", "Monthly_Cost_Excl_VAT",
-            "Contract_Term", "Inception_Date", "Termination_Date", "Sim_Card_Number",
-            "due_upgrade"
-        ];
-        document.addEventListener("DOMContentLoaded", () => {
-            // ------------------------------------
-            // Base refs
-            // ------------------------------------
+            // -----------------------------
+            // Base refs & utilities
+            // -----------------------------
             const table = document.querySelector("table.sticky");
-            if (!table) return;
-            const tbody = table.tBodies[0];
-            const rows = Array.from(tbody.querySelectorAll("tr"));
-
-            // Optional scroller (your layout uses .contentInner2)
+            const tbody = table?.tBodies?.[0];
             const scroller = document.querySelector(".contentInner2") || window;
 
-            // ------------------------------------
-            // Header filters (works if you have .filter-toggle + .header-filter)
-            // ------------------------------------
+            if (!table || !tbody) return; // nothing to wire if table absent
+
+            const norm = (s) => (s ?? "").toString().trim().toLowerCase();
+
+            const headerIndex = (() => {
+                const map = {};
+                table.querySelectorAll("thead th").forEach((th, i) => {
+                    const labelEl = th.querySelector(".header-label");
+                    const label = (labelEl ? labelEl.textContent : th.textContent).trim().toLowerCase();
+                    map[label] = i;
+                });
+                return map;
+            })();
+
+            // Single source of truth for editable fields and header mapping
+            const FIELD_KEYS = [
+                "Inception_Date", "Termination_Date", "Name_", "Surname_",
+                "Monthly_Costs", "VAT", "Monthly_Cost_Excl_VAT",
+                "Contract_Type", "Contract_Term", "Sim_Card_Number",
+                "Personnel_nr", "Company", "Client_Division", "due_upgrade"
+            ];
+
+            const keyToHeader = {
+                Inception_Date: ["inception date"],
+                Termination_Date: ["termination date"],
+                Name_: ["name"],
+                Surname_: ["surname"],
+                Monthly_Costs: ["monthly costs", "monthly cost"],
+                VAT: ["vat"],
+                Monthly_Cost_Excl_VAT: ["monthly cost(excl.vat)", "monthly cost (excl.vat)"],
+                Contract_Type: ["contract type"],
+                Contract_Term: ["contract term"],
+                Sim_Card_Number: ["sim card number", "sim"],
+                Personnel_nr: ["personnel nr", "personnel number", "personnel #"],
+                Company: ["company"],
+                Client_Division: ["client division"],
+                due_upgrade: ["due upgrade", "upgrade"]
+            };
+
+            const colIndexFor = (key) => {
+                const labels = keyToHeader[key] || [];
+                for (const l of labels) {
+                    const idx = headerIndex[norm(l)];
+                    if (idx != null) return idx;
+                }
+                return null;
+            };
+
+            // Cache original order for "Latest Entry"
+            Array.from(tbody.rows).forEach((tr, i) => (tr.dataset.origIndex = String(i)));
+
+            // Some tables include a "View Devices" button column (index 2); exclude from exports
+            const VIEW_DEVICES_COL_INDEX = 2;
+
+            // -----------------------------
+            // Header filters
+            // -----------------------------
             (function bindHeaderFilters() {
-                const filters = {};
                 const toggles = document.querySelectorAll(".filter-toggle");
                 if (!toggles.length) return;
 
-                function applyFilters() {
-                    rows.forEach(row => {
+                const filters = {};
+                const applyFilters = () => {
+                    Array.from(tbody.rows).forEach((row) => {
                         let visible = true;
                         for (const col in filters) {
                             const val = filters[col];
                             if (!val) continue;
                             const cellText = (row.cells[col]?.textContent || "").toLowerCase().trim();
-                            if (!cellText.includes(val)) { visible = false; break; }
+                            if (!cellText.includes(val)) {
+                                visible = false;
+                                break;
+                            }
                         }
                         row.style.display = visible ? "" : "none";
                     });
-                }
+                };
 
-                document.querySelectorAll(".filter-toggle").forEach(btn => {
+                document.querySelectorAll(".filter-toggle").forEach((btn) => {
                     const col = btn.dataset.col;
                     const th = btn.closest("th");
                     const input = th?.querySelector(".header-filter");
@@ -330,360 +363,405 @@
                 });
             })();
 
-            // ------------------------------------
-            // CSV / PDF export (kept here so buttons still work)
-            // ------------------------------------
-            (function bindExports() {
-                const csvBtn = document.getElementById("export-csv-btn");
-                const pdfBtn = document.getElementById("export-pdf-btn");
+            // -----------------------------
+            // Sorting (dropdown #sort-select)
+            // -----------------------------
+            (function bindSort() {
+                const sortSelect = document.getElementById("sort-select");
+                if (!sortSelect) return;
 
-                if (csvBtn && table) {
-                    csvBtn.addEventListener("click", () => {
-                        const headCells = Array.from(table.querySelectorAll("thead th"));
-                        const headerRow = headCells.map(th => {
-                            const label = th.querySelector(".header-label");
-                            return (label ? label.textContent : th.textContent).trim();
-                        }).map(text => `"${text.replace(/"/g, '""')}"`).join(",");
+                const map = {
+                    inception_date: ["inception date"],
+                    termination_date: ["termination date"],
+                    monthly_costs: ["monthly costs", "monthly cost", "monthly cost(excl.vat)"]
+                };
 
-                        const bodyRows = Array.from(table.querySelectorAll("tbody tr")).map(tr => {
-                            const cols = Array.from(tr.querySelectorAll("td")).map(td => {
-                                const text = (td.textContent || "").trim();
-                                return `"${text.replace(/"/g, '""')}"`;
-                            }).join(",");
-                            return cols;
-                        }).join("\n");
-
-                        const csv = headerRow + "\n" + bodyRows;
-                        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement("a");
-                        a.href = url;
-                        a.download = "vodacom_dashboard_export.csv";
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
-                    });
+                function resolveColumn(labels) {
+                    for (const l of labels) {
+                        const idx = headerIndex[norm(l)];
+                        if (idx != null) return idx;
+                    }
+                    return null;
                 }
 
-                if (pdfBtn && table && window.jspdf?.jsPDF && window.jspdf?.autoTable) {
-                    pdfBtn.addEventListener("click", () => {
-                        const { jsPDF } = window.jspdf;
-                        const doc = new jsPDF("landscape");
-                        const headers = [];
-                        const data = [];
+                function sortRows(byKey) {
+                    const rows = Array.from(tbody.rows);
 
-                        table.querySelectorAll("thead th").forEach(th => {
-                            const label = th.querySelector(".header-label");
-                            headers.push(label ? label.textContent.trim() : th.textContent.trim());
-                        });
-                        table.querySelectorAll("tbody tr").forEach(tr => {
-                            const row = [];
-                            tr.querySelectorAll("td").forEach(td => row.push((td.textContent || "").trim()));
-                            data.push(row);
-                        });
-
-                        doc.text("Vodacom Dashboard Export", 14, 15);
-                        doc.autoTable({ head: [headers], body: data, startY: 20, styles: { fontSize: 8, cellPadding: 2 } });
-                        doc.save("vodacom_dashboard_export.pdf");
-                    });
-                }
-            })();
-
-            // ------------------------------------
-            // Map header text -> column index (for modal prefill)
-            // ------------------------------------
-            const headerIndex = (() => {
-                const map = {};
-                const ths = table.querySelectorAll("thead th");
-                ths.forEach((th, i) => {
-                    const labelEl = th.querySelector(".header-label");
-                    const label = (labelEl ? labelEl.textContent : th.textContent).trim().toLowerCase();
-                    map[label] = i;
-                });
-                return map;
-            })();
-
-            // Columns allowed for editing (must match backend allow-list)
-            const FIELD_KEYS = [
-                "Inception_Date", "Termination_Date", "Name_", "Surname_",
-                "Monthly_Costs", "VAT", "Monthly_Cost_Excl_VAT",
-                "Contract_Type", "Contract_Term", "Sim_Card_Number",
-                "Personnel_nr", "Company", "Client_Division", "due_upgrade"
-            ];
-
-            const keyToHeader = {
-                Inception_Date: ["inception date"],
-                Termination_Date: ["termination date"],
-                Name_: ["name"],
-                Surname_: ["surname"],
-                Monthly_Costs: ["monthly costs"],
-                VAT: ["vat"],
-                Monthly_Cost_Excl_VAT: ["monthly cost(excl.vat)", "monthly cost (excl.vat)"],
-                Contract_Type: ["contract type"],
-                Contract_Term: ["contract term"],
-                Sim_Card_Number: ["sim card number"],
-                Personnel_nr: ["personnel number"],
-                Company: ["company"],
-                Client_Division: ["client division"],
-                due_upgrade: ["due upgrade"]
-            };
-
-            const norm = (s) => (s || "").toString().trim().toLowerCase();
-            const colIndexFor = (key) => {
-                const labels = keyToHeader[key] || [];
-                for (const l of labels) {
-                    const idx = headerIndex[norm(l)];
-                    if (idx != null) return idx;
-                }
-                return null;
-            };
-
-            // ------------------------------------
-            // Floating "three dots" rail (mirrors Devices)
-            // ------------------------------------
-            const rail = document.createElement("div");
-            rail.className = "editbtn-rail";
-            document.body.appendChild(rail);
-            Object.assign(rail.style, {
-                position: "fixed",
-                width: "30px",
-                height: "0px",
-                left: "-9999px",
-                top: "-9999px",
-                pointerEvents: "none",
-                zIndex: "999999"
-            });
-
-            const editBtn = document.createElement("button");
-            editBtn.className = "editbtn";
-            editBtn.type = "button";
-            editBtn.innerHTML = `
-    <div class="editbtn__dots">
-      <span class="editbtn__dot"></span>
-      <span class="editbtn__dot"></span>
-      <span class="editbtn__dot"></span>
-    </div>`;
-            rail.appendChild(editBtn);
-            Object.assign(editBtn.style, {
-                position: "absolute",
-                left: "0",
-                top: "0",
-                width: "30px",
-                height: "0px",
-                display: "none",
-                pointerEvents: "auto"
-            });
-
-
-
-            let hideTimer = null;
-            let activeRowForBtn = null;
-            let currentContractId = null;
-            function positionRailForCell() {
-                const clipR = (scroller === window)
-                    ? document.documentElement.getBoundingClientRect()
-                    : scroller.getBoundingClientRect();
-                rail.style.left = (clipR.left - 30) + "px";
-                rail.style.top = clipR.top + "px";
-                rail.style.height = clipR.height + "px";
-            }
-
-            function positionButtonForRow(row) {
-                const rowR = row.getBoundingClientRect();
-                const clipR = (scroller === window)
-                    ? document.documentElement.getBoundingClientRect()
-                    : scroller.getBoundingClientRect();
-                editBtn.style.top = (rowR.top - clipR.top) + "px";
-                editBtn.style.height = rowR.height + "px";
-            }
-
-            function showForRow(row) {
-                clearTimeout(hideTimer);
-                activeRowForBtn = row;
-                currentContractId = row.getAttribute("data-contract-id") || null;
-                positionRailForCell();
-                positionButtonForRow(row);
-                editBtn.style.display = "flex";
-                editBtn.classList.remove("editbtn--visible");
-                requestAnimationFrame(() => editBtn.classList.add("editbtn--visible"));
-            }
-
-            function hideIfAllowed() {
-                if (!activeRowForBtn) return;
-                const overRow = activeRowForBtn.matches(":hover");
-                const overBtn = editBtn.matches(":hover");
-                if (!overRow && !overBtn) {
-                    editBtn.style.display = "none";
-                    editBtn.classList.remove("editbtn--visible");
-
-
-                }
-            }
-
-            function relayoutRail() {
-                if (activeRowForBtn) {
-                    positionRailForCell();
-                    positionButtonForRow(activeRowForBtn);
-                } else {
-                    positionRailForCell();
-                }
-            }
-
-            rows.forEach(row => {
-                row.addEventListener("pointerenter", () => showForRow(row));
-                row.addEventListener("pointerleave", (e) => {
-                    if (e.relatedTarget && (e.relatedTarget === editBtn || editBtn.contains(e.relatedTarget))) return;
-                    clearTimeout(hideTimer);
-                    hideTimer = setTimeout(hideIfAllowed, 140);
-                });
-            });
-            editBtn.addEventListener("pointerenter", () => clearTimeout(hideTimer));
-            editBtn.addEventListener("pointerleave", (e) => {
-                if (activeRowForBtn && e.relatedTarget && (e.relatedTarget === activeRowForBtn || activeRowForBtn.contains(e.relatedTarget))) return;
-                clearTimeout(hideTimer);
-                hideTimer = setTimeout(hideIfAllowed, 100);
-            });
-            (scroller === window ? window : scroller).addEventListener("scroll", relayoutRail, { passive: true });
-            window.addEventListener("resize", relayoutRail);
-            relayoutRail();
-
-            // ------------------------------------
-            // Edit Contract modal + queue request  (Devices-style UI + logic)
-            // ------------------------------------
-            // Use the actual Vodacom modal IDs
-            const modal = document.getElementById("editRowModal");
-            const modalBody = document.getElementById("editRowBody");
-            const submitWrap = document.getElementById("editSubmitWrap");
-            const submitBtn = document.getElementById("submitChangesBtn");
-
-
-            function showEditModal() { if (modal) modal.style.display = "block"; }
-            function closeEditModal() { if (modal) modal.style.display = "none"; }
-            window.closeEditRowModal = closeEditModal;
-
-
-            let pending = {}; // <-- declare ONCE here
-
-            function openEditModalFromRow(tr) {
-                currentContractId = tr.getAttribute("data-contract-id") || currentContractId;
-                if (!modal || !modalBody || !submitWrap) return;
-
-
-                // snapshot current values
-                const record = {};
-                FIELD_KEYS.forEach(key => {
-                    const ci = colIndexFor(key);
-                    if (ci != null && tr.cells[ci]) record[key] = tr.cells[ci].textContent.trim();
-                });
-
-                // build Devices-style 4-col grid
-                const editTable = document.createElement("table");
-                editTable.className = "editgrid";
-                editTable.innerHTML = `
-      <thead>
-        <tr>
-          <th>Field</th>
-          <th>Current Value</th>
-          <th></th>
-          <th>New Value</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    `;
-                const tBody = editTable.querySelector("tbody");
-
-                FIELD_KEYS.forEach((key) => {
-                    const label = key.replace(/_/g, " ");
-                    const cur = (record[key] ?? "").toString();
-                    const isNumber = ["Monthly_Costs", "VAT", "Monthly_Cost_Excl_VAT"].includes(key);
-                    const typeAttr = /date/i.test(key) ? 'type="date"' : (isNumber ? 'type="number" step="0.01"' : 'type="text"');
-
-                    const rowEl = document.createElement("tr");
-                    rowEl.innerHTML = `
-        <td class="field-col">${label}</td>
-        <td class="value-col"><div class="pill">${cur}</div></td>
-        <td class="edit-col">
-          <button type="button" class="confirm edit-row-btn" data-key="${key}">Edit</button>
-        </td>
-        <td class="new-col">
-          <div class="pill edit-input-wrap" data-key="${key}" style="display:none;">
-            <input ${typeAttr} class="edit-input" value="">
-          </div>
-        </td>
-      `;
-                    tBody.appendChild(rowEl);
-                });
-
-                modalBody.innerHTML = "";
-                modalBody.appendChild(editTable);
-                submitWrap.style.display = "none";
-                pending = {};
-                showEditModal();
-
-                // delegated interaction
-                if (!modalBody._delegationBound) {
-                    modalBody._delegationBound = true;
-                    modalBody.addEventListener("click", (e) => {
-                        const btn = e.target.closest(".edit-row-btn");
-                        if (!btn) return;
-                        const key = btn.dataset.key;
-                        const wrap = modalBody.querySelector(`.edit-input-wrap[data-key="${key}"]`);
-                        if (!wrap) return;
-
-                        wrap.style.display = "flex";
-                        const input = wrap.querySelector(".edit-input");
-                        input.value = (record[key] ?? "");
-                        input.focus();
-
-                        if (!input._bound) {
-                            input._bound = true;
-                            input.addEventListener("input", () => {
-                                const before = (record[key] ?? "").toString();
-                                const after = input.value;
-                                if (after !== before) pending[key] = after;
-                                else delete pending[key];
-                                submitWrap.style.display = Object.keys(pending).length ? "block" : "none";
-                            });
-                        }
-                    });
-                }
-            }
-
-            // open modal from floating button
-            editBtn.addEventListener("click", () => {
-                if (!activeRowForBtn) {
-                    alert("No active row found");
-                    return;
-                }
-
-                currentContractId = activeRowForBtn.getAttribute("data-contract-id");
-                console.log("✅ Locked contract ID at click:", currentContractId);
-
-                if (!currentContractId) {
-                    alert("No contract ID on this row");
-                    return;
-                }
-
-                openEditModalFromRow(activeRowForBtn);
-            });
-
-
-
-
-
-            // submit → queue for approval
-            if (submitBtn) {
-                submitBtn.addEventListener("click", async () => {
-                    if (!currentContractId) {
-                        alert("No contract ID.");
-                        closeEditModal();
+                    if (!byKey) {
+                        rows.sort((a, b) => +a.dataset.origIndex - +b.dataset.origIndex);
+                        rows.forEach((r) => tbody.appendChild(r));
                         return;
                     }
 
-                    if (!currentContractId || !Object.keys(pending).length) {
-                        alert("No contract ID or no changes.");
-                        closeEditModal();
+                    const labels = map[byKey] || [];
+                    const colIndex = resolveColumn(labels);
+                    if (colIndex == null) return;
+
+                    const isDate = byKey === "inception_date" || byKey === "termination_date";
+
+                    rows.sort((a, b) => {
+                        const A = (a.cells[colIndex]?.textContent || "").trim();
+                        const B = (b.cells[colIndex]?.textContent || "").trim();
+
+                        if (isDate) {
+                            const dA = new Date(A);
+                            const dB = new Date(B);
+                            return dA - dB;
+                        }
+
+                        const nA = parseFloat(A.replace(/[^\d.-]/g, ""));
+                        const nB = parseFloat(B.replace(/[^\d.-]/g, ""));
+                        if (!isNaN(nA) && !isNaN(nB)) return nA - nB;
+
+                        return A.localeCompare(B, undefined, { numeric: true, sensitivity: "base" });
+                    });
+
+                    rows.forEach((r) => tbody.appendChild(r));
+                }
+
+                sortSelect.addEventListener("change", (e) => sortRows(e.target.value));
+            })();
+
+            // -----------------------------
+            // CSV export (supports new #export-csv-btn and legacy #export-btn)
+            // -----------------------------
+            (function bindCsvExports() {
+                const btnAll = document.getElementById("export-csv-btn"); // exports all rows
+                const btnVisible = document.getElementById("export-btn"); // exports visible rows (after filters)
+
+                const buildCsv = (respectFilter) => {
+                    // headers
+                    const headers = Array.from(table.querySelectorAll("thead th"))
+                        .map((th) => {
+                            const label = th.querySelector(".header-label");
+                            return (label ? label.textContent : th.textContent).trim();
+                        })
+                        .filter((_, i) => i !== VIEW_DEVICES_COL_INDEX)
+                        .map((t) => `"${t.replace(/"/g, '""')}"`)
+                        .join(",");
+
+                    // rows
+                    const rowSelector = respectFilter
+                        ? Array.from(tbody.querySelectorAll("tr")).filter((tr) => tr.style.display !== "none")
+                        : Array.from(tbody.querySelectorAll("tr"));
+
+                    const body = rowSelector
+                        .map((tr) => {
+                            const cols = Array.from(tr.querySelectorAll("td"))
+                                .filter((_, i) => i !== VIEW_DEVICES_COL_INDEX)
+                                .map((td) => `"${(td.textContent || "").trim().replace(/"/g, '""')}"`)
+                                .join(",");
+                            return cols;
+                        })
+                        .join("\n");
+
+                    return headers + "\n" + body;
+                };
+
+                function download(filename, text, mime = "text/plain;charset=utf-8;") {
+                    const blob = new Blob([text], { type: mime });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    URL.revokeObjectURL(url);
+                }
+
+                if (btnAll) {
+                    btnAll.addEventListener("click", () => {
+                        download("vodacom_dashboard_export.csv", buildCsv(false), "text/csv;charset=utf-8;");
+                    });
+                }
+                if (btnVisible) {
+                    btnVisible.addEventListener("click", () => {
+                        download("vodacom_dashboard_export.csv", buildCsv(true), "text/csv;charset=utf-8;");
+                    });
+                }
+            })();
+
+            // -----------------------------
+            // PDF export (#export-pdf-btn) using jsPDF + autoTable
+            // -----------------------------
+            (function bindPdfExport() {
+                const btn = document.getElementById("export-pdf-btn");
+                if (!btn) return;
+
+                btn.addEventListener("click", () => {
+                    const jspdfNS = window.jspdf;
+                    const jsPDF = jspdfNS && jspdfNS.jsPDF;
+                    if (!jsPDF || typeof jsPDF !== "function") {
+                        alert("PDF library not loaded. Check jsPDF script tag.");
+                        return;
+                    }
+                    if (!("autoTable" in (jsPDF.API || {}))) {
+                        alert("autoTable plugin not loaded. Check the autoTable script tag.");
+                        return;
+                    }
+
+                    const headers = Array.from(table.querySelectorAll("thead th"))
+                        .map((th) => {
+                            const label = th.querySelector(".header-label");
+                            return (label ? label.textContent : th.textContent).trim();
+                        })
+                        .filter((_, i) => i !== VIEW_DEVICES_COL_INDEX);
+
+                    const body = [];
+                    table.querySelectorAll("tbody tr").forEach((tr) => {
+                        const row = Array.from(tr.querySelectorAll("td"))
+                            .filter((_, i) => i !== VIEW_DEVICES_COL_INDEX)
+                            .map((td) => td.textContent.trim());
+                        body.push(row);
+                    });
+
+                    const doc = new jsPDF("landscape");
+                    doc.text("Vodacom Dashboard Export", 14, 15);
+                    doc.autoTable({
+                        head: [headers],
+                        body,
+                        startY: 20,
+                        styles: { fontSize: 8, cellPadding: 2 }
+                    });
+                    doc.save("vodacom_dashboard_export.pdf");
+                });
+            })();
+
+            // -----------------------------
+            // Floating "three dots" rail + Edit modal (queue request)
+            // -----------------------------
+            (function bindRowEditUI() {
+                const modal = document.getElementById("editRowModal");
+                const modalBody = document.getElementById("editRowBody");
+                const submitWrap = document.getElementById("editSubmitWrap");
+                const submitBtn = document.getElementById("submitChangesBtn");
+                if (!modal || !modalBody || !submitWrap || !submitBtn) return;
+
+                // Floating rail
+                const rail = document.createElement("div");
+                rail.className = "editbtn-rail";
+                Object.assign(rail.style, {
+                    position: "fixed",
+                    width: "30px",
+                    height: "0px",
+                    left: "-9999px",
+                    top: "-9999px",
+                    pointerEvents: "none",
+                    zIndex: "999999"
+                });
+
+                const editBtn = document.createElement("button");
+                editBtn.type = "button";
+                editBtn.className = "editbtn";
+                editBtn.innerHTML = `
+      <div class="editbtn__dots">
+        <span class="editbtn__dot"></span>
+        <span class="editbtn__dot"></span>
+        <span class="editbtn__dot"></span>
+      </div>`;
+                Object.assign(editBtn.style, {
+                    position: "absolute",
+                    left: "0",
+                    top: "0",
+                    width: "30px",
+                    height: "0px",
+                    display: "none",
+                    pointerEvents: "auto"
+                });
+
+                rail.appendChild(editBtn);
+                document.body.appendChild(rail);
+
+                let hideTimer = null;
+                let activeRow = null;
+                let currentContractId = null;
+                let pending = {};
+
+                function positionRail() {
+                    const clipR = scroller === window
+                        ? document.documentElement.getBoundingClientRect()
+                        : scroller.getBoundingClientRect();
+                    rail.style.left = clipR.left - 30 + "px";
+                    rail.style.top = clipR.top + "px";
+                    rail.style.height = clipR.height + "px";
+                }
+
+                function positionBtnForRow(row) {
+                    const rowR = row.getBoundingClientRect();
+                    const clipR = scroller === window
+                        ? document.documentElement.getBoundingClientRect()
+                        : scroller.getBoundingClientRect();
+                    editBtn.style.top = rowR.top - clipR.top + "px";
+                    editBtn.style.height = rowR.height + "px";
+                }
+
+                function showForRow(row) {
+                    clearTimeout(hideTimer);
+                    activeRow = row;
+                    currentContractId = row.getAttribute("data-contract-id") || null;
+                    positionRail();
+                    positionBtnForRow(row);
+                    editBtn.style.display = "flex";
+                    editBtn.classList.remove("editbtn--visible");
+                    requestAnimationFrame(() => editBtn.classList.add("editbtn--visible"));
+                }
+
+                function hideIfAllowed() {
+                    if (!activeRow) return;
+                    const overRow = activeRow.matches(":hover");
+                    const overBtn = editBtn.matches(":hover");
+                    if (!overRow && !overBtn) {
+                        editBtn.style.display = "none";
+                        editBtn.classList.remove("editbtn--visible");
+                    }
+                }
+
+                function relayout() {
+                    if (activeRow) {
+                        positionRail();
+                        positionBtnForRow(activeRow);
+                    } else {
+                        positionRail();
+                    }
+                }
+
+                Array.from(tbody.rows).forEach((row) => {
+                    row.addEventListener("pointerenter", () => showForRow(row));
+                    row.addEventListener("pointerleave", (e) => {
+                        if (e.relatedTarget && (e.relatedTarget === editBtn || editBtn.contains(e.relatedTarget))) return;
+                        clearTimeout(hideTimer);
+                        hideTimer = setTimeout(hideIfAllowed, 140);
+                    });
+                });
+
+                editBtn.addEventListener("pointerenter", () => clearTimeout(hideTimer));
+                editBtn.addEventListener("pointerleave", (e) => {
+                    if (activeRow && e.relatedTarget && (e.relatedTarget === activeRow || activeRow.contains(e.relatedTarget))) return;
+                    clearTimeout(hideTimer);
+                    hideTimer = setTimeout(hideIfAllowed, 100);
+                });
+
+                (scroller === window ? window : scroller).addEventListener("scroll", relayout, { passive: true });
+                window.addEventListener("resize", relayout);
+                relayout();
+
+                // Modal controls
+                function openModal() { modal.style.display = "block"; }
+                function closeModal() { modal.style.display = "none"; }
+                window.closeEditRowModal = closeModal; // keep existing API
+
+                function snapshotRecord(tr) {
+                    const rec = {};
+                    FIELD_KEYS.forEach((key) => {
+                        const ci = colIndexFor(key);
+                        if (ci != null && tr.cells[ci]) rec[key] = tr.cells[ci].textContent.trim();
+                    });
+                    return rec;
+                }
+
+                function buildEditGrid(record) {
+                    const tableEl = document.createElement("table");
+                    tableEl.className = "editgrid";
+                    tableEl.innerHTML = `
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Current Value</th>
+            <th></th>
+            <th>New Value</th>
+          </tr>
+        </thead>
+        <tbody></tbody>`;
+                    const tBody = tableEl.querySelector("tbody");
+
+                    FIELD_KEYS.forEach((key) => {
+                        const label = key.replace(/_/g, " ");
+                        const cur = (record[key] ?? "").toString();
+                        const isNumber = ["Monthly_Costs", "VAT", "Monthly_Cost_Excl_VAT"].includes(key);
+                        const typeAttr = /date/i.test(key) ? 'type="date"' : (isNumber ? 'type="number" step="0.01"' : 'type="text"');
+
+                        const rowEl = document.createElement("tr");
+                        rowEl.innerHTML = `
+          <td class="field-col">${label}</td>
+          <td class="value-col"><div class="pill">${cur}</div></td>
+          <td class="edit-col">
+            <button type="button" class="confirm edit-row-btn" data-key="${key}">Edit</button>
+          </td>
+          <td class="new-col">
+            <div class="pill edit-input-wrap" data-key="${key}" style="display:none;">
+              <input ${typeAttr} class="edit-input" value="">
+            </div>
+          </td>`;
+                        tBody.appendChild(rowEl);
+                    });
+
+                    return tableEl;
+                }
+
+                function openEditModalFromRow(tr) {
+                    currentContractId = tr.getAttribute("data-contract-id") || currentContractId;
+                    if (!currentContractId) return;
+
+                    const record = snapshotRecord(tr);
+                    const grid = buildEditGrid(record);
+
+                    modalBody.innerHTML = "";
+                    modalBody.appendChild(grid);
+                    submitWrap.style.display = "none";
+                    pending = {};
+                    openModal();
+
+                    if (!modalBody._delegationBound) {
+                        modalBody._delegationBound = true;
+                        modalBody.addEventListener("click", (e) => {
+                            const btn = e.target.closest(".edit-row-btn");
+                            if (!btn) return;
+                            const key = btn.dataset.key;
+                            const wrap = modalBody.querySelector(`.edit-input-wrap[data-key="${key}"]`);
+                            if (!wrap) return;
+
+                            wrap.style.display = "flex";
+                            const input = wrap.querySelector(".edit-input");
+                            input.value = (record[key] ?? "");
+                            input.focus();
+
+                            if (!input._bound) {
+                                input._bound = true;
+                                input.addEventListener("input", () => {
+                                    const before = (record[key] ?? "").toString();
+                                    const after = input.value;
+                                    if (after !== before) pending[key] = after;
+                                    else delete pending[key];
+                                    submitWrap.style.display = Object.keys(pending).length ? "block" : "none";
+                                });
+                            }
+                        });
+                    }
+                }
+
+                editBtn.addEventListener("click", () => {
+                    if (!activeRow) {
+                        alert("No active row found");
+                        return;
+                    }
+                    currentContractId = activeRow.getAttribute("data-contract-id");
+                    if (!currentContractId) {
+                        alert("No contract ID on this row");
+                        return;
+                    }
+                    openEditModalFromRow(activeRow);
+                });
+
+                submitBtn.addEventListener("click", async () => {
+                    if (!currentContractId) {
+                        alert("No contract ID.");
+                        closeModal();
+                        return;
+                    }
+                    if (!Object.keys(pending).length) {
+                        alert("No changes to submit.");
+                        closeModal();
                         return;
                     }
 
@@ -698,7 +776,7 @@
                         const res = await resp.json();
                         if (res.created || res.queued) {
                             alert("Edit request submitted for approval.");
-                            closeEditModal();
+                            closeModal();
                         } else {
                             alert(res.message || "Could not queue request.");
                         }
@@ -708,185 +786,97 @@
                         submitBtn.disabled = false;
                     }
                 });
-            }
 
-            // close on backdrop click
-            modal?.addEventListener("click", (e) => { if (e.target === modal) closeEditModal(); });
-
-            // ------------------------------------
-            // Optional: sidebar handle + scrim (safe no-ops if missing)
-            // ------------------------------------
-            const handle = document.getElementById("sidebarHandle");
-            const collapseBtn = document.getElementById("sidebarCollapse");
-            const scrim = document.getElementById("sidebarScrim");
-            function toggleSidebar() {
-                const collapsed = document.body.classList.toggle("sidebar-collapsed");
-                handle?.setAttribute("aria-pressed", String(!collapsed ? true : false));
-                handle?.setAttribute("aria-label", collapsed ? "Expand sidebar" : "Collapse sidebar");
-                if (collapsed) document.body.classList.remove("sidebar-open");
-            }
-            handle?.addEventListener("click", toggleSidebar);
-            collapseBtn?.addEventListener("click", toggleSidebar);
-            scrim?.addEventListener("click", () => document.body.classList.remove("sidebar-open"));
-            // Briefly animate the active sidebar link (kick-back effect)
-            const activeLinks = Array.from(document.querySelectorAll(".sidebar a.active"))
-                .filter(a => a.id !== "logoutLink");
-
-            activeLinks.forEach(a => a.classList.add("just-activated"));
-            setTimeout(() => activeLinks.forEach(a => a.classList.remove("just-activated")), 1050);
-
-            // Export to PDF (mirrors Devices) — keeping this here too
-            const pdfBtn2 = document.getElementById("export-pdf-btn");
-            if (pdfBtn2 && table && window.jspdf?.jsPDF && window.jspdf?.autoTable) {
-                pdfBtn2.addEventListener("click", () => {
-                    const { jsPDF } = window.jspdf;
-                    const doc = new jsPDF('landscape');
-
-                    const headers = [];
-                    const data = [];
-
-                    const ths = table.querySelectorAll("thead th");
-                    ths.forEach(th => {
-                        const label = th.querySelector(".header-label");
-                        headers.push(label ? label.textContent.trim() : th.textContent.trim());
-                    });
-
-                    const trs = table.querySelectorAll("tbody tr");
-                    trs.forEach(row => {
-                        const rowData = [];
-                        row.querySelectorAll("td").forEach((td) => {
-                            let text = td.textContent.trim();
-                            rowData.push(text);
-                        });
-                        data.push(rowData);
-                    });
-
-                    doc.text("Vodacom Dashboard Export", 14, 15);
-                    doc.autoTable({ head: [headers], body: data, startY: 20, styles: { fontSize: 8, cellPadding: 2 } });
-                    doc.save("vodacom_dashboard_export.pdf");
+                // Close on backdrop click
+                modal.addEventListener("click", (e) => {
+                    if (e.target === modal) closeModal();
                 });
-            }
-        });
-
-
-    </script>
-
-
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const table = document.querySelector("table.sticky");
-            const tbody = table?.tBodies?.[0];
-            const sortSelect = document.getElementById("sort-select");
-            if (!table || !tbody || !sortSelect) return;
-
-            // Map header label -> column index (lowercased, trimmed)
-            const headerIndex = (() => {
-                const map = {};
-                const ths = table.querySelectorAll("thead th");
-                ths.forEach((th, i) => {
-                    const labelEl = th.querySelector(".header-label");
-                    const label = (labelEl ? labelEl.textContent : th.textContent).trim().toLowerCase();
-                    map[label] = i;
-                });
-                return map;
             })();
 
-            // Capture original row order to restore "Latest Entry"
-            Array.from(tbody.rows).forEach((tr, i) => tr.dataset.origIndex = String(i));
-
-            function sortRows(byKey) {
-                const rows = Array.from(tbody.rows);
-
-                if (!byKey) {
-                    // Restore original order
-                    rows.sort((a, b) => (+a.dataset.origIndex) - (+b.dataset.origIndex));
-                    rows.forEach(r => tbody.appendChild(r));
-                    return;
-                }
-
-                // Match your dropdown values to header text
-                const keyToHeader = {
-                    "inception_date": ["inception date"],
-                    "termination_date": ["termination date"],
-                    "monthly_costs": ["monthly costs", "monthly cost", "monthly cost(excl.vat)"] // last entry is a fallback
+            // -----------------------------
+            // Devices modal (global funcs for existing onclicks)
+            // -----------------------------
+            (function exposeDevicesModal() {
+                window.showDevicesModal = function showDevicesModal(contractId) {
+                    fetch(`/contracts/${contractId}/devices`)
+                        .then((r) => r.json())
+                        .then((data) => {
+                            const body = document.getElementById("deviceModalBody");
+                            if (!Array.isArray(data) || data.length === 0) {
+                                body.innerHTML = "<p>No devices found.</p>";
+                            } else {
+                                body.innerHTML = `
+              <table border="1" width="100%" cellpadding="5">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Surname</th>
+                    <th>Personnel #</th>
+                    <th>Company</th>
+                    <th>Client Division</th>
+                    <th>Device Name</th>
+                    <th>Serial Number</th>
+                    <th>Description</th>
+                    <th>Insurance</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${data.map(d => `
+                    <tr>
+                      <td>${d.Name_ ?? ""}</td>
+                      <td>${d.Surname_ ?? ""}</td>
+                      <td>${d.Personnel_nr ?? ""}</td>
+                      <td>${d.Company ?? ""}</td>
+                      <td>${d.Client_Division ?? ""}</td>
+                      <td>${d.Device_Name ?? ""}</td>
+                      <td>${d.Serial_Number ?? ""}</td>
+                      <td>${d.Device_Description ?? ""}</td>
+                      <td>${d.insurance ?? ""}</td>
+                    </tr>
+                  `).join("")}
+                </tbody>
+              </table>`;
+                            }
+                            document.getElementById("deviceModal").style.display = "block";
+                        })
+                        .catch(() => {
+                            document.getElementById("deviceModalBody").innerHTML = "<p>Failed to load devices.</p>";
+                            document.getElementById("deviceModal").style.display = "block";
+                        });
                 };
 
-                // Guess column index from header text list
-                const labels = keyToHeader[byKey] || [];
-                let colIndex = null;
-                for (const l of labels) {
-                    const idx = headerIndex[l];
-                    if (idx != null) { colIndex = idx; break; }
+                window.closeDevicesModal = function closeDevicesModal() {
+                    const modal = document.getElementById("deviceModal");
+                    if (modal) modal.style.display = "none";
+                };
+            })();
+
+            // -----------------------------
+            // Sidebar handle + scrim + link kick-back
+            // -----------------------------
+            (function bindSidebar() {
+                const handle = document.getElementById("sidebarHandle");
+                const collapseBtn = document.getElementById("sidebarCollapse");
+                const scrim = document.getElementById("sidebarScrim");
+
+                function toggleSidebar() {
+                    const collapsed = document.body.classList.toggle("sidebar-collapsed");
+                    handle?.setAttribute("aria-pressed", String(!collapsed ? true : false));
+                    handle?.setAttribute("aria-label", collapsed ? "Expand sidebar" : "Collapse sidebar");
+                    if (collapsed) document.body.classList.remove("sidebar-open");
                 }
-                if (colIndex == null) return;
 
-                const isDate = (byKey === "inception_date" || byKey === "termination_date");
+                handle?.addEventListener("click", toggleSidebar);
+                collapseBtn?.addEventListener("click", toggleSidebar);
+                scrim?.addEventListener("click", () => document.body.classList.remove("sidebar-open"));
 
-                rows.sort((a, b) => {
-                    const A = (a.cells[colIndex]?.textContent || "").trim();
-                    const B = (b.cells[colIndex]?.textContent || "").trim();
-
-                    if (isDate) {
-                        const dA = new Date(A);
-                        const dB = new Date(B);
-                        return dA - dB;
-                    }
-                    // numeric if both parse to numbers, else text
-                    const nA = parseFloat(A.replace(/[^\d.-]/g, ""));
-                    const nB = parseFloat(B.replace(/[^\d.-]/g, ""));
-                    if (!isNaN(nA) && !isNaN(nB)) return nA - nB;
-                    return A.localeCompare(B, undefined, { numeric: true, sensitivity: "base" });
-                });
-
-                rows.forEach(r => tbody.appendChild(r));
-            }
-
-            sortSelect.addEventListener("change", (e) => {
-                const val = e.target.value; // "", "inception_date", "termination_date", "monthly_costs"
-                sortRows(val);
-            });
-        });
-    </script>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const table = document.querySelector("table.sticky");
-            const tbody = table?.tBodies?.[0];
-            const csvBtn = document.getElementById("export-btn");
-            if (!table || !tbody || !csvBtn) return;
-
-            csvBtn.addEventListener("click", () => {
-                // Build header row
-                const headers = Array.from(table.querySelectorAll("thead th")).map(th => {
-                    const label = th.querySelector(".header-label");
-                    const text = (label ? label.textContent : th.textContent).trim();
-                    return `"${text.replace(/"/g, '""')}"`;
-                }).join(",");
-
-                // Body rows (only rows not hidden by filtering)
-                const body = Array.from(tbody.querySelectorAll("tr"))
-                    .filter(tr => tr.style.display !== "none")
-                    .map(tr => {
-                        const cols = Array.from(tr.querySelectorAll("td")).map(td => {
-                            const text = (td.textContent || "").trim();
-                            return `"${text.replace(/"/g, '""')}"`;
-                        }).join(",");
-                        return cols;
-                    }).join("\n");
-
-                const csv = headers + "\n" + body;
-                const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = "vodacom_dashboard_export.csv";
-                a.style.display = "none";
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            });
-        });
+                const activeLinks = Array.from(document.querySelectorAll(".sidebar a.active")).filter(
+                    (a) => a.id !== "logoutLink"
+                );
+                activeLinks.forEach((a) => a.classList.add("just-activated"));
+                setTimeout(() => activeLinks.forEach((a) => a.classList.remove("just-activated")), 1050);
+            })();
+        })();
     </script>
 
 

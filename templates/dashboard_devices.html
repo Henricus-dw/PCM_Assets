@@ -361,7 +361,7 @@
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement("a");
                     a.href = url;
-                    a.download = "vodacom_dashboard_export.csv"; // original name
+                    a.download = "Devices_dashboard_export.csv"; // original name
                     a.style.display = "none";
                     document.body.appendChild(a);
                     a.click();
@@ -403,7 +403,7 @@
                         startY: 20,
                         styles: { fontSize: 8, cellPadding: 2 }
                     });
-                    doc.save("vodacom_dashboard_export.pdf");
+                    doc.save("Devices_Dashboard_export.pdf");
                 });
             }
 
