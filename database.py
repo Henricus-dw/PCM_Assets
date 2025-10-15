@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-DATABASE_URL = "mysql+mysqlconnector://root:Activate%212000@localhost/pcm_tracker"
+DATABASE_URL = "mysql+mysqlconnector://pcm_user:Activate!2000@localhost/pcm_db"
 
 
 engine = create_engine(DATABASE_URL)
