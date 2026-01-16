@@ -1885,8 +1885,8 @@ body.sidebar-collapsed .sidebar {
     margin: 4px 5px 4px 5px;
     font-size: 1rem;
     font-weight: 500;
-    box-shadow: 0 8px 8px rgba(2, 2, 2, .2);
-    border-radius: 16px 16px 16px 16px;
+    box-shadow: 0 8px 8px rgba(1, 1, 1, .1);
+    border-radius: 4px;
 
 
     transition:
