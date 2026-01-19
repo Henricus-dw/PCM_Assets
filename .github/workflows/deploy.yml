@@ -6,9 +6,17 @@ on:
       - main
 
 jobs:
-  smoke_test:
+  ssh_test:
     runs-on: ubuntu-latest
     steps:
-      - name: Confirm workflow runs
-        run: echo "Workflow triggered successfully"
+      - name: Test SSH connection
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 156.38.217.108
+          username: henridewitt
+          key: ${{ secrets.PCM_SSH_KEY }}
+          script: |
+            whoami
+            hostname
+
       
