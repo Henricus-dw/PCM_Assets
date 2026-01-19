@@ -6,17 +6,20 @@ on:
       - main
 
 jobs:
-  ssh_test:
+  deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Test SSH connection
+      - name: Deploy PCM Tracker
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: 156.38.217.108
           username: henridewitt
           key: ${{ secrets.PCM_SSH_KEY }}
           script: |
-            whoami
-            hostname
+            cd /var/www/pcm_tracker
+            git pull origin main
+            sudo systemctl restart pcm.service
+
+
 
       
