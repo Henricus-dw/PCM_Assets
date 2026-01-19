@@ -1,3 +1,4 @@
+from sqlalchemy import Column, Integer, String
 from sqlalchemy import Column, Integer, String, Float, DateTime, func, UniqueConstraint, Text, Boolean, text
 
 from database import Base
@@ -99,3 +100,18 @@ class ContractEditRequest(Base):
     created_at = Column(DateTime, server_default=func.now())
     processed_by = Column(Integer, nullable=True)
     processed_at = Column(DateTime, nullable=True)
+
+
+class PastDeviceOwners(Base):
+    __tablename__ = "Past_device_owners"
+
+    # using d_id as PK for SQLite only
+    d_id = Column(Integer, primary_key=True, index=True)
+
+    Name_ = Column(String(250))
+    Surname_ = Column(String(250))
+    Personnel_nr = Column(String(250))
+    Company = Column(String(250))
+    Client_Division = Column(String(250))
+
+    created_at = Column(DateTime, server_default=func.now())
