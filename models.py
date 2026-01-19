@@ -105,7 +105,7 @@ class ContractEditRequest(Base):
 class PastDeviceOwners(Base):
     __tablename__ = "Past_device_owners"
 
-    # using d_id as PK for SQLite only
+    # using d_id as PK for SQLite only right
     d_id = Column(Integer, primary_key=True, index=True)
 
     Name_ = Column(String(250))
