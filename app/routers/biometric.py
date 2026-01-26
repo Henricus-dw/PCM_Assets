@@ -2,7 +2,8 @@ from fastapi import APIRouter, Request
 from datetime import datetime, timezone
 import os
 
-router = APIRouter(prefix="/biometric", tags=["biometric"])
+router = APIRouter(tags=["biometric"])
+
 
 LOG_PATH = "biometric_raw.log"
 
@@ -30,5 +31,26 @@ async def biometric_punch(request: Request):
     # Also print a short line to your console logs
     print(
         f"[BIOMETRIC] {stamp} received {len(raw_bytes)} bytes from {request.client}")
+
+    return {"ok": True}
+
+
+@router.post("/iclock/cdata")
+async def biometric_adms(request: Request):
+    raw_bytes = await request.body()
+    headers = dict(request.headers)
+
+    stamp = datetime.now(timezone.utc).isoformat()
+
+    with open(LOG_PATH, "ab") as f:
+        f.write(f"\n--- {stamp} UTC ---\n".encode("utf-8"))
+        f.write(f"Client: {request.client}\n".encode("utf-8"))
+        f.write(f"Headers: {headers}\n".encode("utf-8"))
+        f.write(b"Body:\n")
+        f.write(raw_bytes[:10000])
+        f.write(b"\n")
+
+    print(
+        f"[BIOMETRIC-ADMS] {stamp} received {len(raw_bytes)} bytes from {request.client}")
 
     return {"ok": True}
