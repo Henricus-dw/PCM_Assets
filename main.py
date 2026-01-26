@@ -1,3 +1,4 @@
+from app.routers.biometric import router as biometric_router
 from fastapi import Body
 from sqlalchemy import desc
 from datetime import datetime
@@ -51,6 +52,8 @@ def get_password_hash(plain: str) -> str:
 def verify_password(plain: str, hashed: str) -> bool:
     return pwd_context.verify(plain, hashed)
 
+
+app.include_router(biometric_router)
 
 # Static files & templates
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -1289,3 +1292,33 @@ def revoke_admin(
         if request and current_user.id == u.id:
             request.session["is_admin"] = False
     return RedirectResponse(url="/admin", status_code=303)
+
+
+"""
+LOCAL RUN CHECKLIST (WINDOWS / POWERSHELL)
+
+1) Go into the project folder
+   cd "C:\\Users\\Henricus\\OneDrive - Professional\\Desktop\\PCM_Tracer"
+
+2) Activate the virtual environment (you must see (venv))
+   .\\venv\\Scripts\\Activate.ps1
+
+   If this file does not exist, the venv is missing and must be recreated.
+
+3) Set local mode (IMPORTANT)
+   $env:APP_ENV="local"
+
+4) Confirm the environment variable is set
+   echo $env:APP_ENV
+
+   It MUST output:
+   local
+
+5) Run the app
+   uvicorn main:app --reload
+
+NOTE:
+- If APP_ENV is NOT set to "local", the app will try to use MySQL
+  and will fail on a local machine.
+- Environment variables do NOT persist between terminals or reboots.
+"""
