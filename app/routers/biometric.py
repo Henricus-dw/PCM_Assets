@@ -54,3 +54,19 @@ async def biometric_adms(request: Request):
         f"[BIOMETRIC-ADMS] {stamp} received {len(raw_bytes)} bytes from {request.client}")
 
     return {"ok": True}
+
+
+@router.get("/iclock/cdata")
+async def iclock_cdata(request: Request):
+    params = dict(request.query_params)
+    stamp = datetime.now(timezone.utc).isoformat()
+
+    with open("/var/www/pcm_tracker/biometric_raw.log", "ab") as f:
+        f.write(f"\n--- {stamp} UTC ---\n".encode())
+        f.write(f"Client: {request.client}\n".encode())
+        f.write(f"Params: {params}\n".encode())
+
+    print(f"[ICLOCK] handshake from {request.client} params={params}")
+
+    # REQUIRED by iClock protocol
+    return "OK"
