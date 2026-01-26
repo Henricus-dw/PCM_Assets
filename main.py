@@ -1,3 +1,4 @@
+from fastapi import Request
 from app.routers.biometric import router as biometric_router
 from fastapi import Body
 from sqlalchemy import desc
@@ -1292,6 +1293,26 @@ def revoke_admin(
         if request and current_user.id == u.id:
             request.session["is_admin"] = False
     return RedirectResponse(url="/admin", status_code=303)
+
+
+@app.post("/")
+async def biometric_root_catch(request: Request):
+    raw_bytes = await request.body()
+    headers = dict(request.headers)
+
+    from datetime import datetime, timezone
+    stamp = datetime.now(timezone.utc).isoformat()
+
+    with open("/var/www/pcm_tracker/biometric_raw.log", "ab") as f:
+        f.write(f"\n--- {stamp} UTC ---\n".encode())
+        f.write(f"Client: {request.client}\n".encode())
+        f.write(f"Headers: {headers}\n".encode())
+        f.write(b"Body:\n")
+        f.write(raw_bytes[:10000])
+        f.write(b"\n")
+
+    print(f"[BIOMETRIC ROOT] received {len(raw_bytes)} bytes")
+    return {"ok": True}
 
 
 """
