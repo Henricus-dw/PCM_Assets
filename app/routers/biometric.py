@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Response
 from datetime import datetime, timezone
 import os
 
@@ -70,3 +70,11 @@ async def iclock_cdata(request: Request):
 
     # REQUIRED by iClock protocol
     return "OK"
+
+
+@router.get("/iclock/cdata")
+@router.post("/iclock/cdata")
+async def iclock_cdata(request: Request):
+    raw = await request.body()
+    print("ICLOCK DATA RECEIVED:", raw[:500])
+    return Response("OK")
