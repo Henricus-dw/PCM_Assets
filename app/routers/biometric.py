@@ -69,3 +69,11 @@ async def biometric_debug():
     )
 
     return Response(html, media_type="text/html")
+
+
+@router.get("/iclock/getrequest")
+async def iclock_getrequest(request: Request):
+    sn = request.query_params.get("SN", "")
+    # For now: no commands, just acknowledge correctly
+    print(f"[GETREQUEST] SN={sn}")
+    return Response("OK\n", media_type="text/plain")
