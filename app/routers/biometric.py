@@ -27,7 +27,7 @@ async def iclock_cdata(request: Request):
     if len(LAST_ICLOCK) > 50:
         LAST_ICLOCK.pop(0)
 
-    return Response("OK")
+    return Response("OK\n", media_type="text/plain")
 
 
 @router.get("/biometric/debug")
