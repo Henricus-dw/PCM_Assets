@@ -13,7 +13,7 @@ LAST_ICLOCK: List[Dict[str, Any]] = []
 async def iclock_cdata(request: Request):
     raw = await request.body()
 
-    # Always record the hit for debugging
+    # Always store the raw hit so /biometric/debug keeps working
     entry = {
         "ts": datetime.now(timezone.utc).isoformat(),
         "client": str(request.client),
@@ -26,29 +26,24 @@ async def iclock_cdata(request: Request):
     if len(LAST_ICLOCK) > 50:
         LAST_ICLOCK.pop(0)
 
-    # --- ATTENDANCE LOG PARSING ---
+    # ---- ATTLOG parsing (attendance events) ----
     text = raw.decode("utf-8", errors="replace").strip()
 
-    if (
-        request.method == "POST"
-        and request.query_params.get("table") == "ATTLOG"
-        and text
-    ):
+    if request.method == "POST" and request.query_params.get("table") == "ATTLOG":
         for line in text.splitlines():
             parts = line.split("\t")
             if len(parts) < 4:
                 continue
 
-            pin = parts[0].strip()
-            dt_str = parts[1].strip()
-            status = parts[2].strip()
-            verify = parts[3].strip()
+            pin = parts[0]
+            dt_str = parts[1]
+            status = parts[2]
+            verify = parts[3]
 
             print(
-                f"[ATTLOG] pin={pin} dt={dt_str} status={status} verify={verify}"
-            )
+                f"[ATTLOG] pin={pin} dt={dt_str} status={status} verify={verify}")
 
-    # IMPORTANT: newline is required for iClock devices
+    # REQUIRED for iClock devices
     return Response("OK\n", media_type="text/plain")
 
 
