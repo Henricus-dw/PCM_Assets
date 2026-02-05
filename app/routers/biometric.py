@@ -5,9 +5,22 @@ from sqlalchemy.orm import Session
 from sqlalchemy import exc as sqlalchemy_exc
 import logging
 
-# Import your models and database
 from database import SessionLocal
 from models import AttendanceLog
+
+
+# =========================
+# Device Info
+# =========================
+# Device Name   : S922-W
+# Serial Number : AAML174460003
+# Vendor        : ZKTeco Inc.
+#
+# Firmware
+# --------
+# Firmware Version : 6.5.4 (build 156)
+# Algorithm        : ZK Finger VX10.0
+
 
 router = APIRouter(tags=["biometric"])
 
@@ -73,7 +86,8 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
         LAST_ICLOCK.pop(0)
 
     text = raw.decode("utf-8", errors="replace").strip()
-    logger.info(f"[iClock] SN={device_sn} table={table_name} method={request.method}")
+    logger.info(
+        f"[iClock] SN={device_sn} table={table_name} method={request.method}")
 
     # ---- ATTLOG parsing (attendance events) ----
     if request.method == "POST" and table_name == "ATTLOG":
@@ -87,7 +101,8 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
 
             parts = line.split("\t")
             if len(parts) < 4:
-                logger.warning(f"[ATTLOG] Skipping malformed line (< 4 fields): {line}")
+                logger.warning(
+                    f"[ATTLOG] Skipping malformed line (< 4 fields): {line}")
                 error_count += 1
                 continue
 
@@ -100,7 +115,8 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
                 # Parse datetime
                 timestamp = parse_iclock_datetime(dt_str)
                 if not timestamp:
-                    logger.warning(f"[ATTLOG] Skipping line with invalid datetime: {line}")
+                    logger.warning(
+                        f"[ATTLOG] Skipping line with invalid datetime: {line}")
                     error_count += 1
                     continue
 
@@ -134,7 +150,8 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
         # Commit all records at once
         try:
             db.commit()
-            logger.info(f"[ATTLOG] Commit successful: {stored_count} stored, {error_count} errors")
+            logger.info(
+                f"[ATTLOG] Commit successful: {stored_count} stored, {error_count} errors")
         except sqlalchemy_exc.SQLAlchemyError as e:
             db.rollback()
             logger.error(f"[ATTLOG] Database commit failed: {e}")
