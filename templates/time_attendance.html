@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Time & Attendance</title>
+    <link rel="stylesheet" href="/static/styles.css?v={{ time }}">
+</head>
+
+<body class="home-dashboard">
+    <!-- Sidebar (Time & Attendance version - no top nav, only bottom nav) -->
+    <div class="sidebar">
+        <img src="/static/pcm-lockup-goldc-final.svg" alt="PCM logo" />
+
+        <!-- Empty top nav (no Home, Capturing Form, etc.) -->
+        <div class="nav-top">
+            <!-- Just the module title or empty -->
+            <div style="padding: 15px; color: #6b7280; font-weight: 600; font-size: 0.9rem; text-align: center;">
+                Time & Attendance
+            </div>
+        </div>
+
+        <!-- Bottom navigation (same as other pages) -->
+        <div class="nav-bottom">
+            {% if request.session.get('is_admin') %}
+            <a href="/admin" class="{{ 'active' if section == 'admin' else '' }}"><span>Admin</span></a>
+            {% endif %}
+
+            <a href="/settings" class="{{ 'active' if section == 'settings' else '' }}"><span>Settings</span></a>
+            <a href="/logout" id="logoutLink" class="{{ 'active' if section == 'logout' else '' }}">
+                <span>Log Out</span>
+            </a>
+        </div>
+        <button id="sidebarHandle" class="sidebar-handle" aria-label="Collapse sidebar" aria-pressed="false"
+            title="Collapse sidebar"> <span class="handle-icon" aria-hidden="true">⟨</span> </button>
+    </div>
+
+    <!-- Main content area -->
+    <div class="content4">
+        <div class="contentInner4">
+            <div class="dash-grid">
+                <!-- Card 1: Employees -->
+                <section class="card card--tall">
+                    <header class="card-head">
+                        <h2>Employees</h2>
+                        <button class="btn-add" onclick="openEmployeeModal()">+ Add Employee</button>
+                    </header>
+                    <div class="table-wrap">
+                        <table class="small-table" id="employeeTable">
+                            <thead>
+                                <tr>
+                                    <th>PIN</th>
+                                    <th>Name</th>
+                                    <th>Company</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="employeeBody">
+                                <tr>
+                                    <td colspan="5" class="muted">Loading employees...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Card 2: Today's Attendance -->
+                <section class="card card--tall">
+                    <header class="card-head">
+                        <h2>Today's Attendance</h2>
+                        <span class="pill" id="attendanceCount">0</span>
+                    </header>
+                    <div class="table-wrap">
+                        <table class="small-table" id="attendanceTable">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>PIN</th>
+                                    <th>Employee</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attendanceBody">
+                                <tr>
+                                    <td colspan="5" class="muted">No attendance records yet</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Card 3: Device Status -->
+                <section class="card">
+                    <header class="card-head">
+                        <h2>Device Status</h2>
+                    </header>
+                    <div class="device-status" id="deviceStatus">
+                        <div style="padding: 20px; text-align: center; color: #6b7280;">
+                            <p>Waiting for device connection...</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Card 4: Enrollment Status -->
+                <section class="card">
+                    <header class="card-head">
+                        <h2>Enrollment Overview</h2>
+                    </header>
+                    <div class="kpi-grid">
+                        <div class="kpi">
+                            <div class="kpi-label">Total Employees</div>
+                            <div class="kpi-value" id="kpiTotal">-</div>
+                        </div>
+                        <div class="kpi">
+                            <div class="kpi-label">Enrolled (Fingerprint)</div>
+                            <div class="kpi-value" id="kpiEnrolled">-</div>
+                        </div>
+                        <div class="kpi">
+                            <div class="kpi-label">Pending</div>
+                            <div class="kpi-value" id="kpiPending">-</div>
+                        </div>
+                        <div class="kpi">
+                            <div class="kpi-label">Last Sync</div>
+                            <div class="kpi-value" id="kpiLastSync">-</div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Employee Modal (hidden by default) -->
+    <div id="employeeModal" style="display: none;">
+        <div
+            style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center;">
+            <div
+                style="background: white; border-radius: 12px; padding: 30px; max-width: 500px; width: 90%; box-shadow: 0 20px 50px rgba(0,0,0,0.2);">
+                <h2 style="margin-top: 0;">Add Employee</h2>
+                <form id="employeeForm">
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">PIN</label>
+                        <input type="text" id="empPin" placeholder="Employee ID" required
+                            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;">
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Name</label>
+                        <input type="text" id="empName" placeholder="Full name" required
+                            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;">
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Company</label>
+                        <select id="empCompany" required
+                            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;">
+                            <option>PCM</option>
+                            <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
+                            <option>PAS/PAC</option>
+                            <option>INT</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button type="button" onclick="closeEmployeeModal()"
+                            style="padding: 10px 20px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; background: white;">Cancel</button>
+                        <button type="submit"
+                            style="padding: 10px 20px; background: #4b5e70; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Add</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .btn-add {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+
+        .btn-add:hover {
+            background: #1e40af;
+        }
+
+        .device-status {
+            padding: 20px;
+            background: #f9fafb;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+    </style>
+
+    <script>
+        function openEmployeeModal() {
+            document.getElementById('employeeModal').style.display = 'block';
+        }
+
+        function closeEmployeeModal() {
+            document.getElementById('employeeModal').style.display = 'none';
+        }
+
+        document.getElementById('employeeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            // TODO: Handle form submission
+            closeEmployeeModal();
+        });
+
+        // Sidebar toggle (same as other pages)
+        document.addEventListener("DOMContentLoaded", () => {
+            const handle = document.getElementById("sidebarHandle");
+            function toggleSidebar() {
+                document.body.classList.toggle("sidebar-collapsed");
+                handle?.setAttribute("aria-pressed", String(document.body.classList.contains("sidebar-collapsed")));
+            }
+            handle?.addEventListener("click", toggleSidebar);
+        });
+    </script>
+</body>
+
+</html>

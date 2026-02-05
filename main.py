@@ -118,25 +118,33 @@ def logout(request: Request):
     return RedirectResponse(url="/login", status_code=302)
 
 # -------------- PAGE ROUTES (ALL GUARDED) --------------
-# 1) HOME "/" -> form.html
+# 1) LANDING PAGE "/" -> module selection
 
 
 @app.get("/", response_class=HTMLResponse)
 def read_root(request: Request):
     if not request.session.get("user_id"):
         return RedirectResponse(url="/login", status_code=302)
-    return templates.TemplateResponse("dashboard_home.html", {"request": request, "section": "home"})
+    db = SessionLocal()
+    try:
+        current_user = db.get(User, request.session.get("user_id"))
+        return templates.TemplateResponse("landing.html", {"request": request, "current_user": current_user})
+    finally:
+        db.close()
 
 
-# 2) DASHBOARD "/" base page (you already had this)
+# 2) VODACOM HOME DASHBOARD
 
 
-@app.get("/form", response_class=HTMLResponse)
-def form_page(request: Request):
+@app.get("/time-attendance", response_class=HTMLResponse)
+def time_attendance_home(request: Request):
     if not request.session.get("user_id"):
         return RedirectResponse(url="/login", status_code=302)
-    return templates.TemplateResponse("form.html",
-                                      {"request": request, "section": "form"})
+    return templates.TemplateResponse(
+        "time_attendance.html",
+        {"request": request, "section": "time-attendance",
+            "time": datetime.utcnow().timestamp()}
+    )
 
 
 @app.get("/dashboard", response_class=HTMLResponse)

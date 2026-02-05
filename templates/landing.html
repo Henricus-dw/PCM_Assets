@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>PCM Dashboard - Select Module</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="/static/styles.css" rel="stylesheet" />
+    <style>
+        body {
+            background: linear-gradient(135deg, #fefaf5 0%, #f5ede3 100%);
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .landing-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .landing-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .logo-section {
+            margin-bottom: 30px;
+        }
+
+        .logo-section img {
+            max-width: 280px;
+            height: auto;
+        }
+
+        .landing-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #111827;
+            margin: 20px 0 10px 0;
+        }
+
+        .landing-header p {
+            font-size: 1.1rem;
+            color: #6b7280;
+            margin: 0;
+        }
+
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            max-width: 900px;
+            width: 100%;
+        }
+
+        .module-card {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .module-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+            border-color: #4b5e70;
+        }
+
+        .module-icon {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+        }
+
+        .module-card h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #111827;
+            margin: 0 0 12px 0;
+        }
+
+        .module-card p {
+            color: #6b7280;
+            margin: 0;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        .module-card.vodacom {
+            border-top: 3px solid #df5d4f;
+        }
+
+        .module-card.vodacom:hover {
+            border-color: #a93226;
+        }
+
+        .module-card.time-attendance {
+            border-top: 3px solid #2563eb;
+        }
+
+        .module-card.time-attendance:hover {
+            border-color: #1e40af;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #9ca3af;
+            font-size: 0.9rem;
+        }
+
+        .user-info {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 12px;
+            backdrop-filter: blur(4px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .user-info .user-name {
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .user-info .user-role {
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+
+        .logout-btn {
+            background: #df5d4f;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s ease;
+        }
+
+        .logout-btn:hover {
+            background: #a93226;
+        }
+
+        @media (max-width: 768px) {
+            .landing-header h1 {
+                font-size: 1.8rem;
+            }
+
+            .modules-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .user-info {
+                flex-direction: column;
+                top: auto;
+                bottom: 20px;
+                left: 20px;
+                right: 20px;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="user-info">
+        <div>
+            <div class="user-name">{{ current_user.name or current_user.email }}</div>
+            <div class="user-role">{% if request.session.get('is_admin') %}Admin{% else %}User{% endif %}</div>
+        </div>
+        <a href="/logout" class="logout-btn">Log Out</a>
+    </div>
+
+    <div class="landing-container">
+        <div class="landing-header">
+            <div class="logo-section">
+                <img src="/static/pcm-lockup-goldc-final.svg" alt="PCM logo">
+            </div>
+            <h1>Welcome to PCM Dashboard</h1>
+            <p>Select a module to get started</p>
+        </div>
+
+        <div class="modules-grid">
+            <!-- Vodacom Module -->
+            <a href="/dashboard/vodacom" class="module-card vodacom">
+                <div class="module-icon">📱</div>
+                <h2>Vodacom</h2>
+                <p>Manage subscriptions, contracts, devices, and SIM cards</p>
+            </a>
+
+            <!-- Time & Attendance Module -->
+            <a href="/time-attendance" class="module-card time-attendance">
+                <div class="module-icon">⏰</div>
+                <h2>Time & Attendance</h2>
+                <p>Employee management, biometric enrollment, and attendance tracking</p>
+            </a>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>&copy; 2026 PCM. All rights reserved.</p>
+    </div>
+</body>
+
+</html>
