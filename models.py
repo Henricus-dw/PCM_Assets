@@ -115,3 +115,17 @@ class PastDeviceOwners(Base):
     Client_Division = Column(String(250))
 
     created_at = Column(DateTime, server_default=func.now())
+
+
+class AttendanceLog(Base):
+    __tablename__ = "attendance_logs"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    pin = Column(String(50), nullable=False, index=True)  # Employee/User ID from iClock
+    timestamp = Column(DateTime, nullable=False, index=True)  # When the event occurred
+    status = Column(Integer, nullable=True)  # 0=check-in, 1=check-out, or device-specific
+    verify_type = Column(Integer, nullable=True)  # 0=fingerprint, 1=password, 255=face, etc.
+    verify_type_name = Column(String(50), nullable=True)  # Human-readable: "fingerprint", "password", etc.
+    raw_data = Column(Text, nullable=True)  # Store raw line for debugging
+    device_sn = Column(String(100), nullable=True)  # Serial number of the iClock device
+    received_at = Column(DateTime, server_default=func.now(), index=True)  # When we got it
