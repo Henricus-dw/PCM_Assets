@@ -14,10 +14,9 @@
 
         <!-- Empty top nav (no Home, Capturing Form, etc.) -->
         <div class="nav-top">
-            <!-- Just the module title or empty -->
-            <div style="padding: 15px; color: #6b7280; font-weight: 600; font-size: 0.9rem; text-align: center;">
-                Time & Attendance
-            </div>
+            <!-- Module navigation -->
+            <a href="/time-attendance" class="{{ 'active' if section == 'time-attendance' else '' }}"><span>Employees</span></a>
+            <a href="/biometric-dashboard" class="{{ 'active' if section == 'biometric-dashboard' else '' }}"><span>Biometric Dashboard</span></a>
         </div>
 
         <!-- Bottom navigation (same as other pages) -->

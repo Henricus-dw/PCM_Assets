@@ -133,7 +133,7 @@ def read_root(request: Request):
         db.close()
 
 
-# 2) VODACOM HOME DASHBOARD
+# 2) TIME & ATTENDANCE + BIOMETRIC
 
 
 @app.get("/time-attendance", response_class=HTMLResponse)
@@ -147,7 +147,17 @@ def time_attendance_home(request: Request):
     )
 
 
-@app.get("/dashboard", response_class=HTMLResponse)
+@app.get("/biometric-dashboard", response_class=HTMLResponse)
+def biometric_dashboard(request: Request):
+    if not request.session.get("user_id"):
+        return RedirectResponse(url="/login", status_code=302)
+    return templates.TemplateResponse(
+        "biometric_dashboard.html",
+        {"request": request, "section": "biometric-dashboard", "time": datetime.utcnow().timestamp()}
+    )
+
+
+# 3) VODACOM HOME DASHBOARD
 def dashboard_home(request: Request):
     if not request.session.get("user_id"):
         return RedirectResponse(url="/login", status_code=302)

@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Biometric Dashboard</title>
+    <link rel="stylesheet" href="/static/styles.css?v={{ time }}">
+    <style>
+        .live-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            padding: 8px 12px;
+            background: #f0fdf4;
+            border-radius: 6px;
+            border-left: 3px solid #22c55e;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background: #22c55e;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .refresh-btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+
+        .refresh-btn:hover {
+            background: #2563eb;
+        }
+
+        .logs-container {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fafafa;
+        }
+
+        .log-entry:hover {
+            background: #f3f4f6;
+        }
+
+        .log-entry.success {
+            border-left: 3px solid #22c55e;
+            background: #f0fdf4;
+        }
+
+        .log-time {
+            font-weight: 600;
+            color: #111827;
+            min-width: 120px;
+        }
+
+        .log-pin {
+            color: #6b7280;
+            min-width: 60px;
+            font-family: monospace;
+        }
+
+        .log-type {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .log-type.fingerprint {
+            background: #dbeafe;
+            color: #0c4a6e;
+        }
+
+        .log-type.password {
+            background: #fef3c7;
+            color: #78350f;
+        }
+
+        .log-type.rfid {
+            background: #f3e8ff;
+            color: #5b21b6;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .no-data {
+            padding: 40px;
+            text-align: center;
+            color: #9ca3af;
+        }
+    </style>
+</head>
+
+<body class="home-dashboard">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <img src="/static/pcm-lockup-goldc-final.svg" alt="PCM logo" />
+
+        <!-- Module navigation -->
+        <div class="nav-top">
+            <a href="/time-attendance" class="{{ 'active' if section == 'time-attendance' else '' }}"><span>Employees</span></a>
+            <a href="/biometric-dashboard" class="{{ 'active' if section == 'biometric-dashboard' else '' }}"><span>Biometric Dashboard</span></a>
+        </div>
+
+        <!-- Bottom navigation -->
+        <div class="nav-bottom">
+            {% if request.session.get('is_admin') %}
+            <a href="/admin" class="{{ 'active' if section == 'admin' else '' }}"><span>Admin</span></a>
+            {% endif %}
+
+            <a href="/settings" class="{{ 'active' if section == 'settings' else '' }}"><span>Settings</span></a>
+            <a href="/logout" id="logoutLink" class="{{ 'active' if section == 'logout' else '' }}">
+                <span>Log Out</span>
+            </a>
+        </div>
+        <button id="sidebarHandle" class="sidebar-handle" aria-label="Collapse sidebar" aria-pressed="false"
+            title="Collapse sidebar"> <span class="handle-icon" aria-hidden="true">⟨</span> </button>
+    </div>
+
+    <!-- Main content area -->
+    <div class="content4">
+        <div class="contentInner4">
+            <div class="dash-grid">
+                <!-- Card 1: Live Device Feed -->
+                <section class="card card--tall">
+                    <header class="card-head">
+                        <h2>Live Device Feed</h2>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <div class="live-status">
+                                <div class="status-dot"></div>
+                                <span>Live</span>
+                            </div>
+                            <button class="refresh-btn" onclick="refreshLogs()">Refresh</button>
+                        </div>
+                    </header>
+                    <div class="logs-container">
+                        <div id="logsContainer" class="no-data">
+                            Loading attendance logs...
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Card 2: Today's Summary -->
+                <section class="card">
+                    <header class="card-head">
+                        <h2>Today's Summary</h2>
+                    </header>
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <div class="stat-label">Total Events</div>
+                            <div class="stat-value" id="statTotal">0</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Fingerprints</div>
+                            <div class="stat-value" id="statFingerprint">0</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Passwords</div>
+                            <div class="stat-value" id="statPassword">0</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">RFID Cards</div>
+                            <div class="stat-value" id="statRfid">0</div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Card 3: Device Info -->
+                <section class="card">
+                    <header class="card-head">
+                        <h2>Device Information</h2>
+                    </header>
+                    <div style="padding: 20px;">
+                        <div style="margin-bottom: 15px;">
+                            <div style="color: #6b7280; font-size: 0.9rem; margin-bottom: 4px;">Serial Number</div>
+                            <div style="font-weight: 600; color: #111827;" id="deviceSN">Not connected</div>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <div style="color: #6b7280; font-size: 0.9rem; margin-bottom: 4px;">Last Event</div>
+                            <div style="font-weight: 600; color: #111827;" id="lastEvent">No events yet</div>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <div style="color: #6b7280; font-size: 0.9rem; margin-bottom: 4px;">Connection Status</div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="width: 12px; height: 12px; background: #22c55e; border-radius: 50%;"></div>
+                                <span style="font-weight: 600; color: #111827;">Connected</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Card 4: Debug Info -->
+                <section class="card">
+                    <header class="card-head">
+                        <h2>Debug Information</h2>
+                    </header>
+                    <div style="padding: 20px; font-family: monospace; font-size: 0.85rem;">
+                        <div style="background: #f9fafb; padding: 12px; border-radius: 6px; border-left: 3px solid #3b82f6;">
+                            <div style="margin-bottom: 8px;"><strong>Endpoint:</strong> /iclock/cdata</div>
+                            <div style="margin-bottom: 8px;"><strong>Method:</strong> POST</div>
+                            <div style="margin-bottom: 8px;"><strong>Table:</strong> ATTLOG</div>
+                            <div><strong>Auto-refresh:</strong> Every 5 seconds</div>
+                        </div>
+                        <div style="margin-top: 12px; padding: 12px; background: #fef3c7; border-radius: 6px; border-left: 3px solid #f59e0b;">
+                            <strong>Test URL:</strong>
+                            <div style="margin-top: 6px; word-break: break-all;">
+                                http://localhost:8000/biometric/debug
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let autoRefreshInterval;
+
+        async function refreshLogs() {
+            try {
+                const response = await fetch('/biometric/logs?limit=100');
+                const logs = await response.json();
+
+                const container = document.getElementById('logsContainer');
+                
+                if (!logs || logs.length === 0) {
+                    container.innerHTML = '<div class="no-data">No attendance logs yet. Waiting for device...</div>';
+                    updateStats([]);
+                    return;
+                }
+
+                // Sort by timestamp descending (newest first)
+                logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+                // Get today's logs only
+                const today = new Date().toDateString();
+                const todaysLogs = logs.filter(log => {
+                    const logDate = new Date(log.timestamp).toDateString();
+                    return logDate === today;
+                });
+
+                if (todaysLogs.length === 0) {
+                    container.innerHTML = '<div class="no-data">No events today yet</div>';
+                    updateStats([]);
+                    return;
+                }
+
+                // Render logs
+                container.innerHTML = todaysLogs.map(log => {
+                    const time = new Date(log.timestamp).toLocaleTimeString();
+                    const verifyType = log.verify_type_name || 'unknown';
+                    const typeClass = verifyType.toLowerCase().replace(' ', '-');
+                    
+                    return `
+                        <div class="log-entry success">
+                            <div class="log-time">${time}</div>
+                            <div class="log-pin">PIN: ${log.pin}</div>
+                            <span class="log-type ${typeClass}">${verifyType}</span>
+                            <div style="color: #6b7280; font-size: 0.85rem;">Status: ${log.status}</div>
+                        </div>
+                    `;
+                }).join('');
+
+                // Update device info
+                if (todaysLogs.length > 0) {
+                    const latest = todaysLogs[0];
+                    document.getElementById('deviceSN').textContent = latest.device_sn || 'Unknown';
+                    document.getElementById('lastEvent').textContent = new Date(latest.timestamp).toLocaleTimeString();
+                }
+
+                updateStats(todaysLogs);
+
+            } catch (error) {
+                console.error('Failed to fetch logs:', error);
+                document.getElementById('logsContainer').innerHTML = '<div class="no-data">Error loading logs</div>';
+            }
+        }
+
+        function updateStats(logs) {
+            const stats = {
+                total: logs.length,
+                fingerprint: logs.filter(l => l.verify_type_name === 'fingerprint').length,
+                password: logs.filter(l => l.verify_type_name === 'password').length,
+                rfid: logs.filter(l => l.verify_type_name === 'rfid_card').length,
+            };
+
+            document.getElementById('statTotal').textContent = stats.total;
+            document.getElementById('statFingerprint').textContent = stats.fingerprint;
+            document.getElementById('statPassword').textContent = stats.password;
+            document.getElementById('statRfid').textContent = stats.rfid;
+        }
+
+        // Auto-refresh every 5 seconds
+        document.addEventListener('DOMContentLoaded', () => {
+            refreshLogs();
+            autoRefreshInterval = setInterval(refreshLogs, 5000);
+
+            // Sidebar toggle
+            const handle = document.getElementById("sidebarHandle");
+            function toggleSidebar() {
+                document.body.classList.toggle("sidebar-collapsed");
+                handle?.setAttribute("aria-pressed", String(document.body.classList.contains("sidebar-collapsed")));
+            }
+            handle?.addEventListener("click", toggleSidebar);
+
+            // Logout handler
+            const logoutLink = document.getElementById("logoutLink");
+            if (logoutLink) {
+                logoutLink.addEventListener("click", function (e) {
+                    e.preventDefault();
+                    const confirmed = confirm("Are you sure you want to log out?");
+                    if (confirmed) {
+                        window.location.href = this.href;
+                    }
+                });
+            }
+        });
+
+        // Clear interval on page unload
+        window.addEventListener('beforeunload', () => {
+            if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+        });
+    </script>
+</body>
+
+</html>
