@@ -26,8 +26,15 @@
         }
 
         @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
         }
 
         .refresh-btn {
@@ -146,8 +153,10 @@
 
         <!-- Module navigation -->
         <div class="nav-top">
-            <a href="/time-attendance" class="{{ 'active' if section == 'time-attendance' else '' }}"><span>Employees</span></a>
-            <a href="/biometric-dashboard" class="{{ 'active' if section == 'biometric-dashboard' else '' }}"><span>Biometric Dashboard</span></a>
+            <a href="/time-attendance"
+                class="{{ 'active' if section == 'time-attendance' else '' }}"><span>Employees</span></a>
+            <a href="/biometric-dashboard"
+                class="{{ 'active' if section == 'biometric-dashboard' else '' }}"><span>Biometric Dashboard</span></a>
         </div>
 
         <!-- Bottom navigation -->
@@ -243,13 +252,15 @@
                         <h2>Debug Information</h2>
                     </header>
                     <div style="padding: 20px; font-family: monospace; font-size: 0.85rem;">
-                        <div style="background: #f9fafb; padding: 12px; border-radius: 6px; border-left: 3px solid #3b82f6;">
+                        <div
+                            style="background: #f9fafb; padding: 12px; border-radius: 6px; border-left: 3px solid #3b82f6;">
                             <div style="margin-bottom: 8px;"><strong>Endpoint:</strong> /iclock/cdata</div>
                             <div style="margin-bottom: 8px;"><strong>Method:</strong> POST</div>
                             <div style="margin-bottom: 8px;"><strong>Table:</strong> ATTLOG</div>
                             <div><strong>Auto-refresh:</strong> Every 5 seconds</div>
                         </div>
-                        <div style="margin-top: 12px; padding: 12px; background: #fef3c7; border-radius: 6px; border-left: 3px solid #f59e0b;">
+                        <div
+                            style="margin-top: 12px; padding: 12px; background: #fef3c7; border-radius: 6px; border-left: 3px solid #f59e0b;">
                             <strong>Test URL:</strong>
                             <div style="margin-top: 6px; word-break: break-all;">
                                 http://localhost:8000/biometric/debug
@@ -270,7 +281,7 @@
                 const logs = await response.json();
 
                 const container = document.getElementById('logsContainer');
-                
+
                 if (!logs || logs.length === 0) {
                     container.innerHTML = '<div class="no-data">No attendance logs yet. Waiting for device...</div>';
                     updateStats([]);
@@ -298,7 +309,7 @@
                     const time = new Date(log.timestamp).toLocaleTimeString();
                     const verifyType = log.verify_type_name || 'unknown';
                     const typeClass = verifyType.toLowerCase().replace(' ', '-');
-                    
+
                     return `
                         <div class="log-entry success">
                             <div class="log-time">${time}</div>

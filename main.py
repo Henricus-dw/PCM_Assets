@@ -153,7 +153,8 @@ def biometric_dashboard(request: Request):
         return RedirectResponse(url="/login", status_code=302)
     return templates.TemplateResponse(
         "biometric_dashboard.html",
-        {"request": request, "section": "biometric-dashboard", "time": datetime.utcnow().timestamp()}
+        {"request": request, "section": "biometric-dashboard",
+            "time": datetime.utcnow().timestamp()}
     )
 
 
