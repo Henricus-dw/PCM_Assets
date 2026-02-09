@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String
-from sqlalchemy import Column, Integer, String, Float, DateTime, func, UniqueConstraint, Text, Boolean, text
+from sqlalchemy import Column, Integer, String, Float, DateTime, Date, func, UniqueConstraint, Text, Boolean, text
 
 from database import Base
 
@@ -136,3 +136,23 @@ class AttendanceLog(Base):
     device_sn = Column(String(100), nullable=True)
     received_at = Column(DateTime, server_default=func.now(),
                          index=True)  # When we got it
+
+
+class Employee(Base):
+    __tablename__ = "employees"
+
+    Employee_id = Column(String(50), primary_key=True)
+    Name_ = Column(String(100))
+    Surname_ = Column(String(100))
+    Company = Column(String(100))
+    Department = Column(String(100))
+
+
+class TimestampRecord(Base):
+    __tablename__ = "timestamp_records"
+
+    # No single autoincrement id; use a composite primary key
+    Employee_ID = Column(String(50), primary_key=True, index=True)
+    Date = Column(Date, primary_key=True)
+    Clock_in = Column(DateTime, primary_key=True)
+    Clock_Out = Column(DateTime, nullable=True)

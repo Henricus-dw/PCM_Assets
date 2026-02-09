@@ -3,25 +3,19 @@
 
 <head>
     <meta charset="utf-8" />
-    <title>Time & Attendance</title>
+    <title>Employees</title>
     <link rel="stylesheet" href="/static/styles.css?v={{ time }}">
 </head>
 
 <body class="home-dashboard">
-    <!-- Sidebar (Time & Attendance version - no top nav, only bottom nav) -->
     <div class="sidebar">
         <img src="/static/pcm-lockup-goldc-final.svg" alt="PCM logo" />
-
-        <!-- Empty top nav (no Home, Capturing Form, etc.) -->
         <div class="nav-top">
-            <!-- Module navigation -->
             <a href="/time-attendance"
                 class="{{ 'active' if section == 'time-attendance' else '' }}"><span>Employees</span></a>
             <a href="/biometric-dashboard"
                 class="{{ 'active' if section == 'biometric-dashboard' else '' }}"><span>Biometric Dashboard</span></a>
         </div>
-
-        <!-- Bottom navigation (same as other pages) -->
         <div class="nav-bottom">
             {% if request.session.get('is_admin') %}
             <a href="/admin" class="{{ 'active' if section == 'admin' else '' }}"><span>Admin</span></a>
@@ -36,37 +30,38 @@
             title="Collapse sidebar"> <span class="handle-icon" aria-hidden="true">⟨</span> </button>
     </div>
 
-    <!-- Main content area -->
     <div class="content4">
         <div class="contentInner4">
             <div class="dash-grid">
-                <!-- Card 1: Employees -->
                 <section class="card card--tall">
                     <header class="card-head">
                         <h2>Employees</h2>
                         <button class="btn-add" onclick="openEmployeeModal()">+ Add Employee</button>
+                        <button class="btn-add" style="background:#10b981;margin-left:8px;"
+                            onclick="openPushModal()">Push to Device</button>
                     </header>
                     <div class="table-wrap">
                         <table class="small-table" id="employeeTable">
                             <thead>
                                 <tr>
-                                    <th>PIN</th>
+                                    <th>Employee ID</th>
                                     <th>Name</th>
+                                    <th>Surname</th>
                                     <th>Company</th>
-                                    <th>Status</th>
+                                    <th>Department</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="employeeBody">
                                 <tr>
-                                    <td colspan="5" class="muted">Loading employees...</td>
+                                    <td colspan="6" class="muted">Loading employees...</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
                 </section>
 
-                <!-- Card 2: Today's Attendance -->
+                <!-- Other cards left unchanged (attendance, device status, etc.) -->
                 <section class="card card--tall">
                     <header class="card-head">
                         <h2>Today's Attendance</h2>
@@ -92,7 +87,6 @@
                     </div>
                 </section>
 
-                <!-- Card 3: Device Status -->
                 <section class="card">
                     <header class="card-head">
                         <h2>Device Status</h2>
@@ -104,7 +98,6 @@
                     </div>
                 </section>
 
-                <!-- Card 4: Enrollment Status -->
                 <section class="card">
                     <header class="card-head">
                         <h2>Enrollment Overview</h2>
@@ -132,7 +125,6 @@
         </div>
     </div>
 
-    <!-- Add Employee Modal (hidden by default) -->
     <div id="employeeModal" style="display: none;">
         <div
             style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center;">
@@ -141,16 +133,28 @@
                 <h2 style="margin-top: 0;">Add Employee</h2>
                 <form id="employeeForm">
                     <div style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">PIN</label>
-                        <input type="text" id="empPin" placeholder="Employee ID" required
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Employee ID</label>
+                        <input type="text" id="empId" placeholder="e.g. pcm123" required
                             style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;">
                     </div>
-                    <div style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Name</label>
-                        <input type="text" id="empName" placeholder="Full name" required
+                    <div style="display: flex; gap: 10px;">
+                        <div style="flex: 1;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: 600;">Name</label>
+                            <input type="text" id="empName" placeholder="First name" required
+                                style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;">
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: 600;">Surname</label>
+                            <input type="text" id="empSurname" placeholder="Surname" required
+                                style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;">
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Department</label>
+                        <input type="text" id="empDept" placeholder="Department"
                             style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;">
                     </div>
-                    <div style="margin-bottom: 15px;">
+                    <div style="margin-top: 15px;">
                         <label style="display: block; margin-bottom: 5px; font-weight: 600;">Company</label>
                         <select id="empCompany" required
                             style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;">
@@ -160,13 +164,37 @@
                             <option>INT</option>
                         </select>
                     </div>
-                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
                         <button type="button" onclick="closeEmployeeModal()"
                             style="padding: 10px 20px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; background: white;">Cancel</button>
                         <button type="submit"
                             style="padding: 10px 20px; background: #4b5e70; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Add</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Push to Device Modal -->
+    <div id="pushModal" style="display: none;">
+        <div
+            style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center;">
+            <div
+                style="background: white; border-radius: 12px; padding: 20px; max-width: 520px; width: 90%; box-shadow: 0 20px 50px rgba(0,0,0,0.2);">
+                <h2 style="margin-top: 0;">Push Employees To Device</h2>
+                <p style="color:#6b7280;">Enter the full device URL where employee JSON should be POSTed (e.g.
+                    http://192.168.1.10:80/api/employees)</p>
+                <div style="margin-bottom:12px;">
+                    <input id="deviceUrl" placeholder="http://DEVICE_IP:PORT/path"
+                        style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px;">
+                </div>
+                <div style="display:flex; gap:10px; justify-content:flex-end;">
+                    <button type="button" onclick="closePushModal()"
+                        style="padding: 10px 20px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; background: white;">Cancel</button>
+                    <button id="pushButton" type="button" onclick="pushToDevice()"
+                        style="padding: 10px 20px; background: #10b981; color: white; border: none; border-radius: 8px; cursor: pointer;">Push</button>
+                </div>
+                <div id="pushResult" style="margin-top:12px; color:#6b7280;"></div>
             </div>
         </div>
     </div>
@@ -197,27 +225,83 @@
     </style>
 
     <script>
-        function openEmployeeModal() {
-            document.getElementById('employeeModal').style.display = 'block';
+        function openEmployeeModal() { document.getElementById('employeeModal').style.display = 'block'; }
+        function closeEmployeeModal() { document.getElementById('employeeModal').style.display = 'none'; }
+
+        async function fetchEmployees() {
+            const res = await fetch('/api/employees');
+            if (!res.ok) return;
+            const data = await res.json();
+            const tbody = document.getElementById('employeeBody');
+            if (!data.length) {
+                tbody.innerHTML = '<tr><td colspan="6" class="muted">No employees found</td></tr>';
+                return;
+            }
+            tbody.innerHTML = data.map(e => `
+                <tr>
+                    <td>${e.Employee_id}</td>
+                    <td>${e.Name_ || ''}</td>
+                    <td>${e.Surname_ || ''}</td>
+                    <td>${e.Company || ''}</td>
+                    <td>${e.Department || ''}</td>
+                    <td><button onclick="deleteEmployee('${e.Employee_id}')">Delete</button></td>
+                </tr>
+            `).join('');
+            document.getElementById('kpiTotal').innerText = data.length;
         }
 
-        function closeEmployeeModal() {
-            document.getElementById('employeeModal').style.display = 'none';
+        async function deleteEmployee(id) {
+            if (!confirm('Delete employee ' + id + '?')) return;
+            const res = await fetch('/api.employees/' + encodeURIComponent(id), { method: 'DELETE' });
+            if (res.ok) fetchEmployees(); else alert('Delete failed');
         }
 
         document.getElementById('employeeForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            // TODO: Handle form submission
-            closeEmployeeModal();
+            const payload = {
+                Employee_id: document.getElementById('empId').value.trim(),
+                Name_: document.getElementById('empName').value.trim(),
+                Surname_: document.getElementById('empSurname').value.trim(),
+                Department: document.getElementById('empDept').value.trim(),
+                Company: document.getElementById('empCompany').value
+            };
+            const res = await fetch('/api/employees', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (res.ok) {
+                closeEmployeeModal();
+                fetchEmployees();
+            } else {
+                const txt = await res.text();
+                alert('Failed to save: ' + txt);
+            }
         });
 
-        // Sidebar toggle (same as other pages)
-        document.addEventListener("DOMContentLoaded", () => {
+        function openPushModal() { document.getElementById('pushModal').style.display = 'block'; document.getElementById('pushResult').innerText = ''; }
+        function closePushModal() { document.getElementById('pushModal').style.display = 'none'; }
+
+        async function pushToDevice() {
+            const url = document.getElementById('deviceUrl').value.trim();
+            if (!url) { alert('Enter device URL'); return; }
+            const btn = document.getElementById('pushButton');
+            btn.disabled = true;
+            document.getElementById('pushResult').innerText = 'Pushing...';
+            try {
+                const res = await fetch('/api/devices/push_employees', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ device_url: url }) });
+                if (!res.ok) {
+                    const txt = await res.text();
+                    document.getElementById('pushResult').innerText = 'Failed: ' + txt;
+                } else {
+                    const j = await res.json();
+                    document.getElementById('pushResult').innerText = 'OK — device responded: ' + (j.device_response?.slice(0, 200) || j.device_status_code);
+                }
+            } catch (err) {
+                document.getElementById('pushResult').innerText = 'Error: ' + err;
+            } finally { btn.disabled = false; }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchEmployees();
             const handle = document.getElementById("sidebarHandle");
-            function toggleSidebar() {
-                document.body.classList.toggle("sidebar-collapsed");
-                handle?.setAttribute("aria-pressed", String(document.body.classList.contains("sidebar-collapsed")));
-            }
+            function toggleSidebar() { document.body.classList.toggle("sidebar-collapsed"); handle?.setAttribute("aria-pressed", String(document.body.classList.contains("sidebar-collapsed"))); }
             handle?.addEventListener("click", toggleSidebar);
         });
     </script>

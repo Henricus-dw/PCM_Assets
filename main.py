@@ -20,6 +20,7 @@ import calendar
 import os
 from starlette.responses import RedirectResponse
 import json
+import requests
 
 from auth import get_current_user, require_admin
 
@@ -141,10 +142,101 @@ def time_attendance_home(request: Request):
     if not request.session.get("user_id"):
         return RedirectResponse(url="/login", status_code=302)
     return templates.TemplateResponse(
-        "time_attendance.html",
+        "employees_html.html",
         {"request": request, "section": "time-attendance",
             "time": datetime.utcnow().timestamp()}
     )
+
+
+@app.get("/api/employees")
+def api_list_employees(request: Request, db: Session = Depends(get_db)):
+    if not request.session.get("user_id"):
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    from models import Employee
+    rows = db.query(Employee).all()
+    out = []
+    for r in rows:
+        out.append({
+            "Employee_id": getattr(r, 'Employee_id'),
+            "Name_": getattr(r, 'Name_'),
+            "Surname_": getattr(r, 'Surname_'),
+            "Company": getattr(r, 'Company'),
+            "Department": getattr(r, 'Department'),
+        })
+    return JSONResponse(out)
+
+
+@app.post("/api/employees")
+async def api_create_employee(request: Request, db: Session = Depends(get_db)):
+    if not request.session.get("user_id"):
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    payload = await request.json()
+    Employee_id = payload.get('Employee_id')
+    if not Employee_id:
+        raise HTTPException(status_code=400, detail="Employee_id required")
+    from models import Employee
+    # Prevent accidental overwrite
+    existing = db.query(Employee).filter(
+        Employee.Employee_id == Employee_id).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Employee already exists")
+    emp = Employee(
+        Employee_id=Employee_id,
+        Name_=payload.get('Name_'),
+        Surname_=payload.get('Surname_'),
+        Company=payload.get('Company'),
+        Department=payload.get('Department')
+    )
+    db.add(emp)
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    return JSONResponse({"status": "ok"})
+
+
+@app.delete("/api.employees/{employee_id}")
+def api_delete_employee(employee_id: str, request: Request, db: Session = Depends(get_db)):
+    if not request.session.get("user_id"):
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    from models import Employee
+    row = db.query(Employee).filter(
+        Employee.Employee_id == employee_id).first()
+    if not row:
+        raise HTTPException(status_code=404, detail="Not found")
+    db.delete(row)
+    db.commit()
+    return JSONResponse({"status": "ok"})
+
+
+@app.post("/api/devices/push_employees")
+async def api_push_employees(request: Request, db: Session = Depends(get_db)):
+    if not request.session.get("user_id"):
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    payload = await request.json()
+    device_url = payload.get("device_url")
+    if not device_url:
+        raise HTTPException(status_code=400, detail="device_url required")
+
+    from models import Employee
+    rows = db.query(Employee).all()
+    data = []
+    for r in rows:
+        data.append({
+            "Employee_id": getattr(r, "Employee_id"),
+            "Name_": getattr(r, "Name_"),
+            "Surname_": getattr(r, "Surname_"),
+            "Company": getattr(r, "Company"),
+            "Department": getattr(r, "Department"),
+        })
+
+    try:
+        resp = requests.post(device_url, json={"employees": data}, timeout=15)
+        return JSONResponse({"status": "ok", "device_status_code": resp.status_code, "device_response": resp.text})
+    except Exception as e:
+        raise HTTPException(
+            status_code=502, detail=f"Failed to reach device: {e}")
 
 
 @app.get("/biometric-dashboard", response_class=HTMLResponse)
