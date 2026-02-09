@@ -72,6 +72,27 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
     device_sn = request.query_params.get("SN", "unknown")
     table_name = request.query_params.get("table", "unknown")
 
+    # Check if this is a GET request (device polling) — if so, push employees
+    if request.method == "GET":
+        from models import Employee
+        employees = db.query(Employee).all()
+        if employees:
+            commands = []
+            for emp in employees:
+                # Format: C:USER ADD PIN=id Name=name Privilege=0
+                # Replace spaces with underscores in name/surname for device compatibility
+                full_name = f"{emp.Name_}_{emp.Surname_}".replace(" ", "_")
+                cmd = f"C:USER ADD PIN={emp.Employee_id} Name={full_name} Privilege=0"
+                commands.append(cmd)
+
+            response_text = "\n".join(commands) + "\n"
+            logger.info(
+                f"[iClock] Pushing {len(employees)} employees to device {device_sn}")
+            return Response(response_text, media_type="text/plain")
+        else:
+            # No employees, return OK
+            return Response("OK\n", media_type="text/plain")
+
     # Always store the raw hit for debugging
     entry = {
         "ts": datetime.now(timezone.utc).isoformat(),
