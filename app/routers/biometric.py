@@ -6,7 +6,7 @@ from sqlalchemy import exc as sqlalchemy_exc
 import logging
 
 from database import SessionLocal
-from models import AttendanceLog
+from models import AttendanceLog, AttendanceSession
 
 
 # =========================
@@ -156,6 +156,38 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
                 )
 
                 db.add(log)
+
+                # Pair into attendance sessions
+                if status == 0:
+                    session = AttendanceSession(
+                        pin=pin,
+                        check_in=timestamp,
+                        check_out=None,
+                        status="open"
+                    )
+                    db.add(session)
+                elif status == 1:
+                    # Find most recent open session within 13 hours
+                    window_start = timestamp - timedelta(hours=13)
+                    open_session = db.query(AttendanceSession).filter(
+                        AttendanceSession.pin == pin,
+                        AttendanceSession.check_out.is_(None),
+                        AttendanceSession.check_in >= window_start,
+                        AttendanceSession.check_in <= timestamp,
+                    ).order_by(AttendanceSession.check_in.desc()).first()
+
+                    if open_session:
+                        open_session.check_out = timestamp
+                        open_session.status = "closed"
+                    else:
+                        # Orphan checkout (no matching check-in in window)
+                        orphan = AttendanceSession(
+                            pin=pin,
+                            check_in=timestamp,
+                            check_out=timestamp,
+                            status="orphan"
+                        )
+                        db.add(orphan)
                 stored_count += 1
 
                 logger.info(

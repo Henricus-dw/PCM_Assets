@@ -156,3 +156,15 @@ class TimestampRecord(Base):
     Date = Column(Date, primary_key=True)
     Clock_in = Column(DateTime, primary_key=True)
     Clock_Out = Column(DateTime, nullable=True)
+
+
+class AttendanceSession(Base):
+    __tablename__ = "attendance_sessions"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    pin = Column(String(50), nullable=False, index=True)
+    check_in = Column(DateTime, nullable=False, index=True)
+    check_out = Column(DateTime, nullable=True, index=True)
+    status = Column(String(20), nullable=False,
+                    default="open")  # open | closed | orphan
+    created_at = Column(DateTime, server_default=func.now())
