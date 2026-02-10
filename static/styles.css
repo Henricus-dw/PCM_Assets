@@ -2266,12 +2266,6 @@ body.sidebar-collapsed .sidebar {
     /* reasonable default; adjust if you need wider columns */
 }
 
-/* Make action column narrower */
-#employeeTable th:last-child,
-#employeeTable td:last-child {
-    max-width: 90px;
-    text-align: center;
-}
 
 .employee-row {
     cursor: pointer;

@@ -58,12 +58,11 @@
                                     <th>Last Event</th>
                                     <th>Last Check-in</th>
                                     <th>Status</th>
-                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody id="employeeBody">
                                 <tr>
-                                    <td colspan="7" class="muted">Loading employees...</td>
+                                    <td colspan="6" class="muted">Loading employees...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -199,7 +198,7 @@
         function renderEmployees(rows) {
             const tbody = document.getElementById('employeeBody');
             if (!rows.length) {
-                tbody.innerHTML = '<tr><td colspan="7" class="muted">No employees found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" class="muted">No employees found</td></tr>';
                 return;
             }
             tbody.innerHTML = rows.map(e => {
@@ -216,7 +215,6 @@
                     <td>${formatTime(e.last_event)}</td>
                     <td>${formatTime(e.last_check_in)}</td>
                     <td><span class="status-pill ${statusClass}">${e.current_status}</span></td>
-                    <td></td>
                 </tr>
             `;
             }).join('');
