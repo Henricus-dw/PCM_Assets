@@ -44,7 +44,8 @@
                         <div style="display:flex; gap:10px; align-items:center;">
                             <input id="employeeSearch" class="input" placeholder="Search by PIN, name or surname"
                                 style="height:32px;" />
-                            <button class="btn-add" onclick="openEmployeeModal()">+ Add Employee</button>
+                            <button class="btn-add" style="background:#4b5e70;" onclick="openEmployeeModal()">Add
+                                Employee</button>
                         </div>
                     </header>
                     <div class="table-wrap">
@@ -57,7 +58,7 @@
                                     <th>Last Event</th>
                                     <th>Last Check-in</th>
                                     <th>Status</th>
-                                    <th>Actions</th>
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody id="employeeBody">
@@ -203,15 +204,19 @@
             }
             tbody.innerHTML = rows.map(e => {
                 const statusClass = e.current_status === 'IN' ? 'status-in' : 'status-out';
+                const pinSafe = String(e.PIN ?? '');
+                const nameSafe = String(e.Name_ ?? '').replace(/'/g, "&#39;");
+                const surnameSafe = String(e.Surname_ ?? '').replace(/'/g, "&#39;");
+                const statusSafe = String(e.current_status ?? '').replace(/'/g, "&#39;");
                 return `
-                <tr>
+                <tr class="employee-row" onclick="viewEmployee('${pinSafe}', '${nameSafe}', '${surnameSafe}', '${statusSafe}')">
                     <td>${e.PIN ?? ''}</td>
                     <td>${e.Name_ || ''}</td>
                     <td>${e.Surname_ || ''}</td>
                     <td>${formatTime(e.last_event)}</td>
                     <td>${formatTime(e.last_check_in)}</td>
                     <td><span class="status-pill ${statusClass}">${e.current_status}</span></td>
-                    <td><button onclick="viewEmployee('${e.PIN}', '${e.Name_ || ''}', '${e.Surname_ || ''}', '${e.current_status || ''}')">View history</button></td>
+                    <td></td>
                 </tr>
             `;
             }).join('');
