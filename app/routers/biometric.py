@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request, Response, Depends
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import List, Dict, Any, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import exc as sqlalchemy_exc
@@ -197,6 +197,11 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
 
             except (ValueError, IndexError) as e:
                 logger.error(f"[ATTLOG] Error parsing line '{line}': {e}")
+                error_count += 1
+                continue
+            except Exception as e:
+                logger.error(
+                    f"[ATTLOG] Unexpected error for line '{line}': {e}")
                 error_count += 1
                 continue
 
