@@ -197,23 +197,43 @@
         <img src="/static/pcm-lockup-goldc-final.svg" alt="PCM logo" />
 
         <!-- Top navigation -->
+        {% set module = request.query_params.get('module') %}
         <div class="nav-top">
+            {% if module == 'biometric' %}
+            <a href="/time-attendance"
+                class="{{ 'active' if section == 'time-attendance' else '' }}"><span>Employees</span></a>
+            <a href="/biometric-dashboard"
+                class="{{ 'active' if section == 'biometric-dashboard' else '' }}"><span>Biometric Dashboard</span></a>
+            {% else %}
             <a href="/dashboard" class="{{ 'active' if section == 'home' else '' }}"><span>Home</span></a>
             <a href="/form" class="{{ 'active' if section == 'form' else '' }}"><span>Capturing Form</span></a>
             <a href="/dashboard/vodacom" class="{{ 'active' if section == 'vodacom' else '' }}"><span>Vodacom
                     Dashboard</span></a>
             <a href="/dashboard/devices" class="{{ 'active' if section == 'devices' else '' }}"><span>Devices
                     Dashboard</span></a>
+            {% endif %}
+        </div>
+        <div class="sidebar-mid">
+            <a href="/" class="sidebar-return" title="Return">↺ Return</a>
         </div>
 
         <!-- Bottom navigation -->
         <div class="nav-bottom">
             {% if request.session.get('is_admin') %}
+            {% if module == 'biometric' %}
+            <a href="/admin?module=biometric"
+                class="{{ 'active' if section == 'admin' else '' }}"><span>Admin</span></a>
+            {% else %}
             <a href="/admin" class="{{ 'active' if section == 'admin' else '' }}"><span>Admin</span></a>
             {% endif %}
+            {% endif %}
 
-
+            {% if module == 'biometric' %}
+            <a href="/settings?module=biometric"
+                class="{{ 'active' if section == 'settings' else '' }}"><span>Settings</span></a>
+            {% else %}
             <a href="/settings" class="{{ 'active' if section == 'settings' else '' }}"><span>Settings</span></a>
+            {% endif %}
             <a href="/logout" id="logoutLink" class="{{ 'active' if section == 'logout' else '' }}">
                 <span>Log Out</span>
             </a>

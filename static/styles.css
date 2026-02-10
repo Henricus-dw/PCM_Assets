@@ -2258,3 +2258,53 @@ body.sidebar-collapsed .sidebar {
     max-width: 90px;
     text-align: center;
 }
+
+/* Centered Return button in sidebar */
+.sidebar-mid {
+    position: absolute;
+    top: calc(50% + 15px);
+    left: 0;
+    width: 100%;
+    transform: translateY(-50%);
+    margin-left: -29px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.sidebar .sidebar-return {
+    position: static;
+    transform: none !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 10px;
+    background: #f3f4f6;
+    color: #111827;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e5e7eb;
+    width: auto;
+}
+
+body.sidebar-collapsed .sidebar-return,
+body.sidebar-collapsed .sidebar-mid {
+    display: none;
+}
+
+.sidebar .sidebar-return:hover {
+    background: #e5e7eb;
+}
+
+/* Override generic sidebar link styling for the Return button */
+.sidebar a.sidebar-return {
+    background-color: #f3f4f6;
+    color: #111827;
+    border-radius: 10px;
+    padding: 8px 14px;
+    transform: none !important;
+}

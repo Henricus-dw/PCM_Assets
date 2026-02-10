@@ -259,7 +259,15 @@ def dashboard_home(request: Request):
         {"request": request, "section": "home"}
     )
 
-# 3) DASHBOARD HOME explicit page at /dashboard/home (you asked for this separately)
+
+@app.get("/dashboard", response_class=HTMLResponse)
+def dashboard_home_alias(request: Request):
+    if not request.session.get("user_id"):
+        return RedirectResponse(url="/login", status_code=302)
+    return templates.TemplateResponse(
+        "dashboard_home.html",
+        {"request": request, "section": "home"}
+    )
 
 
 @app.get("/dashboard/home", response_class=HTMLResponse)
@@ -335,6 +343,17 @@ def dashboard_devices(request: Request, db: Session = Depends(get_db)):
     return templates.TemplateResponse(
         "dashboard_devices.html",
         {"request": request, "devices": devices, "section": "devices"}
+    )
+
+
+@app.get("/form", response_class=HTMLResponse)
+def vodacom_form(request: Request):
+    if not request.session.get("user_id"):
+        return RedirectResponse(url="/login", status_code=302)
+    return templates.TemplateResponse(
+        "form.html",
+        {"request": request, "section": "form",
+            "time": datetime.utcnow().timestamp()}
     )
 
 # -------------- FORM HANDLERS (OPTIONALLY GUARDED) --------------
@@ -918,6 +937,7 @@ async def settings(
 
 @app.post("/settings/profile")
 def update_profile(
+    request: Request,
     name: Optional[str] = Form(None),
     surname: Optional[str] = Form(None),
     db: Session = Depends(get_db),
@@ -934,6 +954,9 @@ def update_profile(
 
     # email stays unchanged (rendered read-only in the UI)
     db.commit()
+    module = request.query_params.get("module")
+    if module:
+        return RedirectResponse(f"/settings?module={module}&ok=profile", status_code=303)
     return RedirectResponse("/settings?ok=profile", status_code=303)
 
 
@@ -949,25 +972,40 @@ def update_password(
     # 1) Validate inputs
     if new_password != confirm_password:
         # redirect with UI-friendly code (?err=nomatch)
+        module = request.query_params.get("module")
+        if module:
+            return RedirectResponse(f"/settings?module={module}&err=nomatch", status_code=303)
         return RedirectResponse("/settings?err=nomatch", status_code=303)
     if len(new_password) < 8:
         # keep this as a redirect too, or swap to your own message if you like
+        module = request.query_params.get("module")
+        if module:
+            return RedirectResponse(f"/settings?module={module}&err=nomatch", status_code=303)
         return RedirectResponse("/settings?err=nomatch", status_code=303)
 
     # 2) Verify current password
     if not verify_password(password, current_user.password_hash):
+        module = request.query_params.get("module")
+        if module:
+            return RedirectResponse(f"/settings?module={module}&err=badpwd", status_code=303)
         return RedirectResponse("/settings?err=badpwd", status_code=303)
 
     # 3) Update in THIS db session
     user = db.query(User).filter(User.id == current_user.id).first()
     if not user:
         # rare, but redirect back safely
+        module = request.query_params.get("module")
+        if module:
+            return RedirectResponse(f"/settings?module={module}", status_code=303)
         return RedirectResponse("/settings", status_code=303)
 
     user.password_hash = get_password_hash(new_password)
     db.commit()
 
     # 4) Success
+    module = request.query_params.get("module")
+    if module:
+        return RedirectResponse(f"/settings?module={module}&ok=pwd", status_code=303)
     return RedirectResponse("/settings?ok=pwd", status_code=303)
 
 
