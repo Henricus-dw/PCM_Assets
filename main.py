@@ -157,6 +157,7 @@ def api_list_employees(request: Request, db: Session = Depends(get_db)):
     out = []
     for r in rows:
         out.append({
+            "PIN": getattr(r, 'PIN'),
             "Employee_id": getattr(r, 'Employee_id'),
             "Name_": getattr(r, 'Name_'),
             "Surname_": getattr(r, 'Surname_'),
@@ -190,10 +191,15 @@ async def api_create_employee(request: Request, db: Session = Depends(get_db)):
     db.add(emp)
     try:
         db.commit()
+        db.refresh(emp)
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
-    return JSONResponse({"status": "ok"})
+    return JSONResponse({
+        "status": "ok",
+        "PIN": emp.PIN,
+        "Employee_id": emp.Employee_id,
+    })
 
 
 @app.delete("/api.employees/{employee_id}")

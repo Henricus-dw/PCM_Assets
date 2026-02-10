@@ -141,7 +141,8 @@ class AttendanceLog(Base):
 class Employee(Base):
     __tablename__ = "employees"
 
-    Employee_id = Column(String(50), primary_key=True)
+    PIN = Column(Integer, primary_key=True, autoincrement=True)
+    Employee_id = Column(String(50), nullable=False, unique=True, index=True)
     Name_ = Column(String(100))
     Surname_ = Column(String(100))
     Company = Column(String(100))
