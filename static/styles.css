@@ -2266,6 +2266,33 @@ body.sidebar-collapsed .sidebar {
     /* reasonable default; adjust if you need wider columns */
 }
 
+/* Column sizing for employees table */
+#employeeTable .col-pin {
+    width: 8%;
+}
+
+#employeeTable .col-status {
+    width: 10%;
+}
+
+#employeeTable .col-name,
+#employeeTable .col-surname,
+#employeeTable .col-last-event,
+#employeeTable .col-last-checkin {
+    width: 20.5%;
+}
+
+/* Wrap text on hover/selection */
+#employeeTable tbody tr:hover td,
+#employeeTable tbody tr.selected td {
+    white-space: normal;
+    text-overflow: clip;
+}
+
+#employeeTable tbody tr.selected {
+    background-color: #e7e7e7bf;
+}
+
 
 .employee-row {
     cursor: pointer;

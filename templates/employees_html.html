@@ -50,6 +50,14 @@
                     </header>
                     <div class="table-wrap">
                         <table class="small-table" id="employeeTable">
+                            <colgroup>
+                                <col class="col-pin" />
+                                <col class="col-name" />
+                                <col class="col-surname" />
+                                <col class="col-last-event" />
+                                <col class="col-last-checkin" />
+                                <col class="col-status" />
+                            </colgroup>
                             <thead>
                                 <tr>
                                     <th>PIN</th>
@@ -208,7 +216,7 @@
                 const surnameSafe = String(e.Surname_ ?? '').replace(/'/g, "&#39;");
                 const statusSafe = String(e.current_status ?? '').replace(/'/g, "&#39;");
                 return `
-                <tr class="employee-row" onclick="viewEmployee('${pinSafe}', '${nameSafe}', '${surnameSafe}', '${statusSafe}')">
+                <tr class="employee-row" onclick="selectEmployeeRow(this); viewEmployee('${pinSafe}', '${nameSafe}', '${surnameSafe}', '${statusSafe}')">
                     <td>${e.PIN ?? ''}</td>
                     <td>${e.Name_ || ''}</td>
                     <td>${e.Surname_ || ''}</td>
@@ -272,6 +280,11 @@
                     document.getElementById('detailSession').innerText = `Check-in: ${formatTime(s.check_in)} | Check-out: ${formatTime(s.check_out)} | ${duration}`;
                 }
             }
+        }
+
+        function selectEmployeeRow(row) {
+            document.querySelectorAll('#employeeTable tbody .employee-row.selected').forEach(r => r.classList.remove('selected'));
+            row.classList.add('selected');
         }
 
         async function deleteEmployee(id) {
