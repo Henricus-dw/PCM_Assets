@@ -2268,18 +2268,20 @@ body.sidebar-collapsed .sidebar {
 
 /* Column sizing for employees table */
 #employeeTable .col-pin {
-    width: 8%;
+    width: 2%;
+    min-width: 60px;
 }
 
 #employeeTable .col-status {
-    width: 10%;
+    width: 4%;
+    min-width: 80px;
 }
 
 #employeeTable .col-name,
-#employeeTable .col-surname,
-#employeeTable .col-last-event,
-#employeeTable .col-last-checkin {
-    width: 20.5%;
+#employeeTable .col-emp,
+#employeeTable .col-company,
+#employeeTable .col-division {
+    width: 23.5%;
 }
 
 /* Wrap text on hover/selection */

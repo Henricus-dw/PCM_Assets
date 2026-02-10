@@ -214,6 +214,14 @@ def api_employees_summary(request: Request, db: Session = Depends(get_db)):
         pin_str = str(emp.PIN)
         le = last_event.get(pin_str)
         ls = last_session.get(pin_str)
+        last_action_status = le.status if le else None
+        if last_action_status == 0:
+            current_status = "IN"
+        elif last_action_status == 1:
+            current_status = "OUT"
+        else:
+            current_status = "OUT"
+
         rows.append({
             "PIN": emp.PIN,
             "Employee_id": emp.Employee_id,
@@ -224,7 +232,7 @@ def api_employees_summary(request: Request, db: Session = Depends(get_db)):
             "last_event": le.timestamp.isoformat() if le else None,
             "last_status": le.status if le else None,
             "last_check_in": ls.check_in.isoformat() if ls else None,
-            "current_status": "IN" if pin_str in open_by_pin else "OUT",
+            "current_status": current_status,
         })
 
     return JSONResponse({
