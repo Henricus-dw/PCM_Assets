@@ -38,6 +38,31 @@
     <div class="content4">
         <div class="contentInner4">
             <div class="dash-grid">
+                <!-- Summary Row -->
+                <section class="card">
+                    <header class="card-head">
+                        <h2>Today Summary</h2>
+                    </header>
+                    <div class="kpi-grid">
+                        <div class="kpi">
+                            <div class="kpi-label">Total Employees</div>
+                            <div class="kpi-value" id="kpiTotal">-</div>
+                        </div>
+                        <div class="kpi">
+                            <div class="kpi-label">Active Today</div>
+                            <div class="kpi-value" id="kpiActive">-</div>
+                        </div>
+                        <div class="kpi">
+                            <div class="kpi-label">Open Sessions</div>
+                            <div class="kpi-value" id="kpiOpen">-</div>
+                        </div>
+                        <div class="kpi">
+                            <div class="kpi-label">Late Arrivals</div>
+                            <div class="kpi-value" id="kpiLate">-</div>
+                        </div>
+                    </div>
+                </section>
+
                 <section class="card card--tall">
                     <header class="card-head">
                         <h2>Employees</h2>
@@ -50,11 +75,11 @@
                             <thead>
                                 <tr>
                                     <th>PIN</th>
-                                    <th>Employee ID</th>
                                     <th>Name</th>
                                     <th>Surname</th>
-                                    <th>Company</th>
-                                    <th>Department</th>
+                                    <th>Last Event</th>
+                                    <th>Last Check-in</th>
+                                    <th>Status</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -67,63 +92,21 @@
                     </div>
                 </section>
 
-                <!-- Other cards left unchanged (attendance, device status, etc.) -->
-                <section class="card card--tall">
+                <!-- Right panel: Selected employee -->
+                <section class="card card--tall" id="employeeDetail">
                     <header class="card-head">
-                        <h2>Today's Attendance</h2>
-                        <span class="pill" id="attendanceCount">0</span>
+                        <h2>Employee Details</h2>
+                        <span class="pill" id="detailStatus">-</span>
                     </header>
-                    <div class="table-wrap">
-                        <table class="small-table" id="attendanceTable">
-                            <thead>
-                                <tr>
-                                    <th>Time</th>
-                                    <th>PIN</th>
-                                    <th>Employee</th>
-                                    <th>Type</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="attendanceBody">
-                                <tr>
-                                    <td colspan="5" class="muted">No attendance records yet</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <section class="card">
-                    <header class="card-head">
-                        <h2>Device Status</h2>
-                    </header>
-                    <div class="device-status" id="deviceStatus">
-                        <div style="padding: 20px; text-align: center; color: #6b7280;">
-                            <p>Waiting for device connection...</p>
+                    <div style="padding: 16px;">
+                        <div class="muted" id="detailName">Select an employee</div>
+                        <div style="margin-top: 10px;">
+                            <strong>Today Session</strong>
+                            <div id="detailSession" class="muted" style="margin-top:6px;">-</div>
                         </div>
-                    </div>
-                </section>
-
-                <section class="card">
-                    <header class="card-head">
-                        <h2>Enrollment Overview</h2>
-                    </header>
-                    <div class="kpi-grid">
-                        <div class="kpi">
-                            <div class="kpi-label">Total Employees</div>
-                            <div class="kpi-value" id="kpiTotal">-</div>
-                        </div>
-                        <div class="kpi">
-                            <div class="kpi-label">Enrolled (Fingerprint)</div>
-                            <div class="kpi-value" id="kpiEnrolled">-</div>
-                        </div>
-                        <div class="kpi">
-                            <div class="kpi-label">Pending</div>
-                            <div class="kpi-value" id="kpiPending">-</div>
-                        </div>
-                        <div class="kpi">
-                            <div class="kpi-label">Last Sync</div>
-                            <div class="kpi-value" id="kpiLastSync">-</div>
+                        <div style="margin-top: 16px;">
+                            <strong>Recent Events</strong>
+                            <div id="detailEvents" class="muted" style="margin-top:6px;">-</div>
                         </div>
                     </div>
                 </section>
@@ -228,33 +211,96 @@
             border-radius: 8px;
             border: 1px solid #e5e7eb;
         }
+
+        .status-pill {
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .status-in {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-out {
+            background: #fee2e2;
+            color: #991b1b;
+        }
     </style>
 
     <script>
         function openEmployeeModal() { document.getElementById('employeeModal').style.display = 'block'; }
         function closeEmployeeModal() { document.getElementById('employeeModal').style.display = 'none'; }
 
+        function formatTime(ts) {
+            if (!ts) return '-';
+            const d = new Date(ts);
+            return d.toLocaleString();
+        }
+
         async function fetchEmployees() {
-            const res = await fetch('/api/employees');
+            const res = await fetch('/api/employees/summary');
             if (!res.ok) return;
             const data = await res.json();
+            const summary = data.totals || {};
+            const rows = data.rows || [];
             const tbody = document.getElementById('employeeBody');
-            if (!data.length) {
+            document.getElementById('kpiTotal').innerText = summary.employees ?? '-';
+            document.getElementById('kpiActive').innerText = summary.active_today ?? '-';
+            document.getElementById('kpiOpen').innerText = summary.open_sessions ?? '-';
+            document.getElementById('kpiLate').innerText = summary.late_arrivals ?? '-';
+
+            if (!rows.length) {
                 tbody.innerHTML = '<tr><td colspan="7" class="muted">No employees found</td></tr>';
                 return;
             }
-            tbody.innerHTML = data.map(e => `
+            tbody.innerHTML = rows.map(e => {
+                const statusClass = e.current_status === 'IN' ? 'status-in' : 'status-out';
+                return `
                 <tr>
                     <td>${e.PIN ?? ''}</td>
-                    <td>${e.Employee_id}</td>
                     <td>${e.Name_ || ''}</td>
                     <td>${e.Surname_ || ''}</td>
-                    <td>${e.Company || ''}</td>
-                    <td>${e.Department || ''}</td>
-                    <td><button onclick="deleteEmployee('${e.Employee_id}')">Delete</button></td>
+                    <td>${formatTime(e.last_event)}</td>
+                    <td>${formatTime(e.last_check_in)}</td>
+                    <td><span class="status-pill ${statusClass}">${e.current_status}</span></td>
+                    <td><button onclick="viewEmployee('${e.PIN}', '${e.Name_ || ''}', '${e.Surname_ || ''}', '${e.current_status || ''}')">View history</button></td>
                 </tr>
-            `).join('');
-            document.getElementById('kpiTotal').innerText = data.length;
+            `;
+            }).join('');
+        }
+
+        async function viewEmployee(pin, name, surname, status) {
+            document.getElementById('detailName').innerText = `${name} ${surname} (PIN ${pin})`;
+            document.getElementById('detailStatus').innerText = status || '-';
+
+            const eventsRes = await fetch(`/api/employees/${pin}/events?limit=10`);
+            if (eventsRes.ok) {
+                const events = await eventsRes.json();
+                if (!events.length) {
+                    document.getElementById('detailEvents').innerText = 'No events yet';
+                } else {
+                    document.getElementById('detailEvents').innerHTML = events.map(e => {
+                        const action = e.status === 0 ? 'check in' : e.status === 1 ? 'check out' : 'unknown';
+                        return `<div>${formatTime(e.timestamp)} — ${action}</div>`;
+                    }).join('');
+                }
+            }
+
+            const today = new Date().toISOString().slice(0, 10);
+            const sessionRes = await fetch(`/api/employees/${pin}/session?date_str=${today}`);
+            if (sessionRes.ok) {
+                const sessions = await sessionRes.json();
+                if (!sessions.length) {
+                    document.getElementById('detailSession').innerText = 'No session today';
+                } else {
+                    const s = sessions[0];
+                    const duration = s.duration_minutes ? `${s.duration_minutes} mins` : '-';
+                    document.getElementById('detailSession').innerText = `Check-in: ${formatTime(s.check_in)} | Check-out: ${formatTime(s.check_out)} | ${duration}`;
+                }
+            }
         }
 
         async function deleteEmployee(id) {

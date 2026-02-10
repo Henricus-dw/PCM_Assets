@@ -167,6 +167,191 @@ def api_list_employees(request: Request, db: Session = Depends(get_db)):
     return JSONResponse(out)
 
 
+@app.get("/api/employees/summary")
+def api_employees_summary(request: Request, db: Session = Depends(get_db)):
+    if not request.session.get("user_id"):
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    from models import Employee, AttendanceLog, AttendanceSession
+
+    employees = db.query(Employee).all()
+
+    today = date.today()
+    start = datetime.combine(today, datetime.min.time())
+    end = datetime.combine(today, datetime.max.time())
+    logs_today = db.query(AttendanceLog).filter(
+        AttendanceLog.timestamp >= start,
+        AttendanceLog.timestamp <= end
+    ).order_by(AttendanceLog.timestamp.desc()).all()
+
+    # Latest event per pin (string form)
+    recent_logs = db.query(AttendanceLog).order_by(
+        AttendanceLog.timestamp.desc()).limit(2000).all()
+    last_event = {}
+    for log in recent_logs:
+        if log.pin not in last_event:
+            last_event[log.pin] = log
+
+    # Latest session per pin
+    recent_sessions = db.query(AttendanceSession).order_by(
+        AttendanceSession.check_in.desc()).limit(2000).all()
+    last_session = {}
+    for s in recent_sessions:
+        if s.pin not in last_session:
+            last_session[s.pin] = s
+
+    open_sessions = db.query(AttendanceSession).filter(
+        AttendanceSession.check_out.is_(None)).all()
+    open_by_pin = {s.pin for s in open_sessions}
+
+    active_today_pins = {log.pin for log in logs_today}
+    late_cutoff = datetime.combine(
+        today, datetime.min.time()) + timedelta(hours=9)
+    late_arrivals = {log.pin for log in logs_today if log.status ==
+                     0 and log.timestamp > late_cutoff}
+
+    rows = []
+    for emp in employees:
+        pin_str = str(emp.PIN)
+        le = last_event.get(pin_str)
+        ls = last_session.get(pin_str)
+        rows.append({
+            "PIN": emp.PIN,
+            "Employee_id": emp.Employee_id,
+            "Name_": emp.Name_,
+            "Surname_": emp.Surname_,
+            "Company": emp.Company,
+            "Department": emp.Department,
+            "last_event": le.timestamp.isoformat() if le else None,
+            "last_status": le.status if le else None,
+            "last_check_in": ls.check_in.isoformat() if ls else None,
+            "current_status": "IN" if pin_str in open_by_pin else "OUT",
+        })
+
+    return JSONResponse({
+        "totals": {
+            "employees": len(employees),
+            "active_today": len(active_today_pins),
+            "open_sessions": len(open_by_pin),
+            "late_arrivals": len(late_arrivals),
+        },
+        "rows": rows,
+    })
+
+
+@app.get("/api/employees/{pin}/events")
+def api_employee_events(pin: int, request: Request, db: Session = Depends(get_db), limit: int = 20):
+    if not request.session.get("user_id"):
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    from models import AttendanceLog
+    pin_str = str(pin)
+    logs = db.query(AttendanceLog).filter(AttendanceLog.pin == pin_str).order_by(
+        AttendanceLog.timestamp.desc()).limit(limit).all()
+    return JSONResponse([
+        {
+            "timestamp": l.timestamp.isoformat() if l.timestamp else None,
+            "status": l.status,
+        }
+        for l in logs
+    ])
+
+
+@app.get("/api/employees/{pin}/session")
+def api_employee_session(pin: int, request: Request, db: Session = Depends(get_db), date_str: Optional[str] = None):
+    if not request.session.get("user_id"):
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    from models import AttendanceSession
+    if date_str:
+        try:
+            target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid date")
+    else:
+        target_date = date.today()
+
+    pin_str = str(pin)
+    sessions = db.query(AttendanceSession).filter(
+        AttendanceSession.pin == pin_str,
+        func.date(AttendanceSession.check_in) == target_date.isoformat()
+    ).order_by(AttendanceSession.check_in.desc()).all()
+
+    def duration_minutes(s):
+        if s.check_out and s.check_in:
+            return int((s.check_out - s.check_in).total_seconds() / 60)
+        return None
+
+    return JSONResponse([
+        {
+            "check_in": s.check_in.isoformat() if s.check_in else None,
+            "check_out": s.check_out.isoformat() if s.check_out else None,
+            "status": s.status,
+            "duration_minutes": duration_minutes(s),
+        }
+        for s in sessions
+    ])
+
+
+@app.get("/api/attendance/live")
+def api_attendance_live(request: Request, db: Session = Depends(get_db), limit: int = 50):
+    if not request.session.get("user_id"):
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    from models import AttendanceLog
+    logs = db.query(AttendanceLog).order_by(
+        AttendanceLog.timestamp.desc()).limit(limit).all()
+
+    def status_to_action(status: Optional[int]) -> str:
+        if status == 0:
+            return "check_in"
+        if status == 1:
+            return "check_out"
+        return "unknown"
+
+    return JSONResponse([
+        {
+            "pin": l.pin,
+            "timestamp": l.timestamp.isoformat() if l.timestamp else None,
+            "status": l.status,
+            "action": status_to_action(l.status),
+        }
+        for l in logs
+    ])
+
+
+@app.get("/api/sessions/today")
+def api_sessions_today(request: Request, db: Session = Depends(get_db), date_str: Optional[str] = None, pin: Optional[str] = None):
+    if not request.session.get("user_id"):
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    from models import AttendanceSession
+    if date_str:
+        try:
+            target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid date")
+    else:
+        target_date = date.today()
+
+    query = db.query(AttendanceSession).filter(
+        func.date(AttendanceSession.check_in) == target_date.isoformat())
+    if pin:
+        query = query.filter(AttendanceSession.pin == pin)
+    sessions = query.order_by(AttendanceSession.check_in.desc()).all()
+
+    def duration_minutes(s):
+        if s.check_out and s.check_in:
+            return int((s.check_out - s.check_in).total_seconds() / 60)
+        return None
+
+    return JSONResponse([
+        {
+            "pin": s.pin,
+            "check_in": s.check_in.isoformat() if s.check_in else None,
+            "check_out": s.check_out.isoformat() if s.check_out else None,
+            "status": s.status,
+            "duration_minutes": duration_minutes(s),
+        }
+        for s in sessions
+    ])
+
+
 @app.post("/api/employees")
 async def api_create_employee(request: Request, db: Session = Depends(get_db)):
     if not request.session.get("user_id"):

@@ -186,7 +186,7 @@
                 <!-- Card 1: Live Device Feed -->
                 <section class="card card--tall">
                     <header class="card-head">
-                        <h2>Live Device Feed</h2>
+                        <h2>Live Feed</h2>
                         <div style="display: flex; gap: 10px; align-items: center;">
                             <div class="live-status">
                                 <div class="status-dot"></div>
@@ -213,64 +213,47 @@
                             <div class="stat-value" id="statTotal">0</div>
                         </div>
                         <div class="stat-box">
-                            <div class="stat-label">Fingerprints</div>
-                            <div class="stat-value" id="statFingerprint">0</div>
+                            <div class="stat-label">Check-ins</div>
+                            <div class="stat-value" id="statCheckIn">0</div>
                         </div>
                         <div class="stat-box">
-                            <div class="stat-label">Passwords</div>
-                            <div class="stat-value" id="statPassword">0</div>
+                            <div class="stat-label">Check-outs</div>
+                            <div class="stat-value" id="statCheckOut">0</div>
                         </div>
                         <div class="stat-box">
-                            <div class="stat-label">RFID Cards</div>
-                            <div class="stat-value" id="statRfid">0</div>
+                            <div class="stat-label">Currently In</div>
+                            <div class="stat-value" id="statIn">0</div>
                         </div>
                     </div>
                 </section>
 
-                <!-- Card 3: Device Info -->
-                <section class="card">
+                <!-- Card 3: Sessions Today -->
+                <section class="card card--tall">
                     <header class="card-head">
-                        <h2>Device Information</h2>
+                        <h2>Today's Sessions</h2>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <input id="filterDate" type="date" class="input" style="height:32px;" />
+                            <input id="filterPin" class="input" placeholder="Filter PIN" style="height:32px;" />
+                            <button class="refresh-btn" onclick="refreshSessions()">Apply</button>
+                        </div>
                     </header>
-                    <div style="padding: 20px;">
-                        <div style="margin-bottom: 15px;">
-                            <div style="color: #6b7280; font-size: 0.9rem; margin-bottom: 4px;">Serial Number</div>
-                            <div style="font-weight: 600; color: #111827;" id="deviceSN">Not connected</div>
-                        </div>
-                        <div style="margin-bottom: 15px;">
-                            <div style="color: #6b7280; font-size: 0.9rem; margin-bottom: 4px;">Last Event</div>
-                            <div style="font-weight: 600; color: #111827;" id="lastEvent">No events yet</div>
-                        </div>
-                        <div style="margin-bottom: 15px;">
-                            <div style="color: #6b7280; font-size: 0.9rem; margin-bottom: 4px;">Connection Status</div>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <div style="width: 12px; height: 12px; background: #22c55e; border-radius: 50%;"></div>
-                                <span style="font-weight: 600; color: #111827;">Connected</span>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Card 4: Debug Info -->
-                <section class="card">
-                    <header class="card-head">
-                        <h2>Debug Information</h2>
-                    </header>
-                    <div style="padding: 20px; font-family: monospace; font-size: 0.85rem;">
-                        <div
-                            style="background: #f9fafb; padding: 12px; border-radius: 6px; border-left: 3px solid #3b82f6;">
-                            <div style="margin-bottom: 8px;"><strong>Endpoint:</strong> /iclock/cdata</div>
-                            <div style="margin-bottom: 8px;"><strong>Method:</strong> POST</div>
-                            <div style="margin-bottom: 8px;"><strong>Table:</strong> ATTLOG</div>
-                            <div><strong>Auto-refresh:</strong> Every 5 seconds</div>
-                        </div>
-                        <div
-                            style="margin-top: 12px; padding: 12px; background: #fef3c7; border-radius: 6px; border-left: 3px solid #f59e0b;">
-                            <strong>Test URL:</strong>
-                            <div style="margin-top: 6px; word-break: break-all;">
-                                http://localhost:8000/biometric/debug
-                            </div>
-                        </div>
+                    <div class="table-wrap">
+                        <table class="small-table" id="sessionsTable">
+                            <thead>
+                                <tr>
+                                    <th>PIN</th>
+                                    <th>Check-in</th>
+                                    <th>Check-out</th>
+                                    <th>Duration</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sessionsBody">
+                                <tr>
+                                    <td colspan="5" class="muted">Loading sessions...</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </section>
             </div>
@@ -280,9 +263,14 @@
     <script>
         let autoRefreshInterval;
 
+        function fmt(ts) {
+            if (!ts) return '-';
+            return new Date(ts).toLocaleString();
+        }
+
         async function refreshLogs() {
             try {
-                const response = await fetch('/biometric/logs?limit=100');
+                const response = await fetch('/api/attendance/live?limit=100');
                 const logs = await response.json();
 
                 const container = document.getElementById('logsContainer');
@@ -312,25 +300,15 @@
                 // Render logs
                 container.innerHTML = todaysLogs.map(log => {
                     const time = new Date(log.timestamp).toLocaleTimeString();
-                    const verifyType = log.verify_type_name || 'unknown';
-                    const typeClass = verifyType.toLowerCase().replace(' ', '-');
-
+                    const action = (log.action || 'unknown').replace('_', ' ');
                     return `
                         <div class="log-entry success">
                             <div class="log-time">${time}</div>
                             <div class="log-pin">PIN: ${log.pin}</div>
-                            <span class="log-type ${typeClass}">${verifyType}</span>
-                            <div style="color: #6b7280; font-size: 0.85rem;">Status: ${log.status}</div>
+                            <span class="log-type">${action}</span>
                         </div>
                     `;
                 }).join('');
-
-                // Update device info
-                if (todaysLogs.length > 0) {
-                    const latest = todaysLogs[0];
-                    document.getElementById('deviceSN').textContent = latest.device_sn || 'Unknown';
-                    document.getElementById('lastEvent').textContent = new Date(latest.timestamp).toLocaleTimeString();
-                }
 
                 updateStats(todaysLogs);
 
@@ -343,21 +321,57 @@
         function updateStats(logs) {
             const stats = {
                 total: logs.length,
-                fingerprint: logs.filter(l => l.verify_type_name === 'fingerprint').length,
-                password: logs.filter(l => l.verify_type_name === 'password').length,
-                rfid: logs.filter(l => l.verify_type_name === 'rfid_card').length,
+                checkIn: logs.filter(l => l.action === 'check_in').length,
+                checkOut: logs.filter(l => l.action === 'check_out').length,
             };
 
             document.getElementById('statTotal').textContent = stats.total;
-            document.getElementById('statFingerprint').textContent = stats.fingerprint;
-            document.getElementById('statPassword').textContent = stats.password;
-            document.getElementById('statRfid').textContent = stats.rfid;
+            document.getElementById('statCheckIn').textContent = stats.checkIn;
+            document.getElementById('statCheckOut').textContent = stats.checkOut;
+        }
+
+        async function refreshSessions() {
+            const dateInput = document.getElementById('filterDate');
+            const pinInput = document.getElementById('filterPin');
+            const dateVal = dateInput.value || new Date().toISOString().slice(0, 10);
+            const pinVal = pinInput.value.trim();
+
+            const url = `/api/sessions/today?date_str=${dateVal}${pinVal ? `&pin=${encodeURIComponent(pinVal)}` : ''}`;
+            const res = await fetch(url);
+            if (!res.ok) return;
+            const sessions = await res.json();
+            const body = document.getElementById('sessionsBody');
+
+            if (!sessions.length) {
+                body.innerHTML = '<tr><td colspan="5" class="muted">No sessions found</td></tr>';
+                document.getElementById('statIn').textContent = 0;
+                return;
+            }
+
+            body.innerHTML = sessions.map(s => {
+                const dur = s.duration_minutes ? `${s.duration_minutes} min` : '-';
+                return `
+                    <tr>
+                        <td>${s.pin}</td>
+                        <td>${fmt(s.check_in)}</td>
+                        <td>${fmt(s.check_out)}</td>
+                        <td>${dur}</td>
+                        <td>${s.status}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            const openCount = sessions.filter(s => !s.check_out).length;
+            document.getElementById('statIn').textContent = openCount;
         }
 
         // Auto-refresh every 5 seconds
         document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date().toISOString().slice(0, 10);
+            document.getElementById('filterDate').value = today;
             refreshLogs();
-            autoRefreshInterval = setInterval(refreshLogs, 5000);
+            refreshSessions();
+            autoRefreshInterval = setInterval(() => { refreshLogs(); refreshSessions(); }, 5000);
 
             // Sidebar toggle
             const handle = document.getElementById("sidebarHandle");
