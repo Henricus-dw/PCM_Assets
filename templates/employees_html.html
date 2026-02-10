@@ -37,38 +37,15 @@
 
     <div class="content4">
         <div class="contentInner4">
-            <div class="dash-grid">
-                <!-- Summary Row -->
-                <section class="card">
-                    <header class="card-head">
-                        <h2>Today Summary</h2>
-                    </header>
-                    <div class="kpi-grid">
-                        <div class="kpi">
-                            <div class="kpi-label">Total Employees</div>
-                            <div class="kpi-value" id="kpiTotal">-</div>
-                        </div>
-                        <div class="kpi">
-                            <div class="kpi-label">Active Today</div>
-                            <div class="kpi-value" id="kpiActive">-</div>
-                        </div>
-                        <div class="kpi">
-                            <div class="kpi-label">Open Sessions</div>
-                            <div class="kpi-value" id="kpiOpen">-</div>
-                        </div>
-                        <div class="kpi">
-                            <div class="kpi-label">Late Arrivals</div>
-                            <div class="kpi-value" id="kpiLate">-</div>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="card card--tall">
+            <div class="dash-grid employees-grid">
+                <section class="card card--tall employees-card">
                     <header class="card-head">
                         <h2>Employees</h2>
-                        <button class="btn-add" onclick="openEmployeeModal()">+ Add Employee</button>
-                        <button class="btn-add" style="background:#10b981;margin-left:8px;"
-                            onclick="openPushModal()">Push to Device</button>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <input id="employeeSearch" class="input" placeholder="Search by PIN, name or surname"
+                                style="height:32px;" />
+                            <button class="btn-add" onclick="openEmployeeModal()">+ Add Employee</button>
+                        </div>
                     </header>
                     <div class="table-wrap">
                         <table class="small-table" id="employeeTable">
@@ -93,7 +70,7 @@
                 </section>
 
                 <!-- Right panel: Selected employee -->
-                <section class="card card--tall" id="employeeDetail">
+                <section class="card card--tall employee-detail-card" id="employeeDetail">
                     <header class="card-head">
                         <h2>Employee Details</h2>
                         <span class="pill" id="detailStatus">-</span>
@@ -164,30 +141,6 @@
         </div>
     </div>
 
-    <!-- Push to Device Modal -->
-    <div id="pushModal" style="display: none;">
-        <div
-            style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center;">
-            <div
-                style="background: white; border-radius: 12px; padding: 20px; max-width: 520px; width: 90%; box-shadow: 0 20px 50px rgba(0,0,0,0.2);">
-                <h2 style="margin-top: 0;">Push Employees To Device</h2>
-                <p style="color:#6b7280;">Enter the full device URL where employee JSON should be POSTed (e.g.
-                    http://192.168.1.10:80/api/employees)</p>
-                <div style="margin-bottom:12px;">
-                    <input id="deviceUrl" placeholder="http://DEVICE_IP:PORT/path"
-                        style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px;">
-                </div>
-                <div style="display:flex; gap:10px; justify-content:flex-end;">
-                    <button type="button" onclick="closePushModal()"
-                        style="padding: 10px 20px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; background: white;">Cancel</button>
-                    <button id="pushButton" type="button" onclick="pushToDevice()"
-                        style="padding: 10px 20px; background: #10b981; color: white; border: none; border-radius: 8px; cursor: pointer;">Push</button>
-                </div>
-                <div id="pushResult" style="margin-top:12px; color:#6b7280;"></div>
-            </div>
-        </div>
-    </div>
-
     <style>
         .btn-add {
             background: #2563eb;
@@ -240,18 +193,10 @@
             return d.toLocaleString();
         }
 
-        async function fetchEmployees() {
-            const res = await fetch('/api/employees/summary');
-            if (!res.ok) return;
-            const data = await res.json();
-            const summary = data.totals || {};
-            const rows = data.rows || [];
-            const tbody = document.getElementById('employeeBody');
-            document.getElementById('kpiTotal').innerText = summary.employees ?? '-';
-            document.getElementById('kpiActive').innerText = summary.active_today ?? '-';
-            document.getElementById('kpiOpen').innerText = summary.open_sessions ?? '-';
-            document.getElementById('kpiLate').innerText = summary.late_arrivals ?? '-';
+        let allEmployees = [];
 
+        function renderEmployees(rows) {
+            const tbody = document.getElementById('employeeBody');
             if (!rows.length) {
                 tbody.innerHTML = '<tr><td colspan="7" class="muted">No employees found</td></tr>';
                 return;
@@ -270,6 +215,29 @@
                 </tr>
             `;
             }).join('');
+        }
+
+        function applyEmployeeFilter() {
+            const q = document.getElementById('employeeSearch').value.trim().toLowerCase();
+            if (!q) {
+                renderEmployees(allEmployees);
+                return;
+            }
+            const filtered = allEmployees.filter(e => {
+                const pin = String(e.PIN ?? '').toLowerCase();
+                const name = String(e.Name_ ?? '').toLowerCase();
+                const surname = String(e.Surname_ ?? '').toLowerCase();
+                return pin.includes(q) || name.includes(q) || surname.includes(q);
+            });
+            renderEmployees(filtered);
+        }
+
+        async function fetchEmployees() {
+            const res = await fetch('/api/employees/summary');
+            if (!res.ok) return;
+            const data = await res.json();
+            allEmployees = data.rows || [];
+            applyEmployeeFilter();
         }
 
         async function viewEmployee(pin, name, surname, status) {
@@ -328,31 +296,10 @@
             }
         });
 
-        function openPushModal() { document.getElementById('pushModal').style.display = 'block'; document.getElementById('pushResult').innerText = ''; }
-        function closePushModal() { document.getElementById('pushModal').style.display = 'none'; }
-
-        async function pushToDevice() {
-            const url = document.getElementById('deviceUrl').value.trim();
-            if (!url) { alert('Enter device URL'); return; }
-            const btn = document.getElementById('pushButton');
-            btn.disabled = true;
-            document.getElementById('pushResult').innerText = 'Pushing...';
-            try {
-                const res = await fetch('/api/devices/push_employees', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ device_url: url }) });
-                if (!res.ok) {
-                    const txt = await res.text();
-                    document.getElementById('pushResult').innerText = 'Failed: ' + txt;
-                } else {
-                    const j = await res.json();
-                    document.getElementById('pushResult').innerText = 'OK — device responded: ' + (j.device_response?.slice(0, 200) || j.device_status_code);
-                }
-            } catch (err) {
-                document.getElementById('pushResult').innerText = 'Error: ' + err;
-            } finally { btn.disabled = false; }
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
             fetchEmployees();
+            const searchInput = document.getElementById('employeeSearch');
+            searchInput?.addEventListener('input', applyEmployeeFilter);
             const handle = document.getElementById("sidebarHandle");
             function toggleSidebar() { document.body.classList.toggle("sidebar-collapsed"); handle?.setAttribute("aria-pressed", String(document.body.classList.contains("sidebar-collapsed"))); }
             handle?.addEventListener("click", toggleSidebar);

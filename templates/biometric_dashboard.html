@@ -202,31 +202,6 @@
                     </div>
                 </section>
 
-                <!-- Card 2: Today's Summary -->
-                <section class="card">
-                    <header class="card-head">
-                        <h2>Today's Summary</h2>
-                    </header>
-                    <div class="stats-grid">
-                        <div class="stat-box">
-                            <div class="stat-label">Total Events</div>
-                            <div class="stat-value" id="statTotal">0</div>
-                        </div>
-                        <div class="stat-box">
-                            <div class="stat-label">Check-ins</div>
-                            <div class="stat-value" id="statCheckIn">0</div>
-                        </div>
-                        <div class="stat-box">
-                            <div class="stat-label">Check-outs</div>
-                            <div class="stat-value" id="statCheckOut">0</div>
-                        </div>
-                        <div class="stat-box">
-                            <div class="stat-label">Currently In</div>
-                            <div class="stat-value" id="statIn">0</div>
-                        </div>
-                    </div>
-                </section>
-
                 <!-- Card 3: Sessions Today -->
                 <section class="card card--tall">
                     <header class="card-head">
@@ -277,7 +252,6 @@
 
                 if (!logs || logs.length === 0) {
                     container.innerHTML = '<div class="no-data">No attendance logs yet. Waiting for device...</div>';
-                    updateStats([]);
                     return;
                 }
 
@@ -293,7 +267,6 @@
 
                 if (todaysLogs.length === 0) {
                     container.innerHTML = '<div class="no-data">No events today yet</div>';
-                    updateStats([]);
                     return;
                 }
 
@@ -310,24 +283,10 @@
                     `;
                 }).join('');
 
-                updateStats(todaysLogs);
-
             } catch (error) {
                 console.error('Failed to fetch logs:', error);
                 document.getElementById('logsContainer').innerHTML = '<div class="no-data">Error loading logs</div>';
             }
-        }
-
-        function updateStats(logs) {
-            const stats = {
-                total: logs.length,
-                checkIn: logs.filter(l => l.action === 'check_in').length,
-                checkOut: logs.filter(l => l.action === 'check_out').length,
-            };
-
-            document.getElementById('statTotal').textContent = stats.total;
-            document.getElementById('statCheckIn').textContent = stats.checkIn;
-            document.getElementById('statCheckOut').textContent = stats.checkOut;
         }
 
         async function refreshSessions() {
@@ -344,7 +303,6 @@
 
             if (!sessions.length) {
                 body.innerHTML = '<tr><td colspan="5" class="muted">No sessions found</td></tr>';
-                document.getElementById('statIn').textContent = 0;
                 return;
             }
 
@@ -361,8 +319,6 @@
                 `;
             }).join('');
 
-            const openCount = sessions.filter(s => !s.check_out).length;
-            document.getElementById('statIn').textContent = openCount;
         }
 
         // Auto-refresh every 5 seconds
