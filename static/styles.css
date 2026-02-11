@@ -1451,6 +1451,44 @@ table.sticky th {
     grid-column: 1;
 }
 
+/* Time and Attendance table column sizing */
+.home-dashboard .time-attendance-table {
+    table-layout: fixed;
+}
+
+.home-dashboard .time-attendance-table col.col-company,
+.home-dashboard .time-attendance-table col.col-site,
+.home-dashboard .time-attendance-table col.col-division {
+    width: 9%;
+}
+
+.home-dashboard .time-attendance-table col.col-duration {
+    width: 7%;
+}
+
+.home-dashboard .time-attendance-table col.col-name {
+    width: 28%;
+}
+
+.home-dashboard .time-attendance-table col.col-check-in,
+.home-dashboard .time-attendance-table col.col-check-out {
+    width: 19%;
+}
+
+.home-dashboard .time-attendance-table tbody td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.home-dashboard .time-attendance-table tbody tr:hover td,
+.home-dashboard .time-attendance-table tbody tr.row-expanded td {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    word-break: break-word;
+}
+
 .home-dashboard .dash-grid>.card:nth-child(4) .chart-wrap {
     min-height: 120px;
     /* down from ~180px */

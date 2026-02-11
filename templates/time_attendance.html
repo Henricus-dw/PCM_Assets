@@ -105,7 +105,16 @@
                         </div>
                     </header>
                     <div class="table-wrap">
-                        <table class="small-table" id="sessionsTable">
+                        <table class="small-table time-attendance-table" id="sessionsTable">
+                            <colgroup>
+                                <col class="col-name" />
+                                <col class="col-company" />
+                                <col class="col-site" />
+                                <col class="col-division" />
+                                <col class="col-check-in" />
+                                <col class="col-check-out" />
+                                <col class="col-duration" />
+                            </colgroup>
                             <thead>
                                 <tr>
                                     <th>Name &amp; Surname</th>
@@ -190,12 +199,19 @@
             const today = new Date().toISOString().slice(0, 10);
             const startInput = document.getElementById('filterStartDate');
             const endInput = document.getElementById('filterEndDate');
+            const sessionsBody = document.getElementById('sessionsBody');
             startInput.value = today;
             endInput.value = today;
             startInput.addEventListener('change', refreshSessions);
             endInput.addEventListener('change', refreshSessions);
             refreshSessions();
             autoRefreshInterval = setInterval(() => { refreshSessions(); }, 5000);
+
+            sessionsBody?.addEventListener('click', (event) => {
+                const row = event.target.closest('tr');
+                if (!row) return;
+                row.classList.toggle('row-expanded');
+            });
 
             // Sidebar toggle
             const handle = document.getElementById("sidebarHandle");
