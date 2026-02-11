@@ -157,8 +157,16 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
 
                 db.add(log)
 
-                # Pair into attendance sessions
-                if status == 0:
+                # Pair into attendance sessions (toggle by last open session)
+                open_session = db.query(AttendanceSession).filter(
+                    AttendanceSession.pin == pin,
+                    AttendanceSession.check_out.is_(None),
+                ).order_by(AttendanceSession.check_in.desc()).first()
+
+                if open_session:
+                    open_session.check_out = timestamp
+                    open_session.status = "closed"
+                else:
                     session = AttendanceSession(
                         pin=pin,
                         check_in=timestamp,
@@ -166,25 +174,6 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
                         status="open"
                     )
                     db.add(session)
-                elif status == 1:
-                    # Close the most recent open session regardless of duration
-                    open_session = db.query(AttendanceSession).filter(
-                        AttendanceSession.pin == pin,
-                        AttendanceSession.check_out.is_(None),
-                    ).order_by(AttendanceSession.check_in.desc()).first()
-
-                    if open_session:
-                        open_session.check_out = timestamp
-                        open_session.status = "closed"
-                    else:
-                        # Orphan checkout (no matching check-in in window)
-                        orphan = AttendanceSession(
-                            pin=pin,
-                            check_in=timestamp,
-                            check_out=timestamp,
-                            status="orphan"
-                        )
-                        db.add(orphan)
                 stored_count += 1
 
                 logger.info(
