@@ -167,13 +167,10 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
                     )
                     db.add(session)
                 elif status == 1:
-                    # Find most recent open session within 13 hours
-                    window_start = timestamp - timedelta(hours=13)
+                    # Close the most recent open session regardless of duration
                     open_session = db.query(AttendanceSession).filter(
                         AttendanceSession.pin == pin,
                         AttendanceSession.check_out.is_(None),
-                        AttendanceSession.check_in >= window_start,
-                        AttendanceSession.check_in <= timestamp,
                     ).order_by(AttendanceSession.check_in.desc()).first()
 
                     if open_session:

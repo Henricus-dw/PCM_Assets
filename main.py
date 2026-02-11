@@ -327,39 +327,70 @@ def api_attendance_live(request: Request, db: Session = Depends(get_db), limit: 
 
 
 @app.get("/api/sessions/today")
-def api_sessions_today(request: Request, db: Session = Depends(get_db), date_str: Optional[str] = None, pin: Optional[str] = None):
+def api_sessions_today(request: Request, db: Session = Depends(get_db), start_date: Optional[str] = None, end_date: Optional[str] = None):
     if not request.session.get("user_id"):
         raise HTTPException(status_code=401, detail="Not authenticated")
-    from models import AttendanceSession
-    if date_str:
+    from models import AttendanceSession, Employee
+
+    def parse_date(value: Optional[str]) -> date:
+        if not value:
+            return date.today()
         try:
-            target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+            return datetime.strptime(value, "%Y-%m-%d").date()
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid date")
-    else:
-        target_date = date.today()
 
-    query = db.query(AttendanceSession).filter(
-        func.date(AttendanceSession.check_in) == target_date.isoformat())
-    if pin:
-        query = query.filter(AttendanceSession.pin == pin)
-    sessions = query.order_by(AttendanceSession.check_in.desc()).all()
+    start = parse_date(start_date)
+    end = parse_date(end_date) if end_date else start
+    if end < start:
+        raise HTTPException(status_code=400, detail="Invalid date range")
 
-    def duration_minutes(s):
+    start_dt = datetime.combine(start, datetime.min.time())
+    end_dt = datetime.combine(end, datetime.max.time())
+
+    sessions = db.query(AttendanceSession).filter(
+        AttendanceSession.check_in >= start_dt,
+        AttendanceSession.check_in <= end_dt
+    ).order_by(AttendanceSession.check_in.desc()).all()
+
+    pins = {s.pin for s in sessions}
+    employees = db.query(Employee).filter(
+        Employee.Employee_id.in_(pins)).all() if pins else []
+    employee_by_pin = {e.Employee_id: e for e in employees}
+    for e in employees:
+        pin_key = str(e.PIN)
+        if pin_key not in employee_by_pin:
+            employee_by_pin[pin_key] = e
+
+    def duration_seconds(s):
         if s.check_out and s.check_in:
-            return int((s.check_out - s.check_in).total_seconds() / 60)
+            return int((s.check_out - s.check_in).total_seconds())
         return None
 
-    return JSONResponse([
-        {
+    out = []
+    for s in sessions:
+        emp = employee_by_pin.get(s.pin)
+        full_name = None
+        company = None
+        site = None
+        division = None
+        if emp:
+            full_name = f"{emp.Name_ or ''} {emp.Surname_ or ''}".strip() or None
+            company = emp.Company
+            site = emp.Site
+            division = emp.Division
+        out.append({
             "pin": s.pin,
+            "full_name": full_name,
+            "company": company,
+            "site": site,
+            "division": division,
             "check_in": s.check_in.isoformat() if s.check_in else None,
             "check_out": s.check_out.isoformat() if s.check_out else None,
-            "status": s.status,
-            "duration_minutes": duration_minutes(s),
-        }
-        for s in sessions
-    ])
+            "duration_seconds": duration_seconds(s),
+        })
+
+    return JSONResponse(out)
 
 
 @app.post("/api/employees")
@@ -447,7 +478,7 @@ def biometric_dashboard(request: Request):
     if not request.session.get("user_id"):
         return RedirectResponse(url="/login", status_code=302)
     return templates.TemplateResponse(
-        "biometric_dashboard.html",
+        "time_attendance.html",
         {"request": request, "section": "biometric-dashboard",
             "time": datetime.utcnow().timestamp()}
     )

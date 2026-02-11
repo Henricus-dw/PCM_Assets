@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8" />
-    <title>Biometric Dashboard</title>
+    <title>Time and Attendance</title>
     <link rel="stylesheet" href="/static/styles.css?v={{ time }}">
     <style>
         .refresh-btn {
@@ -66,8 +66,8 @@
         <div class="nav-top">
             <a href="/time-attendance"
                 class="{{ 'active' if section == 'time-attendance' else '' }}"><span>Employees</span></a>
-            <a href="/biometric-dashboard"
-                class="{{ 'active' if section == 'biometric-dashboard' else '' }}"><span>Biometric Dashboard</span></a>
+            <a href="/biometric-dashboard" class="{{ 'active' if section == 'biometric-dashboard' else '' }}"><span>Time
+                    and Attendance</span></a>
         </div>
         <div class="sidebar-mid">
             <a href="/" class="sidebar-return" title="Return">↺ Return</a>
@@ -94,30 +94,31 @@
     <div class="content4">
         <div class="contentInner4">
             <div class="dash-grid biometric-grid">
-                <!-- Sessions Today -->
+                <!-- Sessions -->
                 <section class="card card--tall sessions-card">
                     <header class="card-head">
-                        <h2>Today's Sessions</h2>
+                        <div></div>
                         <div style="display:flex; gap:10px; align-items:center;">
-                            <input id="filterDate" type="date" class="input" style="height:32px;" />
-                            <input id="filterPin" class="input" placeholder="Filter PIN" style="height:32px;" />
-                            <button class="refresh-btn" onclick="refreshSessions()">Apply</button>
+                            <input id="filterStartDate" type="date" class="input" style="height:32px;" />
+                            <input id="filterEndDate" type="date" class="input" style="height:32px;" />
                         </div>
                     </header>
                     <div class="table-wrap">
                         <table class="small-table" id="sessionsTable">
                             <thead>
                                 <tr>
-                                    <th>PIN</th>
+                                    <th>Name &amp; Surname</th>
+                                    <th>Company</th>
+                                    <th>Site</th>
+                                    <th>Division</th>
                                     <th>Check-in</th>
                                     <th>Check-out</th>
                                     <th>Duration</th>
-                                    <th>Status</th>
                                 </tr>
                             </thead>
                             <tbody id="sessionsBody">
                                 <tr>
-                                    <td colspan="5" class="muted">Loading sessions...</td>
+                                    <td colspan="7" class="muted">Loading sessions...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -135,32 +136,48 @@
             return new Date(ts).toLocaleString();
         }
 
-        async function refreshSessions() {
-            const dateInput = document.getElementById('filterDate');
-            const pinInput = document.getElementById('filterPin');
-            const dateVal = dateInput.value || new Date().toISOString().slice(0, 10);
-            const pinVal = pinInput.value.trim();
+        function formatDuration(seconds) {
+            if (seconds === null || seconds === undefined) return '-';
+            const total = Math.max(0, Number(seconds));
+            const hours = Math.floor(total / 3600);
+            const minutes = Math.floor((total % 3600) / 60);
+            const secs = Math.floor(total % 60);
+            return `${hours}h ${minutes}m ${secs}s`;
+        }
 
-            const url = `/api/sessions/today?date_str=${dateVal}${pinVal ? `&pin=${encodeURIComponent(pinVal)}` : ''}`;
+        async function refreshSessions() {
+            const startInput = document.getElementById('filterStartDate');
+            const endInput = document.getElementById('filterEndDate');
+            const today = new Date().toISOString().slice(0, 10);
+            const startVal = startInput.value || today;
+            const endVal = endInput.value || today;
+
+            const url = `/api/sessions/today?start_date=${startVal}&end_date=${endVal}`;
             const res = await fetch(url);
             if (!res.ok) return;
             const sessions = await res.json();
             const body = document.getElementById('sessionsBody');
 
             if (!sessions.length) {
-                body.innerHTML = '<tr><td colspan="5" class="muted">No sessions found</td></tr>';
+                body.innerHTML = '<tr><td colspan="7" class="muted">No sessions found</td></tr>';
                 return;
             }
 
             body.innerHTML = sessions.map(s => {
-                const dur = s.duration_minutes ? `${s.duration_minutes} min` : '-';
+                const name = s.full_name || '-';
+                const company = s.company || '-';
+                const site = s.site || '-';
+                const division = s.division || '-';
+                const dur = formatDuration(s.duration_seconds);
                 return `
                     <tr>
-                        <td>${s.pin}</td>
+                        <td>${name}</td>
+                        <td>${company}</td>
+                        <td>${site}</td>
+                        <td>${division}</td>
                         <td>${fmt(s.check_in)}</td>
                         <td>${fmt(s.check_out)}</td>
                         <td>${dur}</td>
-                        <td>${s.status}</td>
                     </tr>
                 `;
             }).join('');
@@ -170,7 +187,12 @@
         // Auto-refresh every 5 seconds
         document.addEventListener('DOMContentLoaded', () => {
             const today = new Date().toISOString().slice(0, 10);
-            document.getElementById('filterDate').value = today;
+            const startInput = document.getElementById('filterStartDate');
+            const endInput = document.getElementById('filterEndDate');
+            startInput.value = today;
+            endInput.value = today;
+            startInput.addEventListener('change', refreshSessions);
+            endInput.addEventListener('change', refreshSessions);
             refreshSessions();
             autoRefreshInterval = setInterval(() => { refreshSessions(); }, 5000);
 
