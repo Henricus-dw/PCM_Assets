@@ -162,7 +162,8 @@ def api_list_employees(request: Request, db: Session = Depends(get_db)):
             "Name_": getattr(r, 'Name_'),
             "Surname_": getattr(r, 'Surname_'),
             "Company": getattr(r, 'Company'),
-            "Department": getattr(r, 'Department'),
+            "Site": getattr(r, 'Site'),
+            "Division": getattr(r, 'Division'),
         })
     return JSONResponse(out)
 
@@ -228,7 +229,8 @@ def api_employees_summary(request: Request, db: Session = Depends(get_db)):
             "Name_": emp.Name_,
             "Surname_": emp.Surname_,
             "Company": emp.Company,
-            "Department": emp.Department,
+            "Site": emp.Site,
+            "Division": emp.Division,
             "last_event": le.timestamp.isoformat() if le else None,
             "last_status": le.status if le else None,
             "last_check_in": ls.check_in.isoformat() if ls else None,
@@ -379,7 +381,8 @@ async def api_create_employee(request: Request, db: Session = Depends(get_db)):
         Name_=payload.get('Name_'),
         Surname_=payload.get('Surname_'),
         Company=payload.get('Company'),
-        Department=payload.get('Department')
+        Site=payload.get('Site'),
+        Division=payload.get('Division')
     )
     db.add(emp)
     try:
@@ -427,7 +430,8 @@ async def api_push_employees(request: Request, db: Session = Depends(get_db)):
             "Name_": getattr(r, "Name_"),
             "Surname_": getattr(r, "Surname_"),
             "Company": getattr(r, "Company"),
-            "Department": getattr(r, "Department"),
+            "Site": getattr(r, "Site"),
+            "Division": getattr(r, "Division"),
         })
 
     try:

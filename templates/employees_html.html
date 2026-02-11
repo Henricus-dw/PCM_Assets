@@ -55,6 +55,7 @@
                                 <col class="col-name" />
                                 <col class="col-emp" />
                                 <col class="col-company" />
+                                <col class="col-site" />
                                 <col class="col-division" />
                                 <col class="col-status" />
                             </colgroup>
@@ -64,13 +65,14 @@
                                     <th>Name &amp; Surname</th>
                                     <th>Employee Nr</th>
                                     <th>Company</th>
+                                    <th>Site</th>
                                     <th>Division</th>
                                     <th>Status</th>
                                 </tr>
                             </thead>
                             <tbody id="employeeBody">
                                 <tr>
-                                    <td colspan="6" class="muted">Loading employees...</td>
+                                    <td colspan="7" class="muted">Loading employees...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -124,18 +126,45 @@
                         </div>
                     </div>
                     <div style="margin-top: 15px;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Department</label>
-                        <input type="text" id="empDept" placeholder="Department"
-                            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;">
-                    </div>
-                    <div style="margin-top: 15px;">
                         <label style="display: block; margin-bottom: 5px; font-weight: 600;">Company</label>
                         <select id="empCompany" required
                             style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;">
+                            <option>Risk</option>
+                            <option>International</option>
                             <option>PCM</option>
-                            <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
-                            <option>PAS/PAC</option>
-                            <option>INT</option>
+                            <option>PPS</option>
+                            <option>PAC/PAS</option>
+                        </select>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Site</label>
+                        <select id="empSite" required
+                            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;">
+                            <option>SG Bloem</option>
+                            <option>SG PE</option>
+                            <option>SG Durban</option>
+                            <option>SG George</option>
+                            <option>SG Cape Town</option>
+                            <option>SG Joburg</option>
+                            <option>Vector Linbrow</option>
+                            <option>Vector Bloemfontein</option>
+                            <option>Vector Roodepoort</option>
+                            <option>Vector Polokwane</option>
+                            <option>Vector Nelspruit</option>
+                            <option>DHL</option>
+                            <option>KWE</option>
+                            <option>Imperial</option>
+                            <option>Bollore</option>
+                        </select>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Division</label>
+                        <select id="empDivision" required
+                            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;">
+                            <option>VH</option>
+                            <option>VA</option>
+                            <option>CCTV</option>
+                            <option>All the above</option>
                         </select>
                     </div>
                     <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
@@ -206,7 +235,7 @@
         function renderEmployees(rows) {
             const tbody = document.getElementById('employeeBody');
             if (!rows.length) {
-                tbody.innerHTML = '<tr><td colspan="6" class="muted">No employees found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="muted">No employees found</td></tr>';
                 return;
             }
             tbody.innerHTML = rows.map(e => {
@@ -221,7 +250,8 @@
                     <td>${(e.Name_ || '')} ${(e.Surname_ || '')}</td>
                     <td>${e.Employee_id || ''}</td>
                     <td>${e.Company || ''}</td>
-                    <td>${e.Department || ''}</td>
+                    <td>${e.Site || ''}</td>
+                    <td>${e.Division || ''}</td>
                     <td><span class="status-pill ${statusClass}">${e.current_status}</span></td>
                 </tr>
             `;
@@ -245,8 +275,9 @@
                 const surname = String(e.Surname_ ?? '').toLowerCase();
                 const emp = String(e.Employee_id ?? '').toLowerCase();
                 const company = String(e.Company ?? '').toLowerCase();
-                const division = String(e.Department ?? '').toLowerCase();
-                return pin.includes(q) || name.includes(q) || surname.includes(q) || emp.includes(q) || company.includes(q) || division.includes(q);
+                const site = String(e.Site ?? '').toLowerCase();
+                const division = String(e.Division ?? '').toLowerCase();
+                return pin.includes(q) || name.includes(q) || surname.includes(q) || emp.includes(q) || company.includes(q) || site.includes(q) || division.includes(q);
             });
             renderEmployees(filtered);
         }
@@ -310,8 +341,9 @@
                 Employee_id: document.getElementById('empId').value.trim(),
                 Name_: document.getElementById('empName').value.trim(),
                 Surname_: document.getElementById('empSurname').value.trim(),
-                Department: document.getElementById('empDept').value.trim(),
-                Company: document.getElementById('empCompany').value
+                Company: document.getElementById('empCompany').value,
+                Site: document.getElementById('empSite').value,
+                Division: document.getElementById('empDivision').value
             };
             const res = await fetch('/api/employees', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             if (res.ok) {

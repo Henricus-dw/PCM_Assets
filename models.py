@@ -146,7 +146,8 @@ class Employee(Base):
     Name_ = Column(String(100))
     Surname_ = Column(String(100))
     Company = Column(String(100))
-    Department = Column(String(100))
+    Site = Column(String(100))
+    Division = Column(String(100))
 
 
 class TimestampRecord(Base):
