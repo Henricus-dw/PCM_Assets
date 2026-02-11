@@ -6,37 +6,6 @@
     <title>Biometric Dashboard</title>
     <link rel="stylesheet" href="/static/styles.css?v={{ time }}">
     <style>
-        .live-status {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.9rem;
-            padding: 8px 12px;
-            background: #f0fdf4;
-            border-radius: 6px;
-            border-left: 3px solid #22c55e;
-        }
-
-        .status-dot {
-            width: 10px;
-            height: 10px;
-            background: #22c55e;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-
-            0%,
-            100% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: 0.5;
-            }
-        }
-
         .refresh-btn {
             background: #3b82f6;
             color: white;
@@ -51,64 +20,6 @@
 
         .refresh-btn:hover {
             background: #2563eb;
-        }
-
-        .logs-container {
-            max-height: 600px;
-            overflow-y: auto;
-        }
-
-        .log-entry {
-            padding: 12px;
-            border-bottom: 1px solid #e5e7eb;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #fafafa;
-        }
-
-        .log-entry:hover {
-            background: #f3f4f6;
-        }
-
-        .log-entry.success {
-            border-left: 3px solid #22c55e;
-            background: #f0fdf4;
-        }
-
-        .log-time {
-            font-weight: 600;
-            color: #111827;
-            min-width: 120px;
-        }
-
-        .log-pin {
-            color: #6b7280;
-            min-width: 60px;
-            font-family: monospace;
-        }
-
-        .log-type {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-
-        .log-type.fingerprint {
-            background: #dbeafe;
-            color: #0c4a6e;
-        }
-
-        .log-type.password {
-            background: #fef3c7;
-            color: #78350f;
-        }
-
-        .log-type.rfid {
-            background: #f3e8ff;
-            color: #5b21b6;
         }
 
         .stats-grid {
@@ -182,28 +93,9 @@
     <!-- Main content area -->
     <div class="content4">
         <div class="contentInner4">
-            <div class="dash-grid">
-                <!-- Card 1: Live Device Feed -->
-                <section class="card card--tall">
-                    <header class="card-head">
-                        <h2>Live Feed</h2>
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                            <div class="live-status">
-                                <div class="status-dot"></div>
-                                <span>Live</span>
-                            </div>
-                            <button class="refresh-btn" onclick="refreshLogs()">Refresh</button>
-                        </div>
-                    </header>
-                    <div class="logs-container">
-                        <div id="logsContainer" class="no-data">
-                            Loading attendance logs...
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Card 3: Sessions Today -->
-                <section class="card card--tall">
+            <div class="dash-grid biometric-grid">
+                <!-- Sessions Today -->
+                <section class="card card--tall sessions-card">
                     <header class="card-head">
                         <h2>Today's Sessions</h2>
                         <div style="display:flex; gap:10px; align-items:center;">
@@ -243,52 +135,6 @@
             return new Date(ts).toLocaleString();
         }
 
-        async function refreshLogs() {
-            try {
-                const response = await fetch('/api/attendance/live?limit=100');
-                const logs = await response.json();
-
-                const container = document.getElementById('logsContainer');
-
-                if (!logs || logs.length === 0) {
-                    container.innerHTML = '<div class="no-data">No attendance logs yet. Waiting for device...</div>';
-                    return;
-                }
-
-                // Sort by timestamp descending (newest first)
-                logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
-                // Get today's logs only
-                const today = new Date().toDateString();
-                const todaysLogs = logs.filter(log => {
-                    const logDate = new Date(log.timestamp).toDateString();
-                    return logDate === today;
-                });
-
-                if (todaysLogs.length === 0) {
-                    container.innerHTML = '<div class="no-data">No events today yet</div>';
-                    return;
-                }
-
-                // Render logs
-                container.innerHTML = todaysLogs.map(log => {
-                    const time = new Date(log.timestamp).toLocaleTimeString();
-                    const action = (log.action || 'unknown').replace('_', ' ');
-                    return `
-                        <div class="log-entry success">
-                            <div class="log-time">${time}</div>
-                            <div class="log-pin">PIN: ${log.pin}</div>
-                            <span class="log-type">${action}</span>
-                        </div>
-                    `;
-                }).join('');
-
-            } catch (error) {
-                console.error('Failed to fetch logs:', error);
-                document.getElementById('logsContainer').innerHTML = '<div class="no-data">Error loading logs</div>';
-            }
-        }
-
         async function refreshSessions() {
             const dateInput = document.getElementById('filterDate');
             const pinInput = document.getElementById('filterPin');
@@ -325,9 +171,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             const today = new Date().toISOString().slice(0, 10);
             document.getElementById('filterDate').value = today;
-            refreshLogs();
             refreshSessions();
-            autoRefreshInterval = setInterval(() => { refreshLogs(); refreshSessions(); }, 5000);
+            autoRefreshInterval = setInterval(() => { refreshSessions(); }, 5000);
 
             // Sidebar toggle
             const handle = document.getElementById("sidebarHandle");

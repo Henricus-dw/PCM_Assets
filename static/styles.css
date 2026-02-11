@@ -1440,6 +1440,17 @@ table.sticky th {
     grid-row: 1;
 }
 
+/* Biometric dashboard layout: sessions spans left column (2 rows) */
+.home-dashboard .biometric-grid {
+    grid-template-columns: 1.35fr 1fr;
+    grid-template-rows: 1fr 1fr;
+}
+
+.home-dashboard .biometric-grid .sessions-card {
+    grid-row: 1 / span 2;
+    grid-column: 1;
+}
+
 .home-dashboard .dash-grid>.card:nth-child(4) .chart-wrap {
     min-height: 120px;
     /* down from ~180px */
