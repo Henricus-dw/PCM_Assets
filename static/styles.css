@@ -1459,20 +1459,20 @@ table.sticky th {
 .home-dashboard .time-attendance-table col.col-company,
 .home-dashboard .time-attendance-table col.col-site,
 .home-dashboard .time-attendance-table col.col-division {
-    width: 9%;
+    width: 11%;
 }
 
 .home-dashboard .time-attendance-table col.col-duration {
-    width: 7%;
+    width: 9%;
 }
 
 .home-dashboard .time-attendance-table col.col-name {
-    width: 28%;
+    width: 26%;
 }
 
 .home-dashboard .time-attendance-table col.col-check-in,
 .home-dashboard .time-attendance-table col.col-check-out {
-    width: 19%;
+    width: 16%;
 }
 
 .home-dashboard .time-attendance-table tbody td {
