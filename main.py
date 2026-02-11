@@ -433,11 +433,9 @@ def api_accumulated_hours(
     end_dt = datetime.combine(end, datetime.max.time())
 
     sessions = db.query(AttendanceSession).filter(
+        AttendanceSession.check_out.isnot(None),
         AttendanceSession.check_in <= end_dt,
-        or_(
-            AttendanceSession.check_out.is_(None),
-            AttendanceSession.check_out >= start_dt,
-        ),
+        AttendanceSession.check_out >= start_dt,
     ).order_by(AttendanceSession.check_in.asc()).all()
 
     pins = {s.pin for s in sessions}
@@ -463,8 +461,10 @@ def api_accumulated_hours(
 
     def overlap_seconds(session: AttendanceSession) -> int:
         check_in = session.check_in
-        check_out = session.check_out or end_dt
+        check_out = session.check_out
         if not check_in:
+            return 0
+        if not check_out:
             return 0
         range_start = max(check_in, start_dt)
         range_end = min(check_out, end_dt)
