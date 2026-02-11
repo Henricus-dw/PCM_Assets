@@ -354,8 +354,19 @@ def api_sessions_today(request: Request, db: Session = Depends(get_db), start_da
     ).order_by(AttendanceSession.check_in.desc()).all()
 
     pins = {s.pin for s in sessions}
-    employees = db.query(Employee).filter(
-        Employee.Employee_id.in_(pins)).all() if pins else []
+    pin_ints = []
+    for p in pins:
+        try:
+            pin_ints.append(int(p))
+        except (TypeError, ValueError):
+            continue
+
+    employees = []
+    if pins:
+        filters = [Employee.Employee_id.in_(pins)]
+        if pin_ints:
+            filters.append(Employee.PIN.in_(pin_ints))
+        employees = db.query(Employee).filter(or_(*filters)).all()
     employee_by_pin = {e.Employee_id: e for e in employees}
     for e in employees:
         pin_key = str(e.PIN)
