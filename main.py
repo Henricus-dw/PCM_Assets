@@ -15,7 +15,7 @@ from passlib.context import CryptContext
 from starlette.middleware.sessions import SessionMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
-from datetime import date, datetime, time, timedelta
+from datetime import date, datetime, timedelta
 import calendar
 import os
 from starlette.responses import RedirectResponse
@@ -346,7 +346,7 @@ def api_sessions_today(request: Request, db: Session = Depends(get_db), start_da
         raise HTTPException(status_code=400, detail="Invalid date range")
 
     start_dt = datetime.combine(start, datetime.min.time())
-    end_dt = datetime.combine(end, time(12, 0, 0))
+    end_dt = datetime.combine(end, datetime.max.time())
 
     sessions = db.query(AttendanceSession).filter(
         AttendanceSession.check_in >= start_dt,
