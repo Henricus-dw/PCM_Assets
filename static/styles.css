@@ -1442,7 +1442,7 @@ table.sticky th {
 
 /* Biometric dashboard layout: sessions spans left column (2 rows) */
 .home-dashboard .biometric-grid {
-    grid-template-columns: 1.35fr 1fr;
+    grid-template-columns: 1.75fr 1fr;
     grid-template-rows: 1fr 1fr;
 }
 

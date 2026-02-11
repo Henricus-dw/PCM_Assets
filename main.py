@@ -484,13 +484,13 @@ async def api_push_employees(request: Request, db: Session = Depends(get_db)):
             status_code=502, detail=f"Failed to reach device: {e}")
 
 
-@app.get("/biometric-dashboard", response_class=HTMLResponse)
+@app.get("/time-attendance-dashboard", response_class=HTMLResponse)
 def biometric_dashboard(request: Request):
     if not request.session.get("user_id"):
         return RedirectResponse(url="/login", status_code=302)
     return templates.TemplateResponse(
         "time_attendance.html",
-        {"request": request, "section": "biometric-dashboard",
+        {"request": request, "section": "time-attendance-dashboard",
             "time": datetime.utcnow().timestamp()}
     )
 
