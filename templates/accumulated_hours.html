@@ -31,7 +31,8 @@
         </div>
         <div class="nav-bottom">
             {% if request.session.get('is_admin') %}
-            <a href="/admin?module=biometric" class="{{ 'active' if section == 'admin' else '' }}"><span>Admin</span></a>
+            <a href="/admin?module=biometric"
+                class="{{ 'active' if section == 'admin' else '' }}"><span>Admin</span></a>
             {% endif %}
 
             <a href="/settings?module=biometric"
