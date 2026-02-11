@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Accumulated Hours</title>
+    <link rel="stylesheet" href="/static/styles.css?v={{ time }}">
+    <style>
+        .no-data {
+            padding: 40px;
+            text-align: center;
+            color: #9ca3af;
+        }
+    </style>
+</head>
+
+<body class="home-dashboard">
+    <div class="sidebar">
+        <img src="/static/pcm-lockup-goldc-final.svg" alt="PCM logo" />
+        <div class="nav-top">
+            <a href="/time-attendance"
+                class="{{ 'active' if section == 'time-attendance' else '' }}"><span>Employees</span></a>
+            <a href="/time-attendance-dashboard"
+                class="{{ 'active' if section == 'time-attendance-dashboard' else '' }}"><span>Time and
+                    Attendance</span></a>
+            <a href="/hours-accumulated"
+                class="{{ 'active' if section == 'accumulated-hours' else '' }}"><span>Accumulated Hours</span></a>
+        </div>
+        <div class="sidebar-mid">
+            <a href="/" class="sidebar-return" title="Return">↺ Return</a>
+        </div>
+        <div class="nav-bottom">
+            {% if request.session.get('is_admin') %}
+            <a href="/admin?module=biometric" class="{{ 'active' if section == 'admin' else '' }}"><span>Admin</span></a>
+            {% endif %}
+
+            <a href="/settings?module=biometric"
+                class="{{ 'active' if section == 'settings' else '' }}"><span>Settings</span></a>
+            <a href="/logout" id="logoutLink" class="{{ 'active' if section == 'logout' else '' }}">
+                <span>Log Out</span>
+            </a>
+        </div>
+        <button id="sidebarHandle" class="sidebar-handle" aria-label="Collapse sidebar" aria-pressed="false"
+            title="Collapse sidebar"> <span class="handle-icon" aria-hidden="true">⟨</span> </button>
+    </div>
+
+    <div class="content4">
+        <div class="contentInner4">
+            <div class="dash-grid biometric-grid">
+                <section class="card card--tall sessions-card">
+                    <header class="card-head">
+                        <select id="viewMode" class="input" style="height:32px;">
+                            <option value="employee">Employees</option>
+                            <option value="company">Company</option>
+                            <option value="site">Site</option>
+                            <option value="division">Division</option>
+                        </select>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <input id="filterStartDate" type="date" class="input" style="height:32px;" />
+                            <input id="filterEndDate" type="date" class="input" style="height:32px;" />
+                        </div>
+                    </header>
+                    <div class="table-wrap">
+                        <table class="small-table accumulated-table" id="accumulatedTable">
+                            <colgroup id="accumulatedCols"></colgroup>
+                            <thead id="accumulatedHead"></thead>
+                            <tbody id="accumulatedBody">
+                                <tr>
+                                    <td colspan="6" class="muted">Loading accumulated hours...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let autoRefreshInterval;
+
+        function fmtHours(seconds) {
+            if (seconds === null || seconds === undefined) return '-';
+            const total = Math.max(0, Number(seconds));
+            const hours = Math.floor(total / 3600);
+            const minutes = Math.floor((total % 3600) / 60);
+            const secs = Math.floor(total % 60);
+            return `${hours}h ${minutes}m ${secs}s`;
+        }
+
+        function toInputDate(d) {
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function defaultDateRange() {
+            const today = new Date();
+            let startMonth = today.getMonth() - 1;
+            let startYear = today.getFullYear();
+            let endMonth = today.getMonth();
+            let endYear = today.getFullYear();
+
+            if (today.getDate() >= 22) {
+                startMonth = today.getMonth();
+                endMonth = today.getMonth() + 1;
+            }
+
+            if (startMonth < 0) {
+                startMonth += 12;
+                startYear -= 1;
+            }
+            if (endMonth > 11) {
+                endMonth -= 12;
+                endYear += 1;
+            }
+
+            const start = new Date(startYear, startMonth, 20);
+            const end = new Date(endYear, endMonth, 21);
+            return { start, end };
+        }
+
+        function setHeader(mode) {
+            const head = document.getElementById('accumulatedHead');
+            const cols = document.getElementById('accumulatedCols');
+            if (mode === 'employee') {
+                cols.innerHTML = `
+                    <col class="col-name" />
+                    <col class="col-company" />
+                    <col class="col-site" />
+                    <col class="col-division" />
+                    <col class="col-accum" />
+                `;
+                head.innerHTML = `
+                    <tr>
+                        <th>Name &amp; Surname</th>
+                        <th>Company</th>
+                        <th>Site</th>
+                        <th>Division</th>
+                        <th>Accumulated Hours</th>
+                    </tr>
+                `;
+                return;
+            }
+            const label = mode.charAt(0).toUpperCase() + mode.slice(1);
+            cols.innerHTML = `
+                <col class="col-group" />
+                <col class="col-accum" />
+            `;
+            head.innerHTML = `
+                <tr>
+                    <th>${label}</th>
+                    <th>Accumulated Hours</th>
+                </tr>
+            `;
+        }
+
+        async function refreshAccumulated() {
+            const mode = document.getElementById('viewMode').value;
+            setHeader(mode);
+
+            const startInput = document.getElementById('filterStartDate');
+            const endInput = document.getElementById('filterEndDate');
+            const startVal = startInput.value;
+            const endVal = endInput.value;
+
+            const url = `/api/accumulated-hours?start_date=${startVal}&end_date=${endVal}&group_by=${encodeURIComponent(mode)}`;
+            const res = await fetch(url);
+            if (!res.ok) return;
+            const rows = await res.json();
+            const body = document.getElementById('accumulatedBody');
+
+            const emptyColspan = mode === 'employee' ? 5 : 2;
+            if (!rows.length) {
+                body.innerHTML = `<tr><td colspan="${emptyColspan}" class="muted">No records found</td></tr>`;
+                return;
+            }
+
+            if (mode === 'employee') {
+                body.innerHTML = rows.map(r => {
+                    const name = r.full_name || '-';
+                    const company = r.company || '-';
+                    const site = r.site || '-';
+                    const division = r.division || '-';
+                    const hours = fmtHours(r.accumulated_seconds);
+                    return `
+                        <tr>
+                            <td>${name}</td>
+                            <td>${company}</td>
+                            <td>${site}</td>
+                            <td>${division}</td>
+                            <td>${hours}</td>
+                        </tr>
+                    `;
+                }).join('');
+                return;
+            }
+
+            body.innerHTML = rows.map(r => {
+                const label = r.group || '-';
+                const hours = fmtHours(r.accumulated_seconds);
+                return `
+                    <tr>
+                        <td>${label}</td>
+                        <td>${hours}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const range = defaultDateRange();
+            const startInput = document.getElementById('filterStartDate');
+            const endInput = document.getElementById('filterEndDate');
+            startInput.value = toInputDate(range.start);
+            endInput.value = toInputDate(range.end);
+
+            document.getElementById('viewMode').addEventListener('change', refreshAccumulated);
+            startInput.addEventListener('change', refreshAccumulated);
+            endInput.addEventListener('change', refreshAccumulated);
+
+            refreshAccumulated();
+            autoRefreshInterval = setInterval(() => { refreshAccumulated(); }, 5000);
+
+            const handle = document.getElementById("sidebarHandle");
+            function toggleSidebar() {
+                document.body.classList.toggle("sidebar-collapsed");
+                handle?.setAttribute("aria-pressed", String(document.body.classList.contains("sidebar-collapsed")));
+            }
+            handle?.addEventListener("click", toggleSidebar);
+
+            const logoutLink = document.getElementById("logoutLink");
+            if (logoutLink) {
+                logoutLink.addEventListener("click", function (e) {
+                    e.preventDefault();
+                    const confirmed = confirm("Are you sure you want to log out?");
+                    if (confirmed) {
+                        window.location.href = this.href;
+                    }
+                });
+            }
+        });
+
+        window.addEventListener('beforeunload', () => {
+            if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+        });
+    </script>
+</body>
+
+</html>

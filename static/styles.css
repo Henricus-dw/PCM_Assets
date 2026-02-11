@@ -1489,6 +1489,41 @@ table.sticky th {
     word-break: break-word;
 }
 
+.home-dashboard .accumulated-table {
+    table-layout: fixed;
+}
+
+.home-dashboard .accumulated-table col.col-name {
+    width: 32%;
+}
+
+.home-dashboard .accumulated-table col.col-company,
+.home-dashboard .accumulated-table col.col-site,
+.home-dashboard .accumulated-table col.col-division {
+    width: 16%;
+}
+
+.home-dashboard .accumulated-table col.col-accum {
+    width: 20%;
+}
+
+.home-dashboard .accumulated-table col.col-group {
+    width: 60%;
+}
+
+.home-dashboard .accumulated-table tbody td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.home-dashboard .accumulated-table tbody tr:hover td {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    word-break: break-word;
+}
+
 .home-dashboard .dash-grid>.card:nth-child(4) .chart-wrap {
     min-height: 120px;
     /* down from ~180px */

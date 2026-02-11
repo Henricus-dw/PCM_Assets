@@ -404,6 +404,129 @@ def api_sessions_today(request: Request, db: Session = Depends(get_db), start_da
     return JSONResponse(out)
 
 
+@app.get("/api/accumulated-hours")
+def api_accumulated_hours(
+    request: Request,
+    db: Session = Depends(get_db),
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    group_by: str = "employee",
+):
+    if not request.session.get("user_id"):
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    from models import AttendanceSession, Employee
+
+    def parse_date(value: Optional[str]) -> date:
+        if not value:
+            return date.today()
+        try:
+            return datetime.strptime(value, "%Y-%m-%d").date()
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid date")
+
+    start = parse_date(start_date)
+    end = parse_date(end_date) if end_date else start
+    if end < start:
+        raise HTTPException(status_code=400, detail="Invalid date range")
+
+    start_dt = datetime.combine(start, datetime.min.time())
+    end_dt = datetime.combine(end, datetime.max.time())
+
+    sessions = db.query(AttendanceSession).filter(
+        AttendanceSession.check_in <= end_dt,
+        or_(
+            AttendanceSession.check_out.is_(None),
+            AttendanceSession.check_out >= start_dt,
+        ),
+    ).order_by(AttendanceSession.check_in.asc()).all()
+
+    pins = {s.pin for s in sessions}
+    pin_ints = []
+    for p in pins:
+        try:
+            pin_ints.append(int(p))
+        except (TypeError, ValueError):
+            continue
+
+    employees = []
+    if pins:
+        filters = [Employee.Employee_id.in_(pins)]
+        if pin_ints:
+            filters.append(Employee.PIN.in_(pin_ints))
+        employees = db.query(Employee).filter(or_(*filters)).all()
+
+    employee_by_pin = {e.Employee_id: e for e in employees}
+    for e in employees:
+        pin_key = str(e.PIN)
+        if pin_key not in employee_by_pin:
+            employee_by_pin[pin_key] = e
+
+    def overlap_seconds(session: AttendanceSession) -> int:
+        check_in = session.check_in
+        check_out = session.check_out or end_dt
+        if not check_in:
+            return 0
+        range_start = max(check_in, start_dt)
+        range_end = min(check_out, end_dt)
+        if range_end <= range_start:
+            return 0
+        return int((range_end - range_start).total_seconds())
+
+    group_by = (group_by or "employee").lower()
+    if group_by not in {"employee", "company", "site", "division"}:
+        group_by = "employee"
+    out = []
+    buckets = {}
+
+    for s in sessions:
+        seconds = overlap_seconds(s)
+        if seconds <= 0:
+            continue
+        emp = employee_by_pin.get(s.pin)
+
+        if group_by == "company":
+            key = (emp.Company if emp and emp.Company else "Unknown")
+        elif group_by == "site":
+            key = (emp.Site if emp and emp.Site else "Unknown")
+        elif group_by == "division":
+            key = (emp.Division if emp and emp.Division else "Unknown")
+        else:
+            if emp:
+                key = (
+                    emp.Employee_id,
+                    emp.Name_ or "",
+                    emp.Surname_ or "",
+                    emp.Company or "",
+                    emp.Site or "",
+                    emp.Division or "",
+                )
+            else:
+                key = (s.pin, "", "", "", "", "")
+
+        buckets[key] = buckets.get(key, 0) + seconds
+
+    if group_by in {"company", "site", "division"}:
+        for key, seconds in sorted(buckets.items(), key=lambda x: x[0]):
+            out.append({
+                "group": key,
+                "accumulated_seconds": seconds,
+            })
+    else:
+        for key, seconds in sorted(buckets.items(), key=lambda x: str(x[0])):
+            emp_id, name, surname, company, site, division = key
+            full_name = f"{name} {surname}".strip() or None
+            out.append({
+                "employee_id": emp_id,
+                "full_name": full_name,
+                "company": company or None,
+                "site": site or None,
+                "division": division or None,
+                "accumulated_seconds": seconds,
+            })
+
+    return JSONResponse(out)
+
+
 @app.post("/api/employees")
 async def api_create_employee(request: Request, db: Session = Depends(get_db)):
     if not request.session.get("user_id"):
@@ -491,6 +614,17 @@ def biometric_dashboard(request: Request):
     return templates.TemplateResponse(
         "time_attendance.html",
         {"request": request, "section": "time-attendance-dashboard",
+            "time": datetime.utcnow().timestamp()}
+    )
+
+
+@app.get("/hours-accumulated", response_class=HTMLResponse)
+def accumulated_hours_dashboard(request: Request):
+    if not request.session.get("user_id"):
+        return RedirectResponse(url="/login", status_code=302)
+    return templates.TemplateResponse(
+        "accumulated_hours.html",
+        {"request": request, "section": "accumulated-hours",
             "time": datetime.utcnow().timestamp()}
     )
 
