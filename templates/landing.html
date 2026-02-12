@@ -62,14 +62,16 @@
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
             grid-template-rows: repeat(3, minmax(0, 1fr));
-            gap: clamp(12px, 2.2vh, 24px);
+            gap: clamp(20px, 3vh, 32px);
+            row-gap: clamp(20px, 3vh, 32px);
+            column-gap: clamp(20px, 3vh, 32px);
             width: 100%;
             max-width: none;
             flex: 1;
             align-content: stretch;
-            height: calc(100vh - clamp(190px, 30vh, 260px));
+            height: calc(100vh - clamp(210px, 34vh, 300px));
             min-height: 0;
-            padding: clamp(6px, 1.2vh, 10px) clamp(12px, 2.4vw, 24px) clamp(4px, 0.8vh, 6px);
+            padding: clamp(10px, 1.8vh, 14px) clamp(16px, 3vw, 28px) clamp(8px, 1.2vh, 10px);
             box-sizing: border-box;
         }
 
