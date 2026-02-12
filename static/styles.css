@@ -1138,7 +1138,7 @@ table.sticky th {
     border: 1px solid rgba(0, 0, 0, 0.06);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
-    padding: 16px 18px;
+    padding: clamp(12px, 2vw, 16px) clamp(14px, 2.4vw, 18px);
     display: flex;
     flex-direction: column;
     transition: background 160ms ease, transform 160ms ease, box-shadow 160ms ease;
@@ -1168,12 +1168,12 @@ table.sticky th {
 }
 
 .home-dashboard .card h2 {
-    font-size: 1.05rem;
+    font-size: clamp(0.95rem, 1.3vw, 1.05rem);
     letter-spacing: .2px;
 }
 
 .home-dashboard .big-number {
-    font-size: 2.1rem;
+    font-size: clamp(1.5rem, 3.2vw, 2.1rem);
     font-weight: 800;
     margin: 4px 0 10px;
 }
@@ -1201,11 +1201,11 @@ table.sticky th {
 
 .home-dashboard .kpi-label {
     color: var(--muted);
-    font-size: .9rem;
+    font-size: clamp(0.75rem, 1.1vw, 0.9rem);
 }
 
 .home-dashboard .kpi-value {
-    font-size: 1.5rem;
+    font-size: clamp(1.05rem, 2.6vw, 1.5rem);
     font-weight: 800;
 }
 
@@ -1213,7 +1213,7 @@ table.sticky th {
 .home-dashboard .pill {
     padding: 4px 10px;
     border-radius: 999px;
-    font-size: .78rem;
+    font-size: clamp(0.7rem, 1vw, 0.78rem);
     background: #eef2ff;
     color: #374151;
     border: 1px solid #e5e7eb;
@@ -1230,7 +1230,7 @@ table.sticky th {
     margin-left: 6px;
     padding: 2px 8px;
     border-radius: 999px;
-    font-size: .72rem;
+    font-size: clamp(0.65rem, 0.9vw, 0.72rem);
     background: #e5e7eb;
     color: #374151;
 }
@@ -1263,7 +1263,7 @@ table.sticky th {
     background: #fff;
     border-radius: 10px;
     padding: 8px 10px;
-    font-size: .95rem;
+    font-size: clamp(0.85rem, 1.1vw, 0.95rem);
     outline: none;
 }
 
@@ -1329,6 +1329,7 @@ table.sticky th {
     border-bottom: 1px solid #e5e7eb;
     vertical-align: middle;
     white-space: nowrap;
+    font-size: clamp(0.75rem, 1.1vw, 0.9rem);
 }
 
 .home-dashboard .small-table thead th {
@@ -1351,7 +1352,7 @@ table.sticky th {
 /* Helpers */
 .home-dashboard .muted {
     color: var(--muted);
-    font-size: .9rem;
+    font-size: clamp(0.75rem, 1.1vw, 0.9rem);
 }
 
 @media (max-width: 520px) {
@@ -1825,6 +1826,9 @@ table.sticky th {
 :root {
     --sidebar-width: 220px;
     --content-gap: 40px;
+    --sidebar-lift: clamp(10px, 2.5vw, 27px);
+    --sidebar-lift-active: clamp(8px, 2.2vw, 25px);
+    --sidebar-shift: clamp(0px, 1.5vw, 10px);
     /* effective left offset for content when sidebar is visible */
     --sidebar-space: calc(var(--sidebar-width) + var(--content-gap));
 }
@@ -1881,7 +1885,7 @@ body.sidebar-collapsed .sidebar {
     right: -15;
     display: block;
     border-radius: 0 10px 10px 0;
-    padding: 12px 20px;
+    padding: clamp(8px, 1.4vw, 12px) clamp(12px, 2vw, 20px);
     text-decoration: none;
     background-color: #000000d7;
     color: #ffffff;
@@ -1903,7 +1907,7 @@ body.sidebar-collapsed .sidebar {
 
 .sidebar a {
     color: #000000 !important;
-    font-size: 1.06rem !important;
+    font-size: clamp(0.85rem, 1.6vw, 1.06rem) !important;
     font-weight: 400 !important;
     letter-spacing: -0.005em !important;
     transform: translateY(-50%);
@@ -1912,7 +1916,7 @@ body.sidebar-collapsed .sidebar {
     border-left: none;
     background: transparent;
     color: #2d2b26;
-    padding: 12px 20px !important;
+    padding: clamp(8px, 1.4vw, 12px) clamp(12px, 2vw, 20px) !important;
     position: relative !important;
     white-space: nowrap !important;
     overflow: hidden !important;
@@ -2014,9 +2018,9 @@ body.sidebar-collapsed .sidebar {
     background: #ffffff;
     color: #000000 !important;
     display: block;
-    padding: 12px 18px;
+    padding: clamp(8px, 1.4vw, 12px) clamp(12px, 2vw, 18px);
     margin: 4px 5px 4px 5px;
-    font-size: 1rem;
+    font-size: clamp(0.85rem, 1.5vw, 1rem);
     font-weight: 500;
     box-shadow: 0 8px 8px rgba(1, 1, 1, .1);
     border-radius: 4px;
@@ -2035,7 +2039,7 @@ body.sidebar-collapsed .sidebar {
 .sidebar a:not(.active):hover {
     background-color: #ffffff;
     color: black !important;
-    transform: translateY(-27px)translateX(10px);
+    transform: translateY(calc(-1 * var(--sidebar-lift))) translateX(var(--sidebar-shift));
 
     box-shadow:
         10px 10px 20px rgba(0, 0, 0, 0.06),
@@ -2048,7 +2052,7 @@ body.sidebar-collapsed .sidebar {
 .sidebar a.active {
     color: #ffffff !important;
     background: #4b5e70;
-    transform: translateY(-25px)translateX(0px);
+    transform: translateY(calc(-1 * var(--sidebar-lift-active))) translateX(0px);
     /* Multiple inset shadows for depth */
     box-shadow:
         inset 0 3px 6px rgba(0, 0, 0, 0.7),
@@ -2100,7 +2104,7 @@ body.sidebar-collapsed .sidebar {
     overflow: visible;
     color: #ffffff;
     background-color: #4b5e70;
-    transform: translateY(-25px) translateX(0);
+    transform: translateY(calc(-1 * var(--sidebar-lift-active))) translateX(0);
     transition: background-color 1s ease, color 1s ease;
 }
 
