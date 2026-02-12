@@ -26,11 +26,12 @@
             align-items: center;
             justify-content: center;
             padding: 40px 20px;
+            min-height: 0;
         }
 
         .landing-header {
             text-align: center;
-            margin-bottom: 60px;
+            margin-bottom: 24px;
         }
 
         .logo-section {
@@ -55,53 +56,20 @@
             margin: 0;
         }
 
-        .modules-carousel {
+        .modules-grid {
             display: grid;
-            grid-template-columns: auto 1fr auto;
-            align-items: center;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-rows: repeat(3, minmax(0, 1fr));
             gap: 18px;
-            width: min(820px, 100%);
-        }
-
-        .carousel-viewport {
-            overflow: hidden;
-            width: min(740px, 100%);
-        }
-
-        .carousel-track {
-            display: flex;
-            gap: 20px;
-            transition: transform 300ms ease;
-            will-change: transform;
-            align-items: stretch;
-        }
-
-        .carousel-btn {
-            width: 44px;
-            height: 44px;
-            border-radius: 999px;
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            background: #ffffff;
-            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
-            cursor: pointer;
-            font-size: 20px;
-            font-weight: 700;
-            color: #4b5e70;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 150ms ease, box-shadow 150ms ease;
-        }
-
-        .carousel-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+            width: min(1100px, 100%);
+            flex: 1;
+            align-content: stretch;
         }
 
         .module-card {
             background: #ffffff;
             border-radius: 16px;
-            padding: 24px 28px;
+            padding: 18px 20px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
             transition: all 0.3s ease;
             cursor: pointer;
@@ -111,8 +79,9 @@
             flex-direction: column;
             align-items: center;
             text-align: center;
-            width: 320px;
-            height: 230px;
+            width: 100%;
+            height: 100%;
+            min-height: 0;
         }
 
         .module-card:hover {
@@ -122,22 +91,23 @@
         }
 
         .module-icon {
-            font-size: 3rem;
-            margin-bottom: 14px;
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            transform: translateY(-6px);
         }
 
         .module-card h2 {
-            font-size: 1.35rem;
+            font-size: 1.1rem;
             font-weight: 700;
             color: #111827;
-            margin: 0 0 12px 0;
+            margin: 0 0 8px 0;
         }
 
         .module-card p {
             color: #6b7280;
             margin: 0;
-            font-size: 0.95rem;
-            line-height: 1.5;
+            font-size: 0.85rem;
+            line-height: 1.35;
         }
 
         .module-card.vodacom {
@@ -263,12 +233,9 @@
                 font-size: 1.8rem;
             }
 
-            .modules-carousel {
+            .modules-grid {
                 grid-template-columns: 1fr;
-            }
-
-            .carousel-btn {
-                display: none;
+                grid-template-rows: auto;
             }
 
             .user-info {
@@ -301,69 +268,63 @@
             <p>Select a module to get started</p>
         </div>
 
-        <div class="modules-carousel" aria-label="Module carousel">
-            <button class="carousel-btn" id="carouselPrev" type="button" aria-label="Previous modules">&lsaquo;</button>
-            <div class="carousel-viewport">
-                <div class="carousel-track" id="moduleTrack">
-                    <!-- Vodacom Module -->
-                    <a href="/dashboard/vodacom" class="module-card vodacom">
-                        <div class="module-icon">📱</div>
-                        <h2>Vodacom</h2>
-                        <p>Manage subscriptions, contracts, devices, and SIM cards</p>
-                    </a>
+        <div class="modules-grid">
+            <!-- Vodacom Module -->
+            <a href="/dashboard/vodacom" class="module-card vodacom">
+                <div class="module-icon">📱</div>
+                <h2>Vodacom</h2>
+                <p>Manage subscriptions, contracts, devices, and SIM cards</p>
+            </a>
 
-                    <!-- Time & Attendance Module -->
-                    <a href="/time-attendance" class="module-card time-attendance">
-                        <div class="module-icon">⏰</div>
-                        <h2>Time & Attendance</h2>
-                        <p>Employee management, biometric enrollment, and attendance tracking</p>
-                    </a>
+            <!-- Time & Attendance Module -->
+            <a href="/time-attendance" class="module-card time-attendance">
+                <div class="module-icon">⏰</div>
+                <h2>Time & Attendance</h2>
+                <p>Employee management, biometric enrollment, and attendance tracking</p>
+            </a>
 
-                    <a href="#" class="module-card personnel">
-                        <div class="module-icon">👥</div>
-                        <h2>Personnel Hub</h2>
-                        <p>Central staff hub for personal info, banking, site allocation, contracts, attendance, leave,
-                            IOD, and staff movements</p>
-                    </a>
+            <a href="#" class="module-card personnel">
+                <div class="module-icon">👥</div>
+                <h2>Personnel Hub</h2>
+                <p>Central staff hub for personal info, banking, site allocation, contracts, attendance, leave, IOD,
+                    and staff movements</p>
+            </a>
 
-                    <a href="#" class="module-card policies">
-                        <div class="module-icon">📜</div>
-                        <h2>Policies and Procedures</h2>
-                        <p>Company policies, SOPs, and compliance guidelines in one place</p>
-                    </a>
+            <a href="#" class="module-card policies">
+                <div class="module-icon">📜</div>
+                <h2>Policies and Procedures</h2>
+                <p>Company policies, SOPs, and compliance guidelines in one place</p>
+            </a>
 
-                    <a href="#" class="module-card training">
-                        <div class="module-icon">🎓</div>
-                        <h2>Training</h2>
-                        <p>In-house and PAS training schedules, records, and certifications</p>
-                    </a>
+            <a href="#" class="module-card training">
+                <div class="module-icon">🎓</div>
+                <h2>Training</h2>
+                <p>In-house and PAS training schedules, records, and certifications</p>
+            </a>
 
-                    <a href="#" class="module-card ir">
-                        <div class="module-icon">⚖️</div>
-                        <h2>IR</h2>
-                        <p>Incident reports, investigations, and disciplinary tracking</p>
-                    </a>
+            <a href="#" class="module-card ir">
+                <div class="module-icon">⚖️</div>
+                <h2>IR</h2>
+                <p>Incident reports, investigations, and disciplinary tracking</p>
+            </a>
 
-                    <a href="#" class="module-card medicals">
-                        <div class="module-icon">🩺</div>
-                        <h2>Medicals</h2>
-                        <p>Medical records, fitness status, and appointment tracking</p>
-                    </a>
+            <a href="#" class="module-card medicals">
+                <div class="module-icon">🩺</div>
+                <h2>Medicals</h2>
+                <p>Medical records, fitness status, and appointment tracking</p>
+            </a>
 
-                    <a href="#" class="module-card assets">
-                        <div class="module-icon">🧰</div>
-                        <h2>Asset Registration</h2>
-                        <p>Register, assign, and track assets across staff and sites</p>
-                    </a>
+            <a href="#" class="module-card assets">
+                <div class="module-icon">🧰</div>
+                <h2>Asset Registration</h2>
+                <p>Register, assign, and track assets across staff and sites</p>
+            </a>
 
-                    <a href="#" class="module-card payroll">
-                        <div class="module-icon">💰</div>
-                        <h2>Payroll Input</h2>
-                        <p>Monthly payroll inputs, adjustments, and approvals</p>
-                    </a>
-                </div>
-            </div>
-            <button class="carousel-btn" id="carouselNext" type="button" aria-label="Next modules">&rsaquo;</button>
+            <a href="#" class="module-card payroll">
+                <div class="module-icon">💰</div>
+                <h2>Payroll Input</h2>
+                <p>Monthly payroll inputs, adjustments, and approvals</p>
+            </a>
         </div>
     </div>
 
@@ -371,52 +332,6 @@
         <p>&copy; 2026 PCM. All rights reserved.</p>
     </div>
 
-    <script>
-        (function () {
-            const track = document.getElementById('moduleTrack');
-            const prev = document.getElementById('carouselPrev');
-            const next = document.getElementById('carouselNext');
-            if (!track || !prev || !next) return;
-
-            const cards = Array.from(track.children);
-            let index = 0;
-            let step = 1;
-            let cardWidth = 0;
-
-            function measure() {
-                const viewport = track.parentElement;
-                const first = cards[0];
-                if (!viewport || !first) return;
-                const cardRect = first.getBoundingClientRect();
-                const style = window.getComputedStyle(track);
-                const gap = parseFloat(style.columnGap || style.gap || '0');
-                cardWidth = cardRect.width + gap;
-                step = Math.max(1, Math.floor(viewport.getBoundingClientRect().width / cardWidth));
-                update();
-            }
-
-            function update() {
-                if (!cardWidth) return;
-                const maxIndex = Math.max(0, cards.length - step);
-                if (index > maxIndex) index = 0;
-                if (index < 0) index = maxIndex;
-                track.style.transform = `translateX(${-index * cardWidth}px)`;
-            }
-
-            prev.addEventListener('click', () => {
-                index -= step;
-                update();
-            });
-
-            next.addEventListener('click', () => {
-                index += step;
-                update();
-            });
-
-            window.addEventListener('resize', measure);
-            window.addEventListener('load', measure);
-        })();
-    </script>
 </body>
 
 </html>
