@@ -4,21 +4,19 @@
 <head>
     <meta charset="utf-8" />
     <title>PCM Dashboard</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="/static/pcm-lockup-goldc-final.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/static/styles.css?v={{ time }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .admin-card {
-            margin-inline-start: var(--page-gap);
-            padding: clamp(16px, 2vw, 20px);
+            margin-inline-start: 30px;
+            padding: 20px;
 
             background: #fff;
             border-radius: 14px;
             box-shadow: 0 8px 20px rgba(0, 0, 0, .08);
-            width: min(720px, 100%);
-            max-width: 100%;
-            max-height: clamp(320px, 60vh, 520px);
+            width: 50%;
+            max-height: 40vh;
             overflow: auto;
             transition: background 160ms ease, transform 160ms ease, box-shadow 160ms ease;
             will-change: transform;
@@ -253,7 +251,7 @@
 
 
     <!-- Left-aligned content space; not centered -->
-    <div class="content" style="margin: var(--page-gap) var(--page-gap) var(--page-gap) var(--sidebar-space);">
+    <div class="content" style="margin:20px var(--content-gap) 20px var(--sidebar-space);">
         <div id="adminCard" class="admin-card">
             <div class="admin-head">
                 <h2 class="admin-title">Pending account requests</h2>

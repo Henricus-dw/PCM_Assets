@@ -48,9 +48,8 @@ body {
     height: 100%;
     font-family: 'Inter', 'Segoe UI', sans-serif;
     background: #fefaf5;
-    min-height: 100%;
-    overflow-x: hidden;
-    overflow-y: auto;
+    overflow: hidden;
+    /* Prevent background scroll */
     box-sizing: border-box;
 }
 
@@ -66,15 +65,15 @@ body {
 
 /* Keep your original vertical/horizontal spacing */
 .content {
-    margin: var(--page-gap) var(--page-gap) var(--page-gap) var(--sidebar-space);
+    margin: 20px 20px 20px var(--sidebar-space);
 }
 
 .content2 {
-    margin: 0 var(--page-gap) var(--page-gap) var(--sidebar-space);
+    margin: -2px 20px 20px var(--sidebar-space);
 }
 
 .content3 {
-    margin: var(--page-gap) var(--page-gap) 0 var(--sidebar-space);
+    margin: 20px 20px 0 var(--sidebar-space);
 }
 
 .home-dashboard .content4 {
@@ -83,10 +82,11 @@ body {
 
 .content {
     display: flex;
-    gap: var(--page-gap);
+    gap: 10px;
     align-items: stretch;
     border-radius: 8px;
     flex-wrap: wrap;
+    flex-wrap: nowrap;
 
 }
 
@@ -121,16 +121,15 @@ body {
 /* Floating effect for .content2 block */
 .content2 {
     display: flex;
-    gap: var(--page-gap-lg);
+    gap: 30px;
     align-items: stretch;
+    max-height: calc(100vh - 50px - 80px);
     position: relative;
     background: #ffffff;
     border-top-left-radius: 0 !important;
     border-top-right-radius: 0 !important;
     border-bottom-left-radius: 14px !important;
     border-bottom-right-radius: 14px !important;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, .08) !important;
-    flex-wrap: wrap;
 
 
 }
@@ -143,14 +142,14 @@ body {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08), 0 8px 16px rgba(0, 0, 0, 0.12);
     display: flex;
     flex-direction: column;
-    flex: 1 1 420px;
-    min-width: 280px;
+    flex: 1 1 0;
+    min-width: 320px;
     /* don’t get narrower than this */
     max-width: none;
-    height: auto;
-    max-height: none;
-    overflow: auto;
-    margin-left: 0;
+    height: calc(100vh - 50px);
+    overflow-y: auto;
+    flex: 1;
+    margin-left: 20px;
     transition: transform 0.8s ease, box-shadow 0.5s ease;
     will-change: transform;
 }
@@ -167,11 +166,8 @@ body {
     display: flex;
     flex-direction: column;
     width: 100%;
-    height: auto;
-    max-height: none;
-    min-height: 0;
-    overflow: auto;
-    overflow-x: auto;
+    height: calc(100vh - 100px);
+    overflow-y: auto;
     position: relative;
 
 
@@ -182,10 +178,6 @@ body {
 .contentInner2:hover {
 
     box-shadow: 0 14px 34px rgba(0, 0, 0, 0.2);
-}
-
-.contentInner2 table {
-    min-width: 900px;
 }
 
 
@@ -208,8 +200,8 @@ body {
     background-color: #ffffff;
     color: #4b5e70;
     text-align: center;
-    padding: clamp(12px, 2vw, 16px) clamp(16px, 3vw, 24px);
-    font-size: clamp(1rem, 1.2vw, 1.2rem);
+    padding: 16px 24px;
+    font-size: 1.2em;
     font-weight: bold;
     border-top-left-radius: 8px;
     border-top-right-radius: 8px;
@@ -241,8 +233,8 @@ body {
     background-color: white;
     color: #4b5e70;
     text-align: center;
-    padding: clamp(12px, 2vw, 16px) clamp(16px, 3vw, 24px) clamp(18px, 3vw, 30px);
-    font-size: clamp(1rem, 1.2vw, 1.2rem);
+    padding: 16px 24px 30px;
+    font-size: 1.2em;
     font-weight: bold;
     align-items: center;
     border-radius: 12px 12px 0 0;
@@ -254,9 +246,9 @@ body {
 .boxTopHeader2::after {
     content: "";
     position: absolute;
-    left: clamp(20px, 18vw, 350px);
+    left: 350px;
     /* trims 20px from the left */
-    right: clamp(20px, 18vw, 350px);
+    right: 350px;
     /* trims 20px from the right */
     bottom: 10px;
     height: 2px;
@@ -282,13 +274,13 @@ body {
 .content3 {
     background: #ffffff !important;
     color: #4b5e70;
-    font-size: clamp(1rem, 1.2vw, 1.2rem);
+    font-size: 1.2em;
     font-weight: bold;
+
+    height: 60px;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 56px;
-    padding: clamp(10px, 1.6vw, 16px) clamp(12px, 2vw, 20px);
 
 
 
@@ -309,8 +301,8 @@ body {
 
 .sort-overlay {
     position: fixed;
-    top: clamp(16px, 2vw, 28px);
-    left: calc(var(--sidebar-space) + clamp(8px, 1.5vw, 12px));
+    top: 28px;
+    left: calc(var(--sidebar-space) + 10px);
     transition: all 300ms ease-out;
     background: linear-gradient(145deg,
             rgba(249, 245, 237, 0.85),
@@ -328,9 +320,8 @@ body {
     align-items: center;
     gap: 8px;
     color: #333;
-    min-height: 32px;
-    height: auto;
-    width: clamp(160px, 22vw, 200px);
+    height: 32px;
+    width: 200px;
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
 }
@@ -362,7 +353,7 @@ body {
     border: 1px solid rgba(45, 43, 38, 0.077);
 
     cursor: pointer;
-    width: clamp(120px, 16vw, 160px);
+    width: 140px;
 
     transition: background-color 0.6s ease;
     margin-left: 13px;
@@ -381,8 +372,8 @@ body {
 
 .sort-overlay2 {
     position: fixed;
-    top: clamp(16px, 2vw, 28px);
-    right: clamp(12px, 2.5vw, 30px);
+    top: 28px;
+    right: 30px;
     transition: all 300ms ease-out;
     background: linear-gradient(145deg,
             rgba(249, 245, 237, 0.85),
@@ -399,9 +390,8 @@ body {
     align-items: center;
     gap: 8px;
     color: #333;
-    min-height: 32px;
-    height: auto;
-    width: clamp(140px, 20vw, 200px);
+    height: 32px;
+    width: 200px;
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
 }
@@ -751,7 +741,7 @@ button {
 /* ======================================= 6. TABLE STYLES ======================================= */
 table {
     border-collapse: collapse;
-    width: 100%;
+    width: auto;
     background-color: #faf7f2;
     overflow: hidden;
     box-shadow: 0 12px 20px rgba(0, 0, 0, 0.05);
@@ -981,9 +971,8 @@ table.sticky th {
 
 .dashboardContent {
     width: 100%;
-    min-height: calc(100vh - 70px);
-    height: auto;
-    overflow: visible;
+    height: calc(100vh - 70px);
+    overflow: hidden;
     /* avoid parent scroll stealing focus */
     padding-bottom: 20px;
     position: relative;
@@ -1111,18 +1100,17 @@ table.sticky th {
 
 /* keep the sidebar offset intact; do not touch .sidebar */
 .home-dashboard .content4 {
-    min-height: 100vh;
-    height: auto;
+    height: 100vh;
     display: flex;
     align-items: stretch;
+    min-height: calc(100vh - 40px);
 }
 
 .home-dashboard .contentInner4 {
     width: 100%;
     display: flex;
     flex-direction: column;
-    min-height: 100%;
-    height: auto;
+    height: 100%;
     border-radius: 12px;
 
     padding: 0;
@@ -1130,12 +1118,18 @@ table.sticky th {
 
 /* Grid: 2 columns desktop, 1 column on narrow screens */
 .home-dashboard .dash-grid {
+    --cols: 2;
     display: grid;
     gap: var(--gap);
     padding: var(--gap);
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
     align-items: stretch;
-    grid-auto-rows: minmax(0, auto);
+}
+
+@media (max-width: 980px) {
+    .home-dashboard .dash-grid {
+        --cols: 1;
+    }
 }
 
 /* Card */
@@ -1360,6 +1354,16 @@ table.sticky th {
     font-size: .9rem;
 }
 
+@media (max-width: 520px) {
+    .home-dashboard .card {
+        min-height: 240px;
+    }
+
+    .home-dashboard .chart-wrap {
+        min-height: 240px;
+    }
+}
+
 /* Cap the height of Card #2 (Upcoming Terminations) so it can't push the row taller */
 .home-dashboard .dash-grid>.card:nth-child(2) {
 
@@ -1397,16 +1401,35 @@ table.sticky th {
 /* Keep the inner scroller, and ensure 20px space after the last cards */
 .home-dashboard .contentInner4 {
     /* override earlier fixed heights */
-    min-height: 100%;
+
+    min-height: calc(100vh - 100px);
     overflow-y: auto;
-    overflow-x: hidden;
-    padding-bottom: var(--gap);
+    padding-bottom: 20px;
+    overflow: visible;
+
+}
+
+
+.home-dashboard .dash-grid {
+    height: 100%;
+
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: 1fr 1fr;
+
+    gap: var(--gap);
+
+    align-items: stretch;
+    min-height: 0;
+
+    overflow: visible;
+
 }
 
 /* Employees page layout: list spans left column (2 rows) */
 .home-dashboard .employees-grid {
-    grid-template-columns: minmax(320px, 1.35fr) minmax(280px, 1fr);
-    grid-template-rows: auto;
+    grid-template-columns: 1.35fr 1fr;
+    grid-template-rows: 1fr 1fr;
 }
 
 .home-dashboard .employees-grid .employees-card {
@@ -1419,27 +1442,13 @@ table.sticky th {
 
 /* Biometric dashboard layout: sessions spans left column (2 rows) */
 .home-dashboard .biometric-grid {
-    grid-template-columns: minmax(320px, 1.75fr) minmax(280px, 1fr);
-    grid-template-rows: auto;
+    grid-template-columns: 1.75fr 1fr;
+    grid-template-rows: 1fr 1fr;
 }
 
 .home-dashboard .biometric-grid .sessions-card {
     grid-row: 1 / span 2;
     grid-column: 1;
-}
-
-@media (max-width: 900px) {
-    .home-dashboard .employees-grid,
-    .home-dashboard .biometric-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .home-dashboard .employees-grid .employees-card,
-    .home-dashboard .employees-grid .employee-detail-card,
-    .home-dashboard .biometric-grid .sessions-card {
-        grid-column: auto;
-        grid-row: auto;
-    }
 }
 
 /* Time and Attendance table column sizing */
@@ -1562,17 +1571,51 @@ table.sticky th {
     max-height: 160px !important;
 }
 
+.home-dashboard .content4 {
+    overflow: visible !important;
+    height: 100vh;
+}
+
+
+
+
+.content3 {
+    position: relative;
+    z-index: 3;
+}
+
+/* .content2 floats with shadow on sides + bottom, none on top */
+.content2 {
+    display: flex;
+    gap: 30px;
+    align-items: stretch;
+    max-height: calc(100vh - 50px - 45px);
+
+    background: #ffffff;
+    border-radius: 0 0 14px 14px !important;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, .08) !important;
+
+    overflow: visible;
+    position: relative;
+    z-index: 1;
+}
+
+
+
+
+
 .UserDetails {
     background-color: #40426452;
-    margin: clamp(12px, 2vw, 30px);
-    min-height: 30px;
-    height: auto;
+    margin-top: 30px;
+    margin-left: 30px;
+    margin-right: 30px;
+    height: 30px;
     display: flex;
     /* enable flexbox */
     align-items: center;
     justify-content: space-between;
     /* vertically center text */
-    padding: 6px 10px;
+    padding: 0 10px;
     /* 10px spacing on left and right */
     box-sizing: border-box;
     position: relative;
@@ -1780,10 +1823,8 @@ table.sticky th {
 
 
 :root {
-    --sidebar-width: clamp(170px, 18vw, 220px);
-    --content-gap: clamp(16px, 3vw, 40px);
-    --page-gap: clamp(12px, 2vw, 20px);
-    --page-gap-lg: clamp(16px, 2.5vw, 30px);
+    --sidebar-width: 220px;
+    --content-gap: 40px;
     /* effective left offset for content when sidebar is visible */
     --sidebar-space: calc(var(--sidebar-width) + var(--content-gap));
 }
@@ -1815,8 +1856,8 @@ body.sidebar-collapsed {
     height: auto;
     max-width: 800px;
     justify-content: center !important;
-    margin-top: var(--page-gap);
-    margin-bottom: var(--page-gap-lg);
+    margin-top: 20px;
+    margin-bottom: 25px;
 }
 
 .sidebar:hover {
