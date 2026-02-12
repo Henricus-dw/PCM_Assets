@@ -62,24 +62,25 @@
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
             grid-template-rows: repeat(3, minmax(0, 1fr));
-            gap: 28px !important;
-            row-gap: 28px !important;
-            column-gap: 28px !important;
-            width: 100%;
-            max-width: none;
+            gap: 32px !important;
+            row-gap: 32px !important;
+            column-gap: 32px !important;
+            width: min(1200px, 96vw);
+            max-width: 1200px;
             flex: 1;
             align-content: space-between;
             height: calc(100vh - 240px);
             min-height: 0;
-            padding: 24px;
+            padding: 20px;
             box-sizing: border-box;
+            margin: 0 auto;
         }
 
         .module-card {
             background: #ffffff;
             border-radius: 16px;
             padding: clamp(10px, 1.6vh, 16px) clamp(12px, 1.8vw, 18px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
             transition: all 0.3s ease;
             cursor: pointer;
             border: 2px solid transparent;
