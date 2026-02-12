@@ -52,7 +52,7 @@
                         </div>
                     </header>
                     <div class="table-wrap">
-                        <table class="small-table" id="employeeTable">
+                        <table class="small-table employees-table" id="employeeTable">
                             <colgroup>
                                 <col class="col-pin" />
                                 <col class="col-name" />
@@ -235,6 +235,20 @@
 
         let allEmployees = [];
 
+        function updateEmployeeRowTruncation() {
+            const rows = document.querySelectorAll('#employeeTable tbody tr');
+            rows.forEach(row => {
+                row.classList.remove('row-truncated');
+                const cells = row.querySelectorAll('td');
+                for (const cell of cells) {
+                    if (cell.scrollWidth > cell.clientWidth) {
+                        row.classList.add('row-truncated');
+                        break;
+                    }
+                }
+            });
+        }
+
         function renderEmployees(rows) {
             const tbody = document.getElementById('employeeBody');
             if (!rows.length) {
@@ -264,6 +278,8 @@
                 const selectedRow = document.querySelector(`#employeeTable tbody tr[data-pin="${selectedPin}"]`);
                 if (selectedRow) selectedRow.classList.add('selected');
             }
+
+            updateEmployeeRowTruncation();
         }
 
         function applyEmployeeFilter() {
@@ -330,6 +346,7 @@
             document.querySelectorAll('#employeeTable tbody .employee-row.selected').forEach(r => r.classList.remove('selected'));
             row.classList.add('selected');
             selectedPin = row.dataset.pin || null;
+            updateEmployeeRowTruncation();
         }
 
         async function deleteEmployee(id) {
@@ -366,6 +383,7 @@
             const handle = document.getElementById("sidebarHandle");
             function toggleSidebar() { document.body.classList.toggle("sidebar-collapsed"); handle?.setAttribute("aria-pressed", String(document.body.classList.contains("sidebar-collapsed"))); }
             handle?.addEventListener("click", toggleSidebar);
+            window.addEventListener('resize', updateEmployeeRowTruncation);
         });
     </script>
 </body>

@@ -1489,6 +1489,25 @@ table.sticky th {
     word-break: break-word;
 }
 
+/* Employees table truncation/expand behavior */
+.home-dashboard .employees-table {
+    table-layout: fixed;
+}
+
+.home-dashboard .employees-table tbody td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.home-dashboard .employees-table tbody tr.row-truncated:hover td,
+.home-dashboard .employees-table tbody tr.row-truncated.selected td {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    word-break: break-word;
+}
+
 .home-dashboard .accumulated-table {
     table-layout: fixed;
 }
