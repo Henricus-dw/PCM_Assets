@@ -2353,55 +2353,7 @@ body.sidebar-collapsed .sidebar {
     color: #111827;
 }
 
-/* Employees table: prevent long text from overflowing the page by truncating with ellipses */
-#employeeTable {
-    table-layout: fixed;
-    /* allow max-width on cells to take effect */
-    width: 100%;
-}
-
-#employeeTable th,
-#employeeTable td {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 180px;
-    /* reasonable default; adjust if you need wider columns */
-}
-
-/* Column sizing for employees table */
-#employeeTable .col-pin {
-    width: 2%;
-    min-width: 60px;
-}
-
-#employeeTable .col-status {
-    width: 4%;
-    min-width: 80px;
-}
-
-#employeeTable .col-name,
-#employeeTable .col-emp,
-#employeeTable .col-company,
-#employeeTable .col-division {
-    width: 23.5%;
-}
-
-/* Wrap text on hover/selection */
-#employeeTable tbody tr:hover td,
-#employeeTable tbody tr.selected td {
-    white-space: normal;
-    text-overflow: clip;
-}
-
-#employeeTable tbody tr.selected {
-    background-color: #e7e7e7bf;
-}
-
-
-.employee-row {
-    cursor: pointer;
-}
+/* Employees table: removed legacy rules (superseded by .employees-table styles) */
 
 /* Centered Return button in sidebar */
 .sidebar-mid {
