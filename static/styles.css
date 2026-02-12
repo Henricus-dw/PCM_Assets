@@ -1494,6 +1494,22 @@ table.sticky th {
     table-layout: fixed;
 }
 
+.home-dashboard .employees-table col.col-pin {
+    width: 6%;
+}
+
+.home-dashboard .employees-table col.col-status {
+    width: 8%;
+}
+
+.home-dashboard .employees-table col.col-name,
+.home-dashboard .employees-table col.col-emp,
+.home-dashboard .employees-table col.col-company,
+.home-dashboard .employees-table col.col-site,
+.home-dashboard .employees-table col.col-division {
+    width: 17.2%;
+}
+
 .home-dashboard .employees-table tbody td.cell-truncate {
     overflow: hidden;
     text-overflow: ellipsis;
