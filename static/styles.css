@@ -1824,7 +1824,7 @@ table.sticky th {
 
 
 :root {
-    --sidebar-width: 220px;
+    --sidebar-width: clamp(180px, 18vw, 220px);
     --content-gap: 40px;
     --sidebar-lift: clamp(10px, 2.5vw, 27px);
     --sidebar-lift-active: clamp(8px, 2.2vw, 25px);
@@ -1953,6 +1953,7 @@ body.sidebar-collapsed .sidebar {
 
 .sidebar .nav-top {
     flex: 1;
+    margin-top: 30px;
 }
 
 .sidebar .nav-bottom {
