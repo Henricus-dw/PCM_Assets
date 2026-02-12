@@ -25,7 +25,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
-            padding: 2.5vh 2vw 2vh;
+            padding: 24px 20px 16px;
             height: 100vh;
             min-height: 0;
             box-sizing: border-box;
@@ -33,48 +33,46 @@
 
         .landing-header {
             text-align: center;
-            margin-bottom: 1.6vh;
+            margin-bottom: 12px;
         }
 
         .logo-section {
-            margin-bottom: 1.2vh;
+            margin-bottom: 8px;
         }
 
         .logo-section img {
-            max-width: 18vh;
+            max-width: 180px;
             height: auto;
         }
 
         .landing-header h1 {
-            font-size: 3vh;
+            font-size: 1.7rem;
             font-weight: 700;
             color: #111827;
-            margin: 0.8vh 0 0.4vh 0;
+            margin: 8px 0 4px 0;
         }
 
         .landing-header p {
-            font-size: 1.6vh;
+            font-size: 0.95rem;
             color: #6b7280;
             margin: 0;
         }
 
         .modules-grid {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            grid-template-rows: repeat(3, minmax(0, 1fr));
-            gap: 2.4vh;
-            width: 100%;
-            max-width: 1200px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            width: min(1200px, 100%);
             flex: 1;
-            align-content: start;
-            padding: 1vh;
+            align-content: stretch;
+            height: calc(100vh - 300px);
             min-height: 0;
         }
 
         .module-card {
             background: #ffffff;
             border-radius: 16px;
-            padding: 1.6vh 1.2vw;
+            padding: 16px 18px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
             transition: all 0.3s ease;
             cursor: pointer;
@@ -84,8 +82,8 @@
             flex-direction: column;
             align-items: center;
             text-align: center;
-            width: 100%;
-            height: 100%;
+            flex: 1 1 calc((100% - 40px) / 3);
+            height: calc((100% - 40px) / 3);
             min-height: 0;
             justify-content: flex-start;
         }
@@ -97,22 +95,22 @@
         }
 
         .module-icon {
-            font-size: 3.2vh;
-            margin-bottom: 0.8vh;
-            margin-top: 0.4vh;
+            font-size: 2.4rem;
+            margin-bottom: 8px;
+            margin-top: 4px;
         }
 
         .module-card h2 {
-            font-size: 2.1vh;
+            font-size: 1.1rem;
             font-weight: 700;
             color: #111827;
-            margin: 0 0 0.4vh 0;
+            margin: 0 0 6px 0;
         }
 
         .module-card p {
             color: #6b7280;
             margin: 0;
-            font-size: 1.5vh;
+            font-size: 0.85rem;
             line-height: 1.35;
         }
 
@@ -190,9 +188,9 @@
 
         .footer {
             text-align: center;
-            padding: 1vh;
+            padding: 8px;
             color: #9ca3af;
-            font-size: 1.4vh;
+            font-size: 0.85rem;
         }
 
         .user-info {
