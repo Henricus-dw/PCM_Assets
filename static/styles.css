@@ -1494,14 +1494,14 @@ table.sticky th {
     table-layout: fixed;
 }
 
-.home-dashboard .employees-table tbody td {
+.home-dashboard .employees-table tbody td.cell-truncate {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.home-dashboard .employees-table tbody tr.row-truncated:hover td,
-.home-dashboard .employees-table tbody tr.row-truncated.selected td {
+.home-dashboard .employees-table tbody tr.row-truncated:hover td.cell-truncated,
+.home-dashboard .employees-table tbody tr.row-truncated.selected td.cell-truncated {
     white-space: normal;
     overflow: visible;
     text-overflow: clip;
