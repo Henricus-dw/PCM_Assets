@@ -1879,7 +1879,7 @@ body.sidebar-collapsed .sidebar {
     display: block !important;
     margin: 12px auto 12px auto !important;
     height: auto !important;
-    width: min(125%, calc(100% - 32px)) !important;
+    width: min(78%, calc(100% - 32px)) !important;
     max-width: calc(100% - 32px) !important;
     /
 }
@@ -1913,8 +1913,8 @@ body.sidebar-collapsed .sidebar {
 .sidebar>img {
     display: block !important;
     /* much wider, but still safely inside the 220px column */
-    width: calc(130% - 2px) !important;
-    max-width: calc(130% - 2px) !important;
+    width: calc(78% - 2px) !important;
+    max-width: calc(78% - 2px) !important;
     height: auto !important;
 
     /* more breathing room under the logo */
