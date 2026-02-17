@@ -158,36 +158,22 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
                 db.add(log)
 
                 # Pair into attendance sessions (toggle by last open session)
-                # Look for an open session that matches this PIN
                 open_session = db.query(AttendanceSession).filter(
                     AttendanceSession.pin == pin,
                     AttendanceSession.check_out.is_(None),
                 ).order_by(AttendanceSession.check_in.desc()).first()
 
-                # If we found an open session AND this new timestamp is later than the check_in,
-                # it's a check-out. Close it.
-                # Otherwise, create a new check-in session.
-                if open_session and timestamp > open_session.check_in:
+                if open_session:
                     open_session.check_out = timestamp
                     open_session.status = "closed"
-                    logger.debug(f"[ATTLOG] Closed session for pin={pin}")
                 else:
-                    # Don't create a duplicate if this exact session already exists
-                    existing = db.query(AttendanceSession).filter(
-                        AttendanceSession.pin == pin,
-                        AttendanceSession.check_in == timestamp,
-                    ).first()
-
-                    if not existing:
-                        session = AttendanceSession(
-                            pin=pin,
-                            check_in=timestamp,
-                            check_out=None,
-                            status="open"
-                        )
-                        db.add(session)
-                        logger.debug(
-                            f"[ATTLOG] Created new session for pin={pin}")
+                    session = AttendanceSession(
+                        pin=pin,
+                        check_in=timestamp,
+                        check_out=None,
+                        status="open"
+                    )
+                    db.add(session)
                 stored_count += 1
 
                 logger.info(
