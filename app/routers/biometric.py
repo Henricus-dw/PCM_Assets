@@ -141,6 +141,17 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
                     error_count += 1
                     continue
 
+                # Check if this log entry already exists (device resends old data)
+                existing_log = db.query(AttendanceLog).filter(
+                    AttendanceLog.pin == pin,
+                    AttendanceLog.timestamp == timestamp
+                ).first()
+
+                if existing_log:
+                    # Already processed this exact log, skip it
+                    logger.debug(f"[ATTLOG] Skipping duplicate: pin={pin} dt={timestamp}")
+                    continue
+
                 # Look up human-readable verify type name
                 verify_type_name = VERIFY_TYPE_MAP.get(verify_type, "unknown")
 
