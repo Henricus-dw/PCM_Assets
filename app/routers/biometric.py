@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Request, Response, Depends
-from fastapi.responses import JSONResponse
 from datetime import datetime, timezone, timedelta
 from typing import List, Dict, Any, Optional
 from sqlalchemy.orm import Session
@@ -116,8 +115,6 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
         lines = text.splitlines()
         stored_count = 0
         error_count = 0
-        logger.info(
-            f"[ATTLOG] Processing {len(lines)} lines from device {device_sn}")
 
         for line in lines:
             if not line.strip():
@@ -190,7 +187,7 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
                 continue
             except Exception as e:
                 logger.error(
-                    f"[ATTLOG] Unexpected error for line '{line}': {e}", exc_info=True)
+                    f"[ATTLOG] Unexpected error for line '{line}': {e}")
                 error_count += 1
                 continue
 
@@ -236,10 +233,9 @@ async def biometric_debug(db: Session = Depends(get_db)):
     # Get last 20 raw hits from in-memory buffer
     raw_rows = []
     for e in reversed(LAST_ICLOCK[-20:]):
-        table_name = e.get('query', {}).get('table', 'UNKNOWN')
         raw_rows.append(
             f"<pre style='font-size: 11px; margin: 5px 0;'>"
-            f"<strong>Table: {table_name}</strong> | {e['ts']} | {e['client']} | {e['method']}<br>"
+            f"{e['ts']} | {e['client']} | {e['method']}<br>"
             f"query={e['query']}<br>"
             f"body={e['body'][:200]}"
             f"</pre><hr style='margin: 3px 0;'>"
@@ -250,27 +246,17 @@ async def biometric_debug(db: Session = Depends(get_db)):
     <head>
         <title>iClock Debug</title>
         <style>
-            body {{ font-family: monospace; margin: 20px; background: #f5f5f5; }}
-            h2 {{ border-bottom: 2px solid #333; padding-bottom: 10px; margin-top: 30px; }}
-            table {{ border-collapse: collapse; width: 100%; background: white; }}
+            body {{ font-family: monospace; margin: 20px; }}
+            h2 {{ border-bottom: 2px solid #333; padding-bottom: 10px; }}
+            table {{ border-collapse: collapse; width: 100%; }}
             th, td {{ border: 1px solid #ccc; padding: 8px; text-align: left; }}
-            th {{ background: #3498db; color: white; }}
+            th {{ background: #f0f0f0; }}
             tr:nth-child(even) {{ background: #f9f9f9; }}
-            .stat-box {{ background: white; padding: 15px; margin: 10px 0; border-left: 4px solid #3498db; }}
-            .success {{ color: #27ae60; font-weight: bold; }}
-            .warning {{ color: #e67e22; font-weight: bold; }}
-            .error {{ color: #e74c3c; font-weight: bold; }}
         </style>
     </head>
     <body>
-        <h1>🔍 iClock Biometric Debug Panel</h1>
+        <h1>iClock Biometric Debug Panel</h1>
         
-        <div class="stat-box">
-            <h3>📈 Statistics</h3>
-            <p><span class="{'success' if len(recent_logs) > 0 else 'warning'}">Database logs: {len(recent_logs)}</span></p>
-            <p>In-memory buffer: {len(LAST_ICLOCK)}</p>
-        </div>
-
         <h2>📊 Parsed Attendance Logs (from database)</h2>
         <table>
             <thead>
@@ -284,58 +270,23 @@ async def biometric_debug(db: Session = Depends(get_db)):
                 </tr>
             </thead>
             <tbody>
-                {"".join(db_rows) if db_rows else "<tr><td colspan='6' style='text-align:center; color: #e74c3c;'>❌ No logs in database yet</td></tr>"}
+                {"".join(db_rows) if db_rows else "<tr><td colspan='6'>No logs yet</td></tr>"}
             </tbody>
         </table>
 
         <h2>📡 Raw iClock Hits (last 20, in-memory)</h2>
-        <p><em>Use TABLE NAME to verify ATTLOG requests are coming in:</em></p>
-        {"".join(raw_rows) if raw_rows else "<p style='color: #e74c3c;'>❌ No raw hits received yet</p>"}
+        {"".join(raw_rows) if raw_rows else "<p>No hits yet</p>"}
 
-        <h2>🧪 Database Connection Test</h2>
-        <p><a href="/biometric/test-db" style="background: #3498db; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;">
-            Test Database Write
-        </a></p>
+        <h2>📈 Stats</h2>
+        <ul>
+            <li>Database logs: {len(recent_logs)}</li>
+            <li>In-memory buffer: {len(LAST_ICLOCK)}</li>
+        </ul>
     </body>
     </html>
     """
 
     return Response(html, media_type="text/html")
-
-
-@router.get("/biometric/test-db")
-async def test_database_write(db: Session = Depends(get_db)):
-    """
-    Test endpoint to verify database is working correctly
-    """
-    try:
-        test_log = AttendanceLog(
-            pin="TEST-PIN-001",
-            timestamp=datetime.now(),
-            status=0,
-            verify_type=0,
-            verify_type_name="test",
-            raw_data="TEST RECORD",
-            device_sn="TEST-DEVICE"
-        )
-        db.add(test_log)
-        db.commit()
-        logger.info("✓ Test record successfully written to database")
-        return JSONResponse({
-            "status": "success",
-            "message": "✓ Database connection is working! Test record written successfully.",
-            "test_record": {
-                "pin": test_log.pin,
-                "timestamp": test_log.timestamp.isoformat(),
-            }
-        })
-    except Exception as e:
-        logger.error(f"✗ Database test failed: {e}", exc_info=True)
-        return JSONResponse({
-            "status": "error",
-            "message": f"✗ Database connection FAILED: {e}",
-            "error_type": type(e).__name__
-        }, status_code=500)
 
 
 @router.get("/biometric/logs")
