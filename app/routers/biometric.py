@@ -116,7 +116,8 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
         lines = text.splitlines()
         stored_count = 0
         error_count = 0
-        logger.info(f"[ATTLOG] Processing {len(lines)} lines from device {device_sn}")
+        logger.info(
+            f"[ATTLOG] Processing {len(lines)} lines from device {device_sn}")
 
         for line in lines:
             if not line.strip():
@@ -179,11 +180,13 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
                             status="open"
                         )
                         db.add(session)
-                        logger.debug(f"[ATTLOG] Created new session for pin={pin}")
+                        logger.debug(
+                            f"[ATTLOG] Created new session for pin={pin}")
                 except Exception as query_error:
-                    logger.error(f"[ATTLOG] Error querying/updating session for pin={pin}: {query_error}")
+                    logger.error(
+                        f"[ATTLOG] Error querying/updating session for pin={pin}: {query_error}")
                     raise
-                
+
                 stored_count += 1
 
                 logger.info(
@@ -208,11 +211,13 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
             logger.info(
                 f"[ATTLOG] ✓ Commit successful: {stored_count} stored, {error_count} errors")
         except sqlalchemy_exc.SQLAlchemyError as e:
-            logger.error(f"[ATTLOG] ✗ DATABASE COMMIT FAILED: {e}", exc_info=True)
+            logger.error(
+                f"[ATTLOG] ✗ DATABASE COMMIT FAILED: {e}", exc_info=True)
             db.rollback()
             return Response("ERROR\n", media_type="text/plain", status_code=500)
         except Exception as e:
-            logger.error(f"[ATTLOG] ✗ UNEXPECTED ERROR DURING COMMIT: {e}", exc_info=True)
+            logger.error(
+                f"[ATTLOG] ✗ UNEXPECTED ERROR DURING COMMIT: {e}", exc_info=True)
             db.rollback()
             return Response("ERROR\n", media_type="text/plain", status_code=500)
 
@@ -348,7 +353,6 @@ async def test_database_write(db: Session = Depends(get_db)):
             "message": f"✗ Database connection FAILED: {e}",
             "error_type": type(e).__name__
         }, status_code=500)
-
 
 
 @router.get("/biometric/logs")
