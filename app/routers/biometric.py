@@ -149,7 +149,8 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
 
                 if existing_log:
                     # Already processed this exact log, skip it
-                    logger.debug(f"[ATTLOG] Skipping duplicate: pin={pin} dt={timestamp}")
+                    logger.debug(
+                        f"[ATTLOG] Skipping duplicate: pin={pin} dt={timestamp}")
                     continue
 
                 # Look up human-readable verify type name
