@@ -177,7 +177,7 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
                         AttendanceSession.pin == pin,
                         AttendanceSession.check_in == timestamp,
                     ).first()
-                    
+
                     if not existing:
                         session = AttendanceSession(
                             pin=pin,
@@ -186,7 +186,8 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
                             status="open"
                         )
                         db.add(session)
-                        logger.debug(f"[ATTLOG] Created new session for pin={pin}")
+                        logger.debug(
+                            f"[ATTLOG] Created new session for pin={pin}")
                 stored_count += 1
 
                 logger.info(
