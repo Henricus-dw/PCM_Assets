@@ -159,38 +159,28 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
                 )
 
                 db.add(log)
-                logger.debug(f"[ATTLOG] Added log for pin={pin}")
 
                 # Pair into attendance sessions (toggle by last open session)
-                try:
-                    open_session = db.query(AttendanceSession).filter(
-                        AttendanceSession.pin == pin,
-                        AttendanceSession.check_out.is_(None),
-                    ).order_by(AttendanceSession.check_in.desc()).first()
+                open_session = db.query(AttendanceSession).filter(
+                    AttendanceSession.pin == pin,
+                    AttendanceSession.check_out.is_(None),
+                ).order_by(AttendanceSession.check_in.desc()).first()
 
-                    if open_session:
-                        open_session.check_out = timestamp
-                        open_session.status = "closed"
-                        logger.debug(f"[ATTLOG] Closed session for pin={pin}")
-                    else:
-                        session = AttendanceSession(
-                            pin=pin,
-                            check_in=timestamp,
-                            check_out=None,
-                            status="open"
-                        )
-                        db.add(session)
-                        logger.debug(
-                            f"[ATTLOG] Created new session for pin={pin}")
-                except Exception as query_error:
-                    logger.error(
-                        f"[ATTLOG] Error querying/updating session for pin={pin}: {query_error}")
-                    raise
-
+                if open_session:
+                    open_session.check_out = timestamp
+                    open_session.status = "closed"
+                else:
+                    session = AttendanceSession(
+                        pin=pin,
+                        check_in=timestamp,
+                        check_out=None,
+                        status="open"
+                    )
+                    db.add(session)
                 stored_count += 1
 
                 logger.info(
-                    f"[ATTLOG] Processed: pin={pin} dt={timestamp} status={status} "
+                    f"[ATTLOG] Stored: pin={pin} dt={timestamp} status={status} "
                     f"verify={verify_type_name}"
                 )
 
@@ -205,20 +195,13 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
                 continue
 
         # Commit all records at once
-        logger.info(f"[ATTLOG] Attempting to commit {stored_count} records...")
         try:
             db.commit()
             logger.info(
-                f"[ATTLOG] ✓ Commit successful: {stored_count} stored, {error_count} errors")
+                f"[ATTLOG] Commit successful: {stored_count} stored, {error_count} errors")
         except sqlalchemy_exc.SQLAlchemyError as e:
-            logger.error(
-                f"[ATTLOG] ✗ DATABASE COMMIT FAILED: {e}", exc_info=True)
             db.rollback()
-            return Response("ERROR\n", media_type="text/plain", status_code=500)
-        except Exception as e:
-            logger.error(
-                f"[ATTLOG] ✗ UNEXPECTED ERROR DURING COMMIT: {e}", exc_info=True)
-            db.rollback()
+            logger.error(f"[ATTLOG] Database commit failed: {e}")
             return Response("ERROR\n", media_type="text/plain", status_code=500)
 
     # REQUIRED for iClock devices - always return OK
