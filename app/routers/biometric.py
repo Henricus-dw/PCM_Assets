@@ -30,6 +30,9 @@ logger = logging.getLogger("biometric")
 # In-memory buffer for debugging
 LAST_ICLOCK: List[Dict[str, Any]] = []
 
+# Track if ATTLOG clear command was already sent for a device SN
+ATTLOG_CLEAR_SENT: Dict[str, bool] = {}
+
 # Map verify_type codes to human-readable names
 VERIFY_TYPE_MAP = {
     0: "fingerprint",
@@ -74,6 +77,13 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
 
     # Check if this is a GET request (device polling) — if so, push employees
     if request.method == "GET":
+        if device_sn and not ATTLOG_CLEAR_SENT.get(device_sn):
+            ATTLOG_CLEAR_SENT[device_sn] = True
+            logger.info(
+                f"[iClock] Sending one-shot clear ATTLOG to device {device_sn} via /iclock/cdata"
+            )
+            return Response("C:DELETE ATTLOG\n", media_type="text/plain")
+
         from models import Employee
         employees = db.query(Employee).all()
         if employees:
@@ -339,6 +349,10 @@ async def get_attendance_logs(
 @router.get("/iclock/getrequest")
 async def iclock_getrequest(request: Request):
     sn = request.query_params.get("SN", "")
-    # For now: no commands, just acknowledge correctly
+    if sn and not ATTLOG_CLEAR_SENT.get(sn):
+        ATTLOG_CLEAR_SENT[sn] = True
+        logger.info(f"[GETREQUEST] SN={sn} sending one-shot clear ATTLOG")
+        return Response("C:DELETE ATTLOG\n", media_type="text/plain")
+
     print(f"[GETREQUEST] SN={sn}")
     return Response("OK\n", media_type="text/plain")
