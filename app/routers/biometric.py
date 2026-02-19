@@ -19,7 +19,7 @@ from models import AttendanceLog, AttendanceSession
 # Firmware
 # --------
 # Firmware Version : 6.5.4 (build 156)
-# Algorithm        : ZK Finger VX10.0
+# Algorithm        : ZK Finger VX10.0ii
 
 
 router = APIRouter(tags=["biometric"])
