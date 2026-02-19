@@ -30,9 +30,6 @@ logger = logging.getLogger("biometric")
 # In-memory buffer for debugging
 LAST_ICLOCK: List[Dict[str, Any]] = []
 
-# Track if ATTLOG clear command was already sent for a device SN
-ATTLOG_CLEAR_SENT: Dict[str, bool] = {}
-
 # Map verify_type codes to human-readable names
 VERIFY_TYPE_MAP = {
     0: "fingerprint",
@@ -75,33 +72,12 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
     device_sn = request.query_params.get("SN", "unknown")
     table_name = request.query_params.get("table", "unknown")
 
-    # Check if this is a GET request (device polling) — if so, push employees
+    # Device polling path
     if request.method == "GET":
-        if device_sn and not ATTLOG_CLEAR_SENT.get(device_sn):
-            ATTLOG_CLEAR_SENT[device_sn] = True
-            logger.info(
-                f"[iClock] Sending one-shot clear ATTLOG to device {device_sn} via /iclock/cdata"
-            )
-            return Response("C:ATTLOG CLEAR\nOK\n", media_type="text/plain")
-
-        from models import Employee
-        employees = db.query(Employee).all()
-        if employees:
-            commands = []
-            for emp in employees:
-                # Format: C:USER ADD PIN=id Name=name Privilege=0
-                # Replace spaces with underscores in name/surname for device compatibility
-                full_name = f"{emp.Name_}_{emp.Surname_}".replace(" ", "_")
-                cmd = f"C:USER ADD PIN={emp.Employee_id} Name={full_name} Privilege=0"
-                commands.append(cmd)
-
-            response_text = "\n".join(commands) + "\n"
-            logger.info(
-                f"[iClock] Pushing {len(employees)} employees to device {device_sn}")
-            return Response(response_text, media_type="text/plain")
-        else:
-            # No employees, return OK
-            return Response("OK\n", media_type="text/plain")
+        logger.info(
+            f"[iClock] Sending ATTLOG clear commands to device {device_sn} via /iclock/cdata"
+        )
+        return Response("C:ATTLOG CLEAR\r\nC:DELETE ATTLOG\r\nOK\r\n", media_type="text/plain")
 
     # Always store the raw hit for debugging
     entry = {
@@ -349,5 +325,5 @@ async def get_attendance_logs(
 @router.get("/iclock/getrequest")
 async def iclock_getrequest(request: Request):
     sn = request.query_params.get("SN", "")
-    print(f"[GETREQUEST] SN={sn}")
-    return Response("OK\n", media_type="text/plain")
+    logger.info(f"[GETREQUEST] Sending ATTLOG clear commands to SN={sn}")
+    return Response("C:ATTLOG CLEAR\r\nC:DELETE ATTLOG\r\nOK\r\n", media_type="text/plain")
