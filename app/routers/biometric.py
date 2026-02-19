@@ -9,7 +9,7 @@ from database import SessionLocal
 from models import AttendanceLog, AttendanceSession
 
 
-# =========================
+# ========================= -
 # Device Info
 # =========================
 # Device Name   : S922-W
