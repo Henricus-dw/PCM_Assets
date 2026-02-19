@@ -82,7 +82,7 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
             logger.info(
                 f"[iClock] Sending one-shot clear ATTLOG to device {device_sn} via /iclock/cdata"
             )
-            return Response("C:DELETE ATTLOG\n", media_type="text/plain")
+            return Response("C:ATTLOG CLEAR\nOK\n", media_type="text/plain")
 
         from models import Employee
         employees = db.query(Employee).all()
@@ -349,10 +349,5 @@ async def get_attendance_logs(
 @router.get("/iclock/getrequest")
 async def iclock_getrequest(request: Request):
     sn = request.query_params.get("SN", "")
-    if sn and not ATTLOG_CLEAR_SENT.get(sn):
-        ATTLOG_CLEAR_SENT[sn] = True
-        logger.info(f"[GETREQUEST] SN={sn} sending one-shot clear ATTLOG")
-        return Response("C:DELETE ATTLOG\n", media_type="text/plain")
-
     print(f"[GETREQUEST] SN={sn}")
     return Response("OK\n", media_type="text/plain")
