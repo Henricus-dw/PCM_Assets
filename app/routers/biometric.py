@@ -34,13 +34,9 @@ LAST_HANDSHAKES: List[Dict[str, str]] = []
 LAST_GETREQUEST_POLLS: List[Dict[str, str]] = []
 LAST_PUSH_ACKS: List[Dict[str, str]] = []
 
-# Minimal command state for one-shot CLEAR LOG
-NEXT_CMD_ID = 9001
-PENDING_CLEAR_BY_SN: Dict[str, bool] = {}
-WAITING_ACK_BY_SN: Dict[str, int] = {}
-
 # Server-supported Push protocol version (Push 2.32)
 SERVER_PUSH_PROTOCOL_VERSION = "2.3.2"
+SERVER_TIMEZONE = "2"
 
 # Map verify_type codes to human-readable names
 VERIFY_TYPE_MAP = {
@@ -77,32 +73,6 @@ def parse_iclock_datetime(dt_str: str) -> Optional[datetime]:
         return None
 
 
-def _parse_version_tuple(version: str) -> Optional[tuple]:
-    if not version:
-        return None
-    cleaned = version.strip()
-    try:
-        parts = tuple(int(part) for part in cleaned.split("."))
-        return parts
-    except ValueError:
-        return None
-
-
-def _negotiate_push_protocol_version(device_pushver: str) -> str:
-    device_v = _parse_version_tuple(device_pushver)
-    server_v = _parse_version_tuple(SERVER_PUSH_PROTOCOL_VERSION)
-
-    if device_v is None and server_v is None:
-        return "2.2.14"
-    if device_v is None:
-        return SERVER_PUSH_PROTOCOL_VERSION
-    if server_v is None:
-        return device_pushver
-
-    chosen = device_v if device_v <= server_v else server_v
-    return ".".join(str(part) for part in chosen)
-
-
 def _extract_push_ack_fields(text: str) -> Optional[Dict[str, str]]:
     parsed_qs = parse_qs(text, keep_blank_values=True)
     if "ID" not in parsed_qs or "Return" not in parsed_qs:
@@ -114,13 +84,6 @@ def _extract_push_ack_fields(text: str) -> Optional[Dict[str, str]]:
         "return": parsed_qs.get("Return", [""])[0],
         "cmd": parsed_qs.get("CMD", [""])[0],
     }
-
-
-def _next_cmd_id() -> int:
-    global NEXT_CMD_ID
-    cmd_id = NEXT_CMD_ID
-    NEXT_CMD_ID += 1
-    return cmd_id
 
 
 @router.get("/iclock/cdata")
@@ -136,19 +99,29 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
         device_pushver = request.query_params.get("pushver", "")
 
         if options == "all" or device_pushver:
-            negotiated = _negotiate_push_protocol_version(device_pushver)
             LAST_HANDSHAKES.append({
                 "ts": datetime.now(timezone.utc).isoformat(),
                 "sn": device_sn,
                 "device_pushver": device_pushver or "(missing)",
-                "negotiated": negotiated,
+                "negotiated": SERVER_PUSH_PROTOCOL_VERSION,
             })
             if len(LAST_HANDSHAKES) > 50:
                 LAST_HANDSHAKES.pop(0)
             logger.info(
-                f"[iClock] SN={device_sn} pushver={device_pushver or 'none'} negotiated PushProtVer={negotiated}"
+                f"[iClock] SN={device_sn} pushver={device_pushver or 'none'} PushProtVer={SERVER_PUSH_PROTOCOL_VERSION}"
             )
-            return Response(f"PushProtVer={negotiated}\n", media_type="text/plain")
+
+            handshake_lines = [
+                f"GET OPTION FROM: {device_sn}",
+                "ErrorDelay=60",
+                "Delay=10",
+                "TransInterval=1",
+                "TransFlag=TransData AttLog",
+                f"TimeZone={SERVER_TIMEZONE}",
+                "Realtime=1",
+                f"PushProtVer={SERVER_PUSH_PROTOCOL_VERSION}",
+            ]
+            return Response("\n".join(handshake_lines) + "\n", media_type="text/plain")
 
         return Response("OK\n", media_type="text/plain")
 
@@ -172,13 +145,6 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
     ack = _extract_push_ack_fields(text)
     if ack:
         ack_sn = ack["sn"] or device_sn
-        waiting_id = WAITING_ACK_BY_SN.get(ack_sn)
-        try:
-            ack_id = int(ack["id"])
-        except ValueError:
-            ack_id = -1
-        if waiting_id is not None and waiting_id == ack_id:
-            WAITING_ACK_BY_SN.pop(ack_sn, None)
 
         LAST_PUSH_ACKS.append({
             "ts": datetime.now(timezone.utc).isoformat(),
@@ -505,16 +471,6 @@ async def iclock_getrequest(request: Request):
     if len(LAST_GETREQUEST_POLLS) > 50:
         LAST_GETREQUEST_POLLS.pop(0)
 
-    if sn and sn not in PENDING_CLEAR_BY_SN and sn not in WAITING_ACK_BY_SN:
-        PENDING_CLEAR_BY_SN[sn] = True
-
-    if sn and PENDING_CLEAR_BY_SN.pop(sn, False):
-        cmd_id = _next_cmd_id()
-        WAITING_ACK_BY_SN[sn] = cmd_id
-        payload = f"C:{cmd_id}:CLEAR LOG\r\n"
-        logger.info(f"[GETREQUEST] SN={sn} send CMD ID={cmd_id}: CLEAR LOG")
-        return Response(payload, media_type="text/plain")
-
     print(f"[GETREQUEST] SN={sn}")
     return Response("OK\n", media_type="text/plain")
 
@@ -527,13 +483,6 @@ async def iclock_devicecmd(request: Request):
 
     if ack:
         ack_sn = ack["sn"] or request.query_params.get("SN", "")
-        waiting_id = WAITING_ACK_BY_SN.get(ack_sn)
-        try:
-            ack_id = int(ack["id"])
-        except ValueError:
-            ack_id = -1
-        if waiting_id is not None and waiting_id == ack_id:
-            WAITING_ACK_BY_SN.pop(ack_sn, None)
 
         LAST_PUSH_ACKS.append({
             "ts": datetime.now(timezone.utc).isoformat(),
