@@ -35,6 +35,8 @@ LAST_ICLOCK: List[Dict[str, Any]] = []
 NEXT_CMD_ID = 9001
 PENDING_CLEAR_BY_SN: Dict[str, bool] = {}
 WAITING_ACK_BY_SN: Dict[str, int] = {}
+WAITING_ACK_AT_BY_SN: Dict[str, datetime] = {}
+ACK_WAIT_TIMEOUT_SECONDS = 30
 
 # Map verify_type codes to human-readable names
 VERIFY_TYPE_MAP = {
@@ -127,6 +129,7 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
         waiting_id = WAITING_ACK_BY_SN.get(ack_sn)
         if waiting_id == ack_id:
             WAITING_ACK_BY_SN.pop(ack_sn, None)
+            WAITING_ACK_AT_BY_SN.pop(ack_sn, None)
             logger.info(
                 f"[PUSH-ACK] SN={ack_sn} ID={ack_id} Return={ack.get('Return', '')} CMD={ack.get('CMD', '')}"
             )
@@ -367,13 +370,28 @@ async def iclock_getrequest(request: Request):
     if sn not in PENDING_CLEAR_BY_SN and sn not in WAITING_ACK_BY_SN:
         PENDING_CLEAR_BY_SN[sn] = True
 
-    if sn in WAITING_ACK_BY_SN:
-        return Response("", media_type="text/plain")
+    waiting_id = WAITING_ACK_BY_SN.get(sn)
+    if waiting_id is not None:
+        waiting_since = WAITING_ACK_AT_BY_SN.get(sn)
+        if waiting_since is not None:
+            elapsed = (datetime.now(timezone.utc) -
+                       waiting_since).total_seconds()
+            if elapsed < ACK_WAIT_TIMEOUT_SECONDS:
+                return Response("", media_type="text/plain")
+
+        cmd_id = _next_cmd_id()
+        WAITING_ACK_BY_SN[sn] = cmd_id
+        WAITING_ACK_AT_BY_SN[sn] = datetime.now(timezone.utc)
+        payload = f"C:ID={cmd_id}&Return=0&CMD=DATA DELETE ATTLOG\r\n"
+        logger.info(
+            f"[GETREQUEST] SN={sn} retry CMD ID={cmd_id}: DATA DELETE ATTLOG")
+        return Response(payload, media_type="text/plain")
 
     if PENDING_CLEAR_BY_SN.pop(sn, False):
         cmd_id = _next_cmd_id()
         WAITING_ACK_BY_SN[sn] = cmd_id
-        payload = f"C:{cmd_id}:DATA DELETE ATTLOG\r\n"
+        WAITING_ACK_AT_BY_SN[sn] = datetime.now(timezone.utc)
+        payload = f"C:ID={cmd_id}&Return=0&CMD=DATA DELETE ATTLOG\r\n"
         logger.info(
             f"[GETREQUEST] SN={sn} send CMD ID={cmd_id}: DATA DELETE ATTLOG")
         return Response(payload, media_type="text/plain")
@@ -396,6 +414,7 @@ async def iclock_devicecmd(request: Request):
         waiting_id = WAITING_ACK_BY_SN.get(ack_sn)
         if waiting_id == ack_id:
             WAITING_ACK_BY_SN.pop(ack_sn, None)
+            WAITING_ACK_AT_BY_SN.pop(ack_sn, None)
             logger.info(
                 f"[DEVICECMD-ACK] SN={ack_sn} ID={ack_id} Return={ack.get('Return', '')} CMD={ack.get('CMD', '')}"
             )
