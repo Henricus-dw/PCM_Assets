@@ -4,6 +4,7 @@ from typing import List, Dict, Any, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import exc as sqlalchemy_exc
 import logging
+from urllib.parse import parse_qs
 
 from database import SessionLocal
 from models import AttendanceLog, AttendanceSession
@@ -29,6 +30,11 @@ logger = logging.getLogger("biometric")
 
 # In-memory buffer for debugging
 LAST_ICLOCK: List[Dict[str, Any]] = []
+
+# Push command state (per device SN)
+NEXT_CMD_ID = 9001
+PENDING_CLEAR_BY_SN: Dict[str, bool] = {}
+WAITING_ACK_BY_SN: Dict[str, int] = {}
 
 # Map verify_type codes to human-readable names
 VERIFY_TYPE_MAP = {
@@ -65,6 +71,23 @@ def parse_iclock_datetime(dt_str: str) -> Optional[datetime]:
         return None
 
 
+def _next_cmd_id() -> int:
+    global NEXT_CMD_ID
+    cmd_id = NEXT_CMD_ID
+    NEXT_CMD_ID += 1
+    return cmd_id
+
+
+def _extract_push_ack(text: str) -> Dict[str, str]:
+    data = parse_qs(text, keep_blank_values=True)
+    parsed: Dict[str, str] = {}
+    for key in ("ID", "SN", "Return", "CMD"):
+        value = data.get(key)
+        if value:
+            parsed[key] = value[0]
+    return parsed
+
+
 @router.get("/iclock/cdata")
 @router.post("/iclock/cdata")
 async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
@@ -72,12 +95,9 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
     device_sn = request.query_params.get("SN", "unknown")
     table_name = request.query_params.get("table", "unknown")
 
-    # Device polling path
+    # Device polling path (commands are served from /iclock/getrequest)
     if request.method == "GET":
-        logger.info(
-            f"[iClock] Sending ATTLOG clear commands to device {device_sn} via /iclock/cdata"
-        )
-        return Response("C:ATTLOG CLEAR\r\nC:DELETE ATTLOG\r\nOK\r\n", media_type="text/plain")
+        return Response("OK", media_type="text/plain")
 
     # Always store the raw hit for debugging
     entry = {
@@ -95,6 +115,21 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
     text = raw.decode("utf-8", errors="replace").strip()
     logger.info(
         f"[iClock] SN={device_sn} table={table_name} method={request.method}")
+
+    # Handle push command acknowledgements if device posts them via /iclock/cdata
+    ack = _extract_push_ack(text)
+    if "ID" in ack and "SN" in ack:
+        ack_sn = ack.get("SN", "")
+        try:
+            ack_id = int(ack.get("ID", "0"))
+        except ValueError:
+            ack_id = 0
+        waiting_id = WAITING_ACK_BY_SN.get(ack_sn)
+        if waiting_id == ack_id:
+            WAITING_ACK_BY_SN.pop(ack_sn, None)
+            logger.info(
+                f"[PUSH-ACK] SN={ack_sn} ID={ack_id} Return={ack.get('Return', '')} CMD={ack.get('CMD', '')}"
+            )
 
     # ---- ATTLOG parsing (attendance events) ----
     if request.method == "POST" and table_name == "ATTLOG":
@@ -200,7 +235,7 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
             return Response("ERROR\n", media_type="text/plain", status_code=500)
 
     # REQUIRED for iClock devices - always return OK
-    return Response("OK\n", media_type="text/plain")
+    return Response("OK", media_type="text/plain")
 
 
 @router.get("/biometric/debug")
@@ -325,5 +360,44 @@ async def get_attendance_logs(
 @router.get("/iclock/getrequest")
 async def iclock_getrequest(request: Request):
     sn = request.query_params.get("SN", "")
-    logger.info(f"[GETREQUEST] Sending ATTLOG clear commands to SN={sn}")
-    return Response("C:ATTLOG CLEAR\r\nC:DELETE ATTLOG\r\nOK\r\n", media_type="text/plain")
+    if not sn:
+        return Response("", media_type="text/plain")
+
+    # Queue one ATTLOG-clear command per device, then wait for ACK before sending another
+    if sn not in PENDING_CLEAR_BY_SN and sn not in WAITING_ACK_BY_SN:
+        PENDING_CLEAR_BY_SN[sn] = True
+
+    if sn in WAITING_ACK_BY_SN:
+        return Response("", media_type="text/plain")
+
+    if PENDING_CLEAR_BY_SN.pop(sn, False):
+        cmd_id = _next_cmd_id()
+        WAITING_ACK_BY_SN[sn] = cmd_id
+        payload = f"C:{cmd_id}:DATA DELETE ATTLOG\r\n"
+        logger.info(
+            f"[GETREQUEST] SN={sn} send CMD ID={cmd_id}: DATA DELETE ATTLOG")
+        return Response(payload, media_type="text/plain")
+
+    return Response("", media_type="text/plain")
+
+
+@router.post("/iclock/devicecmd")
+async def iclock_devicecmd(request: Request):
+    raw = await request.body()
+    text = raw.decode("utf-8", errors="replace").strip()
+    ack = _extract_push_ack(text)
+
+    if "ID" in ack and "SN" in ack:
+        ack_sn = ack.get("SN", "")
+        try:
+            ack_id = int(ack.get("ID", "0"))
+        except ValueError:
+            ack_id = 0
+        waiting_id = WAITING_ACK_BY_SN.get(ack_sn)
+        if waiting_id == ack_id:
+            WAITING_ACK_BY_SN.pop(ack_sn, None)
+            logger.info(
+                f"[DEVICECMD-ACK] SN={ack_sn} ID={ack_id} Return={ack.get('Return', '')} CMD={ack.get('CMD', '')}"
+            )
+
+    return Response("OK", media_type="text/plain")
