@@ -34,6 +34,11 @@ LAST_HANDSHAKES: List[Dict[str, str]] = []
 LAST_GETREQUEST_POLLS: List[Dict[str, str]] = []
 LAST_PUSH_ACKS: List[Dict[str, str]] = []
 
+# Minimal command state for one-shot CLEAR LOG
+NEXT_CMD_ID = 9001
+PENDING_CLEAR_BY_SN: Dict[str, bool] = {}
+WAITING_ACK_BY_SN: Dict[str, int] = {}
+
 # Server-supported Push protocol version (Push 2.32)
 SERVER_PUSH_PROTOCOL_VERSION = "2.3.2"
 
@@ -111,6 +116,13 @@ def _extract_push_ack_fields(text: str) -> Optional[Dict[str, str]]:
     }
 
 
+def _next_cmd_id() -> int:
+    global NEXT_CMD_ID
+    cmd_id = NEXT_CMD_ID
+    NEXT_CMD_ID += 1
+    return cmd_id
+
+
 @router.get("/iclock/cdata")
 @router.post("/iclock/cdata")
 async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
@@ -159,9 +171,18 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
 
     ack = _extract_push_ack_fields(text)
     if ack:
+        ack_sn = ack["sn"] or device_sn
+        waiting_id = WAITING_ACK_BY_SN.get(ack_sn)
+        try:
+            ack_id = int(ack["id"])
+        except ValueError:
+            ack_id = -1
+        if waiting_id is not None and waiting_id == ack_id:
+            WAITING_ACK_BY_SN.pop(ack_sn, None)
+
         LAST_PUSH_ACKS.append({
             "ts": datetime.now(timezone.utc).isoformat(),
-            "sn": ack["sn"] or device_sn,
+            "sn": ack_sn,
             "id": ack["id"],
             "return": ack["return"],
             "cmd": ack["cmd"],
@@ -483,5 +504,16 @@ async def iclock_getrequest(request: Request):
     })
     if len(LAST_GETREQUEST_POLLS) > 50:
         LAST_GETREQUEST_POLLS.pop(0)
+
+    if sn and sn not in PENDING_CLEAR_BY_SN and sn not in WAITING_ACK_BY_SN:
+        PENDING_CLEAR_BY_SN[sn] = True
+
+    if sn and PENDING_CLEAR_BY_SN.pop(sn, False):
+        cmd_id = _next_cmd_id()
+        WAITING_ACK_BY_SN[sn] = cmd_id
+        payload = f"C:{cmd_id}:CLEAR LOG\r\n"
+        logger.info(f"[GETREQUEST] SN={sn} send CMD ID={cmd_id}: CLEAR LOG")
+        return Response(payload, media_type="text/plain")
+
     print(f"[GETREQUEST] SN={sn}")
     return Response("OK\n", media_type="text/plain")
