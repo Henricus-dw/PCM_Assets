@@ -29,6 +29,10 @@ logger = logging.getLogger("biometric")
 
 # In-memory buffer for debugging
 LAST_ICLOCK: List[Dict[str, Any]] = []
+LAST_HANDSHAKES: List[Dict[str, str]] = []
+
+# Server-supported Push protocol version (Push 2.32)
+SERVER_PUSH_PROTOCOL_VERSION = "2.3.2"
 
 # Map verify_type codes to human-readable names
 VERIFY_TYPE_MAP = {
@@ -65,6 +69,32 @@ def parse_iclock_datetime(dt_str: str) -> Optional[datetime]:
         return None
 
 
+def _parse_version_tuple(version: str) -> Optional[tuple]:
+    if not version:
+        return None
+    cleaned = version.strip()
+    try:
+        parts = tuple(int(part) for part in cleaned.split("."))
+        return parts
+    except ValueError:
+        return None
+
+
+def _negotiate_push_protocol_version(device_pushver: str) -> str:
+    device_v = _parse_version_tuple(device_pushver)
+    server_v = _parse_version_tuple(SERVER_PUSH_PROTOCOL_VERSION)
+
+    if device_v is None and server_v is None:
+        return "2.2.14"
+    if device_v is None:
+        return SERVER_PUSH_PROTOCOL_VERSION
+    if server_v is None:
+        return device_pushver
+
+    chosen = device_v if device_v <= server_v else server_v
+    return ".".join(str(part) for part in chosen)
+
+
 @router.get("/iclock/cdata")
 @router.post("/iclock/cdata")
 async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
@@ -74,6 +104,24 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
 
     # Device polling path
     if request.method == "GET":
+        options = request.query_params.get("options", "")
+        device_pushver = request.query_params.get("pushver", "")
+
+        if options == "all" or device_pushver:
+            negotiated = _negotiate_push_protocol_version(device_pushver)
+            LAST_HANDSHAKES.append({
+                "ts": datetime.now(timezone.utc).isoformat(),
+                "sn": device_sn,
+                "device_pushver": device_pushver or "(missing)",
+                "negotiated": negotiated,
+            })
+            if len(LAST_HANDSHAKES) > 50:
+                LAST_HANDSHAKES.pop(0)
+            logger.info(
+                f"[iClock] SN={device_sn} pushver={device_pushver or 'none'} negotiated PushProtVer={negotiated}"
+            )
+            return Response(f"PushProtVer={negotiated}\n", media_type="text/plain")
+
         return Response("OK\n", media_type="text/plain")
 
     # Always store the raw hit for debugging
@@ -236,6 +284,17 @@ async def biometric_debug(db: Session = Depends(get_db)):
             f"</pre><hr style='margin: 3px 0;'>"
         )
 
+    handshake_rows = []
+    for h in reversed(LAST_HANDSHAKES[-20:]):
+        handshake_rows.append(
+            f"<tr>"
+            f"<td>{h['ts']}</td>"
+            f"<td>{h['sn']}</td>"
+            f"<td>{h['device_pushver']}</td>"
+            f"<td>{h['negotiated']}</td>"
+            f"</tr>"
+        )
+
     html = f"""
     <html>
     <head>
@@ -272,10 +331,26 @@ async def biometric_debug(db: Session = Depends(get_db)):
         <h2>📡 Raw iClock Hits (last 20, in-memory)</h2>
         {"".join(raw_rows) if raw_rows else "<p>No hits yet</p>"}
 
+        <h2>🤝 Push Handshake Status (last 20)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Timestamp (UTC)</th>
+                    <th>SN</th>
+                    <th>Device pushver</th>
+                    <th>Negotiated PushProtVer</th>
+                </tr>
+            </thead>
+            <tbody>
+                {"".join(handshake_rows) if handshake_rows else "<tr><td colspan='4'>No handshake yet (device has not requested options=all/pushver)</td></tr>"}
+            </tbody>
+        </table>
+
         <h2>📈 Stats</h2>
         <ul>
             <li>Database logs: {len(recent_logs)}</li>
             <li>In-memory buffer: {len(LAST_ICLOCK)}</li>
+            <li>Handshake events: {len(LAST_HANDSHAKES)}</li>
         </ul>
     </body>
     </html>
