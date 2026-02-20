@@ -517,3 +517,42 @@ async def iclock_getrequest(request: Request):
 
     print(f"[GETREQUEST] SN={sn}")
     return Response("OK\n", media_type="text/plain")
+
+
+@router.post("/iclock/devicecmd")
+async def iclock_devicecmd(request: Request):
+    raw = await request.body()
+    text = raw.decode("utf-8", errors="replace").strip()
+    ack = _extract_push_ack_fields(text)
+
+    if ack:
+        ack_sn = ack["sn"] or request.query_params.get("SN", "")
+        waiting_id = WAITING_ACK_BY_SN.get(ack_sn)
+        try:
+            ack_id = int(ack["id"])
+        except ValueError:
+            ack_id = -1
+        if waiting_id is not None and waiting_id == ack_id:
+            WAITING_ACK_BY_SN.pop(ack_sn, None)
+
+        LAST_PUSH_ACKS.append({
+            "ts": datetime.now(timezone.utc).isoformat(),
+            "sn": ack_sn,
+            "id": ack["id"],
+            "return": ack["return"],
+            "cmd": ack["cmd"],
+        })
+        if len(LAST_PUSH_ACKS) > 50:
+            LAST_PUSH_ACKS.pop(0)
+
+    LAST_ICLOCK.append({
+        "ts": datetime.now(timezone.utc).isoformat(),
+        "client": str(request.client),
+        "method": request.method,
+        "query": dict(request.query_params),
+        "body": text,
+    })
+    if len(LAST_ICLOCK) > 50:
+        LAST_ICLOCK.pop(0)
+
+    return Response("OK\n", media_type="text/plain")
