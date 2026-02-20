@@ -4,6 +4,7 @@ from typing import List, Dict, Any, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import exc as sqlalchemy_exc
 import logging
+from urllib.parse import parse_qs
 
 from database import SessionLocal
 from models import AttendanceLog, AttendanceSession
@@ -30,6 +31,8 @@ logger = logging.getLogger("biometric")
 # In-memory buffer for debugging
 LAST_ICLOCK: List[Dict[str, Any]] = []
 LAST_HANDSHAKES: List[Dict[str, str]] = []
+LAST_GETREQUEST_POLLS: List[Dict[str, str]] = []
+LAST_PUSH_ACKS: List[Dict[str, str]] = []
 
 # Server-supported Push protocol version (Push 2.32)
 SERVER_PUSH_PROTOCOL_VERSION = "2.3.2"
@@ -95,6 +98,19 @@ def _negotiate_push_protocol_version(device_pushver: str) -> str:
     return ".".join(str(part) for part in chosen)
 
 
+def _extract_push_ack_fields(text: str) -> Optional[Dict[str, str]]:
+    parsed_qs = parse_qs(text, keep_blank_values=True)
+    if "ID" not in parsed_qs or "Return" not in parsed_qs:
+        return None
+
+    return {
+        "id": parsed_qs.get("ID", [""])[0],
+        "sn": parsed_qs.get("SN", [""])[0],
+        "return": parsed_qs.get("Return", [""])[0],
+        "cmd": parsed_qs.get("CMD", [""])[0],
+    }
+
+
 @router.get("/iclock/cdata")
 @router.post("/iclock/cdata")
 async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
@@ -140,6 +156,18 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
     text = raw.decode("utf-8", errors="replace").strip()
     logger.info(
         f"[iClock] SN={device_sn} table={table_name} method={request.method}")
+
+    ack = _extract_push_ack_fields(text)
+    if ack:
+        LAST_PUSH_ACKS.append({
+            "ts": datetime.now(timezone.utc).isoformat(),
+            "sn": ack["sn"] or device_sn,
+            "id": ack["id"],
+            "return": ack["return"],
+            "cmd": ack["cmd"],
+        })
+        if len(LAST_PUSH_ACKS) > 50:
+            LAST_PUSH_ACKS.pop(0)
 
     # ---- ATTLOG parsing (attendance events) ----
     if request.method == "POST" and table_name == "ATTLOG":
@@ -295,6 +323,27 @@ async def biometric_debug(db: Session = Depends(get_db)):
             f"</tr>"
         )
 
+    getrequest_rows = []
+    for p in reversed(LAST_GETREQUEST_POLLS[-20:]):
+        getrequest_rows.append(
+            f"<tr>"
+            f"<td>{p['ts']}</td>"
+            f"<td>{p['sn']}</td>"
+            f"</tr>"
+        )
+
+    ack_rows = []
+    for a in reversed(LAST_PUSH_ACKS[-20:]):
+        ack_rows.append(
+            f"<tr>"
+            f"<td>{a['ts']}</td>"
+            f"<td>{a['sn']}</td>"
+            f"<td>{a['id']}</td>"
+            f"<td>{a['return']}</td>"
+            f"<td>{a['cmd']}</td>"
+            f"</tr>"
+        )
+
     html = f"""
     <html>
     <head>
@@ -346,11 +395,42 @@ async def biometric_debug(db: Session = Depends(get_db)):
             </tbody>
         </table>
 
+        <h2>📬 /iclock/getrequest Polls (last 20)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Timestamp (UTC)</th>
+                    <th>SN</th>
+                </tr>
+            </thead>
+            <tbody>
+                {"".join(getrequest_rows) if getrequest_rows else "<tr><td colspan='2'>No getrequest polls yet</td></tr>"}
+            </tbody>
+        </table>
+
+        <h2>✅ Push Command ACKs (last 20)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Timestamp (UTC)</th>
+                    <th>SN</th>
+                    <th>ID</th>
+                    <th>Return</th>
+                    <th>CMD</th>
+                </tr>
+            </thead>
+            <tbody>
+                {"".join(ack_rows) if ack_rows else "<tr><td colspan='5'>No command acknowledgements yet</td></tr>"}
+            </tbody>
+        </table>
+
         <h2>📈 Stats</h2>
         <ul>
             <li>Database logs: {len(recent_logs)}</li>
             <li>In-memory buffer: {len(LAST_ICLOCK)}</li>
             <li>Handshake events: {len(LAST_HANDSHAKES)}</li>
+            <li>getrequest polls: {len(LAST_GETREQUEST_POLLS)}</li>
+            <li>Push ACK events: {len(LAST_PUSH_ACKS)}</li>
         </ul>
     </body>
     </html>
@@ -397,5 +477,11 @@ async def get_attendance_logs(
 @router.get("/iclock/getrequest")
 async def iclock_getrequest(request: Request):
     sn = request.query_params.get("SN", "")
+    LAST_GETREQUEST_POLLS.append({
+        "ts": datetime.now(timezone.utc).isoformat(),
+        "sn": sn,
+    })
+    if len(LAST_GETREQUEST_POLLS) > 50:
+        LAST_GETREQUEST_POLLS.pop(0)
     print(f"[GETREQUEST] SN={sn}")
     return Response("OK\n", media_type="text/plain")
