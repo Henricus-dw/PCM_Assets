@@ -382,7 +382,7 @@ async def iclock_getrequest(request: Request):
         cmd_id = _next_cmd_id()
         WAITING_ACK_BY_SN[sn] = cmd_id
         WAITING_ACK_AT_BY_SN[sn] = datetime.now(timezone.utc)
-        payload = f"C:ID={cmd_id}&Return=0&CMD=DATA DELETE ATTLOG\r\n"
+        payload = f"C:{cmd_id}:DATA DELETE ATTLOG\r\n"
         logger.info(
             f"[GETREQUEST] SN={sn} retry CMD ID={cmd_id}: DATA DELETE ATTLOG")
         return Response(payload, media_type="text/plain")
@@ -391,7 +391,7 @@ async def iclock_getrequest(request: Request):
         cmd_id = _next_cmd_id()
         WAITING_ACK_BY_SN[sn] = cmd_id
         WAITING_ACK_AT_BY_SN[sn] = datetime.now(timezone.utc)
-        payload = f"C:ID={cmd_id}&Return=0&CMD=DATA DELETE ATTLOG\r\n"
+        payload = f"C:{cmd_id}:DATA DELETE ATTLOG\r\n"
         logger.info(
             f"[GETREQUEST] SN={sn} send CMD ID={cmd_id}: DATA DELETE ATTLOG")
         return Response(payload, media_type="text/plain")
