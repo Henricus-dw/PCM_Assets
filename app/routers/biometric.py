@@ -34,6 +34,11 @@ LAST_HANDSHAKES: List[Dict[str, str]] = []
 LAST_GETREQUEST_POLLS: List[Dict[str, str]] = []
 LAST_PUSH_ACKS: List[Dict[str, str]] = []
 
+# Minimal command queue state (testing)
+NEXT_CMD_ID = 9001
+PENDING_CLEAR_BY_SN: Dict[str, bool] = {}
+WAITING_ACK_BY_SN: Dict[str, int] = {}
+
 # Server-supported Push protocol version (Push 2.32)
 SERVER_PUSH_PROTOCOL_VERSION = "2.3.2"
 SERVER_TIMEZONE = "2"
@@ -84,6 +89,13 @@ def _extract_push_ack_fields(text: str) -> Optional[Dict[str, str]]:
         "return": parsed_qs.get("Return", [""])[0],
         "cmd": parsed_qs.get("CMD", [""])[0],
     }
+
+
+def _next_cmd_id() -> int:
+    global NEXT_CMD_ID
+    cmd_id = NEXT_CMD_ID
+    NEXT_CMD_ID += 1
+    return cmd_id
 
 
 @router.get("/iclock/cdata")
@@ -145,6 +157,13 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
     ack = _extract_push_ack_fields(text)
     if ack:
         ack_sn = ack["sn"] or device_sn
+        try:
+            ack_id = int(ack["id"])
+        except ValueError:
+            ack_id = -1
+
+        if WAITING_ACK_BY_SN.get(ack_sn) == ack_id:
+            WAITING_ACK_BY_SN.pop(ack_sn, None)
 
         LAST_PUSH_ACKS.append({
             "ts": datetime.now(timezone.utc).isoformat(),
@@ -411,6 +430,15 @@ async def biometric_debug(db: Session = Depends(get_db)):
             </tbody>
         </table>
 
+        <h2>🧪 Test: Clear Device ATTLOG</h2>
+        <div style="border:1px solid #ccc; padding:10px; margin-bottom:15px; background:#fafafa;">
+            <label for="snInput"><b>Device SN:</b></label>
+            <input id="snInput" type="text" value="AAML174460003" style="padding:6px; margin:0 8px; width:220px;">
+            <button onclick="queueClear()" style="padding:6px 10px; cursor:pointer;">Queue CLEAR LOG</button>
+            <div id="clearResult" style="margin-top:8px;"></div>
+            <small>This only queues the command. Device receives it on next <code>/iclock/getrequest</code> poll.</small>
+        </div>
+
         <h2>📈 Stats</h2>
         <ul>
             <li>Database logs: {len(recent_logs)}</li>
@@ -419,6 +447,25 @@ async def biometric_debug(db: Session = Depends(get_db)):
             <li>getrequest polls: {len(LAST_GETREQUEST_POLLS)}</li>
             <li>Push ACK events: {len(LAST_PUSH_ACKS)}</li>
         </ul>
+
+        <script>
+            async function queueClear() {{
+                const sn = document.getElementById('snInput').value.trim();
+                const out = document.getElementById('clearResult');
+                if (!sn) {{
+                    out.textContent = 'SN is required';
+                    return;
+                }}
+                out.textContent = 'Queuing...';
+                try {{
+                    const res = await fetch('/admin/device/' + encodeURIComponent(sn) + '/clear-attlog', {{ method: 'POST' }});
+                    const data = await res.json();
+                    out.textContent = JSON.stringify(data);
+                }} catch (err) {{
+                    out.textContent = 'Request failed: ' + err;
+                }}
+            }}
+        </script>
     </body>
     </html>
     """
@@ -471,6 +518,16 @@ async def iclock_getrequest(request: Request):
     if len(LAST_GETREQUEST_POLLS) > 50:
         LAST_GETREQUEST_POLLS.pop(0)
 
+    if sn in WAITING_ACK_BY_SN:
+        return Response("OK\n", media_type="text/plain")
+
+    if sn and PENDING_CLEAR_BY_SN.pop(sn, False):
+        cmd_id = _next_cmd_id()
+        WAITING_ACK_BY_SN[sn] = cmd_id
+        payload = f"C:{cmd_id}:CLEAR LOG\n"
+        logger.warning(f"[GETREQUEST] SN={sn} -> {payload.strip()}")
+        return Response(payload, media_type="text/plain")
+
     print(f"[GETREQUEST] SN={sn}")
     return Response("OK\n", media_type="text/plain")
 
@@ -483,6 +540,13 @@ async def iclock_devicecmd(request: Request):
 
     if ack:
         ack_sn = ack["sn"] or request.query_params.get("SN", "")
+        try:
+            ack_id = int(ack["id"])
+        except ValueError:
+            ack_id = -1
+
+        if WAITING_ACK_BY_SN.get(ack_sn) == ack_id:
+            WAITING_ACK_BY_SN.pop(ack_sn, None)
 
         LAST_PUSH_ACKS.append({
             "ts": datetime.now(timezone.utc).isoformat(),
@@ -505,3 +569,10 @@ async def iclock_devicecmd(request: Request):
         LAST_ICLOCK.pop(0)
 
     return Response("OK\n", media_type="text/plain")
+
+
+@router.post("/admin/device/{sn}/clear-attlog")
+async def admin_clear_attlog(sn: str):
+    PENDING_CLEAR_BY_SN[sn] = True
+    logger.warning(f"[ADMIN] Queued CLEAR LOG for SN={sn}")
+    return {"ok": True, "sn": sn, "queued": "CLEAR LOG"}
