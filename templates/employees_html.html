@@ -168,7 +168,7 @@
                         <label style="display: block; margin-bottom: 5px; font-weight: 600;">Division</label>
                         <select id="empDivision" required
                             style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;">
-                            <option>WA</option>
+                            <option>WH</option>
                             <option>WAA</option>
                             <option>VA</option>
                             <option>CCTV</option>
@@ -282,7 +282,8 @@
             document.getElementById('empSurname').value = selected.Surname_ || '';
             document.getElementById('empCompany').value = selected.Company || '';
             document.getElementById('empSite').value = selected.Site || '';
-            document.getElementById('empDivision').value = selected.Division || '';
+            const normalizedDivision = (selected.Division === 'WA') ? 'WH' : (selected.Division || '');
+            document.getElementById('empDivision').value = normalizedDivision;
             document.getElementById('empLunchHour').value = selected.lunch_hour ? 'true' : 'false';
             document.getElementById('employeeModal').style.display = 'block';
         }

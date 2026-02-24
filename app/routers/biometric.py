@@ -180,8 +180,9 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
         lines = text.splitlines()
         stored_count = 0
         error_count = 0
+        parsed_events = []
 
-        for line in lines:
+        for idx, line in enumerate(lines):
             if not line.strip():
                 continue
 
@@ -198,7 +199,6 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
                 status = int(parts[2].strip())
                 verify_type = int(parts[3].strip())
 
-                # Parse datetime
                 timestamp = parse_iclock_datetime(dt_str)
                 if not timestamp:
                     logger.warning(
@@ -206,57 +206,14 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
                     error_count += 1
                     continue
 
-                # Check if this log entry already exists (device resends old data)
-                existing_log = db.query(AttendanceLog).filter(
-                    AttendanceLog.pin == pin,
-                    AttendanceLog.timestamp == timestamp
-                ).first()
-
-                if existing_log:
-                    # Already processed this exact log, skip it
-                    logger.debug(
-                        f"[ATTLOG] Skipping duplicate: pin={pin} dt={timestamp}")
-                    continue
-
-                # Look up human-readable verify type name
-                verify_type_name = VERIFY_TYPE_MAP.get(verify_type, "unknown")
-
-                # Create and store attendance record
-                log = AttendanceLog(
-                    pin=pin,
-                    timestamp=timestamp,
-                    status=status,
-                    verify_type=verify_type,
-                    verify_type_name=verify_type_name,
-                    raw_data=line,
-                    device_sn=device_sn
-                )
-
-                db.add(log)
-
-                # Pair into attendance sessions (toggle by last open session)
-                open_session = db.query(AttendanceSession).filter(
-                    AttendanceSession.pin == pin,
-                    AttendanceSession.check_out.is_(None),
-                ).order_by(AttendanceSession.check_in.desc()).first()
-
-                if open_session:
-                    open_session.check_out = timestamp
-                    open_session.status = "closed"
-                else:
-                    session = AttendanceSession(
-                        pin=pin,
-                        check_in=timestamp,
-                        check_out=None,
-                        status="open"
-                    )
-                    db.add(session)
-                stored_count += 1
-
-                logger.info(
-                    f"[ATTLOG] Stored: pin={pin} dt={timestamp} status={status} "
-                    f"verify={verify_type_name}"
-                )
+                parsed_events.append({
+                    "line": line,
+                    "pin": pin,
+                    "timestamp": timestamp,
+                    "status": status,
+                    "verify_type": verify_type,
+                    "idx": idx,
+                })
 
             except (ValueError, IndexError) as e:
                 logger.error(f"[ATTLOG] Error parsing line '{line}': {e}")
@@ -267,6 +224,88 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
                     f"[ATTLOG] Unexpected error for line '{line}': {e}")
                 error_count += 1
                 continue
+
+        # Process in chronological order so delayed/offline uploads pair correctly.
+        parsed_events.sort(key=lambda item: (item["timestamp"], item["idx"]))
+
+        # Deduplicate repeated events within the same payload burst.
+        seen_payload_keys = set()
+
+        for event in parsed_events:
+            line = event["line"]
+            pin = event["pin"]
+            timestamp = event["timestamp"]
+            status = event["status"]
+            verify_type = event["verify_type"]
+
+            payload_key = (pin, timestamp, status, verify_type)
+            if payload_key in seen_payload_keys:
+                logger.debug(
+                    f"[ATTLOG] Skipping duplicate in same payload: pin={pin} dt={timestamp}")
+                continue
+            seen_payload_keys.add(payload_key)
+
+            # Check if this log entry already exists (device resends old data)
+            existing_log = db.query(AttendanceLog).filter(
+                AttendanceLog.pin == pin,
+                AttendanceLog.timestamp == timestamp,
+                AttendanceLog.status == status,
+                AttendanceLog.verify_type == verify_type,
+            ).first()
+
+            if existing_log:
+                logger.debug(
+                    f"[ATTLOG] Skipping duplicate from resend: pin={pin} dt={timestamp}")
+                continue
+
+            verify_type_name = VERIFY_TYPE_MAP.get(verify_type, "unknown")
+
+            log = AttendanceLog(
+                pin=pin,
+                timestamp=timestamp,
+                status=status,
+                verify_type=verify_type,
+                verify_type_name=verify_type_name,
+                raw_data=line,
+                device_sn=device_sn
+            )
+            db.add(log)
+            db.flush()
+
+            # Pair into attendance sessions (toggle by last open session).
+            # check_in <= timestamp prevents closing a future open session
+            # when historical offline events arrive.
+            open_session = db.query(AttendanceSession).filter(
+                AttendanceSession.pin == pin,
+                AttendanceSession.check_out.is_(None),
+                AttendanceSession.check_in <= timestamp,
+            ).order_by(AttendanceSession.check_in.desc()).first()
+
+            if open_session:
+                # Ignore exact same-time duplicate toggles.
+                if open_session.check_in == timestamp:
+                    logger.debug(
+                        f"[ATTLOG] Ignoring same-second re-scan: pin={pin} dt={timestamp}")
+                    continue
+
+                open_session.check_out = timestamp
+                open_session.status = "closed"
+            else:
+                session = AttendanceSession(
+                    pin=pin,
+                    check_in=timestamp,
+                    check_out=None,
+                    status="open"
+                )
+                db.add(session)
+
+            db.flush()
+            stored_count += 1
+
+            logger.info(
+                f"[ATTLOG] Stored: pin={pin} dt={timestamp} status={status} "
+                f"verify={verify_type_name}"
+            )
 
         # Commit all records at once
         try:

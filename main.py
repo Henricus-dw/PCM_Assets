@@ -558,7 +558,8 @@ async def api_create_employee(request: Request, db: Session = Depends(get_db)):
         Surname_=payload.get('Surname_'),
         Company=payload.get('Company'),
         Site=payload.get('Site'),
-        Division=payload.get('Division'),
+        Division=('WH' if payload.get('Division') ==
+                  'WA' else payload.get('Division')),
         lunch_hour=lunch_hour_value,
     )
     db.add(emp)
@@ -612,7 +613,8 @@ async def api_update_employee(pin: int, request: Request, db: Session = Depends(
     emp.Surname_ = payload.get('Surname_')
     emp.Company = payload.get('Company')
     emp.Site = payload.get('Site')
-    emp.Division = payload.get('Division')
+    emp.Division = 'WH' if payload.get(
+        'Division') == 'WA' else payload.get('Division')
     emp.lunch_hour = lunch_hour_value
 
     try:
