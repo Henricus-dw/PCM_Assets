@@ -575,6 +575,60 @@ async def api_create_employee(request: Request, db: Session = Depends(get_db)):
     })
 
 
+@app.put("/api/employees/{pin}")
+async def api_update_employee(pin: int, request: Request, db: Session = Depends(get_db)):
+    if not request.session.get("user_id"):
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    from models import Employee
+
+    payload = await request.json()
+    emp = db.query(Employee).filter(Employee.PIN == pin).first()
+    if not emp:
+        raise HTTPException(status_code=404, detail="Employee not found")
+
+    employee_id = payload.get('Employee_id')
+    if not employee_id:
+        raise HTTPException(status_code=400, detail="Employee_id required")
+
+    duplicate = db.query(Employee).filter(
+        Employee.Employee_id == employee_id,
+        Employee.PIN != pin
+    ).first()
+    if duplicate:
+        raise HTTPException(
+            status_code=400, detail="Employee_id already exists")
+
+    lunch_hour_value = payload.get('lunch_hour', False)
+    if isinstance(lunch_hour_value, str):
+        lunch_hour_value = lunch_hour_value.strip().lower() in {
+            "1", "true", "yes", "on"
+        }
+    else:
+        lunch_hour_value = bool(lunch_hour_value)
+
+    emp.Employee_id = employee_id
+    emp.Name_ = payload.get('Name_')
+    emp.Surname_ = payload.get('Surname_')
+    emp.Company = payload.get('Company')
+    emp.Site = payload.get('Site')
+    emp.Division = payload.get('Division')
+    emp.lunch_hour = lunch_hour_value
+
+    try:
+        db.commit()
+        db.refresh(emp)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+    return JSONResponse({
+        "status": "ok",
+        "PIN": emp.PIN,
+        "Employee_id": emp.Employee_id,
+    })
+
+
 @app.delete("/api.employees/{employee_id}")
 def api_delete_employee(employee_id: str, request: Request, db: Session = Depends(get_db)):
     if not request.session.get("user_id"):

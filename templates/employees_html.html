@@ -85,7 +85,11 @@
                 <!-- Right panel: Selected employee -->
                 <section class="card card--tall employee-detail-card" id="employeeDetail">
                     <header class="card-head">
-                        <h2>Employee Details</h2>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <h2 style="margin:0;">Employee Details</h2>
+                            <button id="editEmployeeBtn" class="btn-add" style="background:#4b5e70; display:none;"
+                                onclick="openEditEmployeeModal()">Edit Employee Details</button>
+                        </div>
                         <span class="pill" id="detailStatus">-</span>
                     </header>
                     <div style="padding: 16px;">
@@ -109,7 +113,7 @@
             style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center;">
             <div
                 style="background: white; border-radius: 12px; padding: 30px; max-width: 500px; width: 90%; box-shadow: 0 20px 50px rgba(0,0,0,0.2);">
-                <h2 style="margin-top: 0;">Add Employee</h2>
+                <h2 id="employeeModalTitle" style="margin-top: 0;">Add Employee</h2>
                 <form id="employeeForm">
                     <div style="margin-bottom: 15px;">
                         <label style="display: block; margin-bottom: 5px; font-weight: 600;">Employee ID</label>
@@ -180,9 +184,11 @@
                         </select>
                     </div>
                     <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                        <button id="employeeDeleteBtn" type="button" onclick="deleteEmployeeFromModal()"
+                            style="display:none; padding: 10px 20px; background: #b91c1c; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; margin-right: auto;">Delete</button>
                         <button type="button" onclick="closeEmployeeModal()"
                             style="padding: 10px 20px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; background: white;">Cancel</button>
-                        <button type="submit"
+                        <button id="employeeSubmitBtn" type="submit"
                             style="padding: 10px 20px; background: #4b5e70; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Add</button>
                     </div>
                 </form>
@@ -230,11 +236,66 @@
             background: #fee2e2;
             color: #991b1b;
         }
+
+        .employees-table tbody tr.employee-row {
+            cursor: pointer;
+        }
+
+        .employees-table tbody tr.employee-row.selected {
+            background-color: #e7e7e7bf;
+        }
     </style>
 
     <script>
-        function openEmployeeModal() { document.getElementById('employeeModal').style.display = 'block'; }
-        function closeEmployeeModal() { document.getElementById('employeeModal').style.display = 'none'; }
+        let employeeFormMode = 'add';
+        let editingPin = null;
+        let editingEmployeeId = null;
+
+        function openEmployeeModal() {
+            employeeFormMode = 'add';
+            editingPin = null;
+            editingEmployeeId = null;
+            document.getElementById('employeeModalTitle').innerText = 'Add Employee';
+            document.getElementById('employeeSubmitBtn').innerText = 'Add';
+            document.getElementById('employeeDeleteBtn').style.display = 'none';
+            document.getElementById('empId').disabled = false;
+            document.getElementById('employeeForm').reset();
+            document.getElementById('empLunchHour').value = 'false';
+            document.getElementById('employeeModal').style.display = 'block';
+        }
+
+        function openEditEmployeeModal() {
+            if (!selectedPin) return;
+            const selected = allEmployees.find(e => String(e.PIN) === String(selectedPin));
+            if (!selected) return;
+
+            employeeFormMode = 'edit';
+            editingPin = selected.PIN;
+            editingEmployeeId = selected.Employee_id || null;
+            document.getElementById('employeeModalTitle').innerText = 'Edit Employee Details';
+            document.getElementById('employeeSubmitBtn').innerText = 'Save Changes';
+            document.getElementById('employeeDeleteBtn').style.display = 'inline-block';
+            document.getElementById('empId').disabled = false;
+
+            document.getElementById('empId').value = selected.Employee_id || '';
+            document.getElementById('empName').value = selected.Name_ || '';
+            document.getElementById('empSurname').value = selected.Surname_ || '';
+            document.getElementById('empCompany').value = selected.Company || '';
+            document.getElementById('empSite').value = selected.Site || '';
+            document.getElementById('empDivision').value = selected.Division || '';
+            document.getElementById('empLunchHour').value = selected.lunch_hour ? 'true' : 'false';
+            document.getElementById('employeeModal').style.display = 'block';
+        }
+
+        function closeEmployeeModal() {
+            document.getElementById('employeeModal').style.display = 'none';
+        }
+
+        function updateEditButtonVisibility() {
+            const btn = document.getElementById('editEmployeeBtn');
+            if (!btn) return;
+            btn.style.display = selectedPin ? 'inline-block' : 'none';
+        }
 
         function formatTime(ts) {
             if (!ts) return '-';
@@ -286,8 +347,14 @@
 
             if (selectedPin) {
                 const selectedRow = document.querySelector(`#employeeTable tbody tr[data-pin="${selectedPin}"]`);
-                if (selectedRow) selectedRow.classList.add('selected');
+                if (selectedRow) {
+                    selectedRow.classList.add('selected');
+                } else {
+                    selectedPin = null;
+                }
             }
+
+            updateEditButtonVisibility();
 
             requestAnimationFrame(updateEmployeeRowTruncation);
         }
@@ -356,6 +423,7 @@
             document.querySelectorAll('#employeeTable tbody .employee-row.selected').forEach(r => r.classList.remove('selected'));
             row.classList.add('selected');
             selectedPin = row.dataset.pin || null;
+            updateEditButtonVisibility();
             requestAnimationFrame(updateEmployeeRowTruncation);
         }
 
@@ -363,6 +431,29 @@
             if (!confirm('Delete employee ' + id + '?')) return;
             const res = await fetch('/api.employees/' + encodeURIComponent(id), { method: 'DELETE' });
             if (res.ok) fetchEmployees(); else alert('Delete failed');
+        }
+
+        async function deleteEmployeeFromModal() {
+            if (employeeFormMode !== 'edit' || !editingEmployeeId) return;
+            if (!confirm('Delete employee ' + editingEmployeeId + '?')) return;
+
+            const res = await fetch('/api.employees/' + encodeURIComponent(editingEmployeeId), { method: 'DELETE' });
+            if (!res.ok) {
+                const txt = await res.text();
+                alert('Delete failed: ' + txt);
+                return;
+            }
+
+            closeEmployeeModal();
+            selectedPin = null;
+            editingPin = null;
+            editingEmployeeId = null;
+            updateEditButtonVisibility();
+            document.getElementById('detailName').innerText = 'Select an employee';
+            document.getElementById('detailStatus').innerText = '-';
+            document.getElementById('detailSession').innerText = '-';
+            document.getElementById('detailEvents').innerText = '-';
+            await fetchEmployees();
         }
 
         document.getElementById('employeeForm').addEventListener('submit', async (e) => {
@@ -376,10 +467,19 @@
                 Division: document.getElementById('empDivision').value,
                 lunch_hour: document.getElementById('empLunchHour').value === 'true'
             };
-            const res = await fetch('/api/employees', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            const isEdit = employeeFormMode === 'edit' && editingPin !== null;
+            const endpoint = isEdit ? `/api/employees/${encodeURIComponent(editingPin)}` : '/api/employees';
+            const method = isEdit ? 'PUT' : 'POST';
+            const res = await fetch(endpoint, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             if (res.ok) {
                 closeEmployeeModal();
-                fetchEmployees();
+                await fetchEmployees();
+                if (selectedPin) {
+                    const selected = allEmployees.find(emp => String(emp.PIN) === String(selectedPin));
+                    if (selected) {
+                        viewEmployee(String(selected.PIN), selected.Name_ || '', selected.Surname_ || '', selected.current_status || '-');
+                    }
+                }
             } else {
                 const txt = await res.text();
                 alert('Failed to save: ' + txt);
@@ -391,6 +491,7 @@
             const searchInput = document.getElementById('employeeSearch');
             searchInput?.addEventListener('input', applyEmployeeFilter);
             setInterval(fetchEmployees, 5000);
+            updateEditButtonVisibility();
             const handle = document.getElementById("sidebarHandle");
             function toggleSidebar() { document.body.classList.toggle("sidebar-collapsed"); handle?.setAttribute("aria-pressed", String(document.body.classList.contains("sidebar-collapsed"))); }
             handle?.addEventListener("click", toggleSidebar);
