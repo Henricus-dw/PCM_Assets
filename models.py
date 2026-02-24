@@ -148,6 +148,7 @@ class Employee(Base):
     Company = Column(String(100))
     Site = Column(String(100))
     Division = Column(String(100))
+    lunch_hour = Column(Boolean, nullable=True)
 
 
 class TimestampRecord(Base):

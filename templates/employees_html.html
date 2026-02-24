@@ -164,10 +164,19 @@
                         <label style="display: block; margin-bottom: 5px; font-weight: 600;">Division</label>
                         <select id="empDivision" required
                             style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;">
-                            <option>VH</option>
+                            <option>WA</option>
+                            <option>WAA</option>
                             <option>VA</option>
                             <option>CCTV</option>
                             <option>All the above</option>
+                        </select>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Lunch hour</label>
+                        <select id="empLunchHour"
+                            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;">
+                            <option value="false" selected>do nothing</option>
+                            <option value="true">deduct 1 hour</option>
                         </select>
                     </div>
                     <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
@@ -364,7 +373,8 @@
                 Surname_: document.getElementById('empSurname').value.trim(),
                 Company: document.getElementById('empCompany').value,
                 Site: document.getElementById('empSite').value,
-                Division: document.getElementById('empDivision').value
+                Division: document.getElementById('empDivision').value,
+                lunch_hour: document.getElementById('empLunchHour').value === 'true'
             };
             const res = await fetch('/api/employees', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             if (res.ok) {

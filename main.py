@@ -164,6 +164,7 @@ def api_list_employees(request: Request, db: Session = Depends(get_db)):
             "Company": getattr(r, 'Company'),
             "Site": getattr(r, 'Site'),
             "Division": getattr(r, 'Division'),
+            "lunch_hour": bool(getattr(r, 'lunch_hour', False)),
         })
     return JSONResponse(out)
 
@@ -231,6 +232,7 @@ def api_employees_summary(request: Request, db: Session = Depends(get_db)):
             "Company": emp.Company,
             "Site": emp.Site,
             "Division": emp.Division,
+            "lunch_hour": bool(getattr(emp, 'lunch_hour', False)),
             "last_event": le.timestamp.isoformat() if le else None,
             "last_status": le.status if le else None,
             "last_check_in": ls.check_in.isoformat() if ls else None,
@@ -541,13 +543,23 @@ async def api_create_employee(request: Request, db: Session = Depends(get_db)):
         Employee.Employee_id == Employee_id).first()
     if existing:
         raise HTTPException(status_code=400, detail="Employee already exists")
+
+    lunch_hour_value = payload.get('lunch_hour', False)
+    if isinstance(lunch_hour_value, str):
+        lunch_hour_value = lunch_hour_value.strip().lower() in {
+            "1", "true", "yes", "on"
+        }
+    else:
+        lunch_hour_value = bool(lunch_hour_value)
+
     emp = Employee(
         Employee_id=Employee_id,
         Name_=payload.get('Name_'),
         Surname_=payload.get('Surname_'),
         Company=payload.get('Company'),
         Site=payload.get('Site'),
-        Division=payload.get('Division')
+        Division=payload.get('Division'),
+        lunch_hour=lunch_hour_value,
     )
     db.add(emp)
     try:
