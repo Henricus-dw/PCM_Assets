@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="/static/styles.css?v={{ time }}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 
 <body class="home-dashboard">
@@ -156,6 +157,10 @@
                             <span class="muted" id="calendarEmployeeLabel">Select an employee</span>
                         </div>
                         <div class="calendar-nav-controls" style="display:flex; align-items:center; gap:8px;">
+                            <button id="calendar-export-pdf-btn" class="export-pdf-btn" type="button"
+                                aria-label="Export calendar PDF" title="Export calendar PDF">
+                                <img src="/static/download.svg" alt="PDF Icon" class="pdf-icon" />
+                            </button>
                             <button id="calendarPrevBtn" class="calendar-nav-btn" type="button"
                                 aria-label="Previous month">‹</button>
                             <div id="calendarMonthLabel" class="calendar-month-label">-</div>
@@ -309,8 +314,13 @@
         }
 
         .card-head .export-button,
-        .card-head #export-pdf-btn {
+        .card-head #export-pdf-btn,
+        .card-head .export-pdf-btn {
             top: 0;
+        }
+
+        .calendar-nav-controls .export-pdf-btn {
+            top: 6px;
         }
 
         .header-filter {
@@ -366,7 +376,7 @@
             min-height: 0;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            overflow: visible;
         }
 
         .employee-detail-body {
@@ -443,7 +453,7 @@
             display: flex;
             flex-direction: column;
             gap: 5px;
-            overflow: hidden;
+            overflow: visible;
         }
 
         .calendar-weekdays,
@@ -457,6 +467,7 @@
             flex: 1;
             min-height: 0;
             grid-template-rows: repeat(6, minmax(0, 1fr));
+            overflow: visible;
         }
 
         .calendar-weekdays div {
@@ -476,6 +487,8 @@
             flex-direction: column;
             gap: 2px;
             overflow: hidden;
+            position: relative;
+            transition: transform 140ms ease, box-shadow 140ms ease;
         }
 
         .calendar-day.empty {
@@ -501,9 +514,96 @@
             text-overflow: ellipsis;
         }
 
+        .calendar-time--extra {
+            display: none;
+        }
+
+        .calendar-day.has-more {
+            border-color: #cbd5e1;
+        }
+
+        .calendar-overflow-indicator {
+            position: absolute;
+            top: 2px;
+            right: 4px;
+            font-size: 0.62rem;
+            color: #64748b;
+            font-weight: 700;
+            pointer-events: none;
+        }
+
+        .calendar-day.has-more:hover {
+            overflow: visible;
+            z-index: 30;
+            transform: scale(1.42);
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.2);
+            background: #ffffff;
+        }
+
+        .calendar-day.has-more:hover .calendar-time--extra {
+            display: block;
+        }
+
+        .calendar-day.has-more:hover .calendar-time {
+            text-overflow: clip;
+        }
+
+        .calendar-day.has-more:hover .calendar-more,
+        .calendar-day.has-more:hover .calendar-overflow-indicator {
+            display: none;
+        }
+
         .calendar-more {
             font-size: 0.58rem;
             color: #6b7280;
+        }
+
+        .calendar-export-surface {
+            position: fixed;
+            left: -10000px;
+            top: 0;
+            width: 760px;
+            background: #ffffff;
+            padding: 0;
+            box-sizing: border-box;
+            z-index: -1;
+        }
+
+        .calendar-export-surface .card {
+            box-shadow: none;
+        }
+
+        .calendar-export-mode .card-head {
+            min-height: 46px;
+        }
+
+        .calendar-export-mode .calendar-nav-btn,
+        .calendar-export-mode .export-pdf-btn {
+            top: 0;
+        }
+
+        .calendar-export-mode .calendar-grid {
+            grid-template-rows: repeat(6, minmax(84px, 1fr));
+        }
+
+        .calendar-export-mode .calendar-day {
+            padding: 6px;
+            gap: 3px;
+            overflow: visible;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .calendar-export-mode .calendar-time {
+            display: block !important;
+            font-size: 0.66rem;
+            white-space: nowrap;
+            text-overflow: clip;
+        }
+
+        .calendar-export-mode .calendar-overflow-indicator,
+        .calendar-export-mode .calendar-more {
+            display: none !important;
         }
 
         @media (max-width: 1366px),
@@ -587,12 +687,12 @@
                 padding: 1px 3px;
             }
 
-            .calendar-day .calendar-time~.calendar-time {
-                display: none;
-            }
-
             .calendar-more {
                 font-size: 0.54rem;
+            }
+
+            .calendar-day.has-more:hover {
+                transform: scale(1.34);
             }
         }
     </style>
@@ -683,6 +783,10 @@
             return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }
 
+        function getVisibleCalendarChipCount() {
+            return window.matchMedia('(max-width: 1366px), (max-height: 820px)').matches ? 1 : 2;
+        }
+
         function getEmptyCalendarData(dateObj) {
             const year = dateObj.getFullYear();
             const month = dateObj.getMonth();
@@ -722,6 +826,7 @@
             const firstWeekday = Number(data?.first_weekday ?? 0);
             const daysInMonth = Number(data?.days_in_month ?? 0);
             const days = data?.days || {};
+            const visibleChipCount = getVisibleCalendarChipCount();
 
             const leading = Math.max(0, Math.min(6, firstWeekday));
             const totalCells = Math.ceil((leading + daysInMonth) / 7) * 7;
@@ -739,18 +844,23 @@
                 const key = `${formatMonthKey(calendarCurrentMonth)}-${String(dayNum).padStart(2, '0')}`;
                 const entries = Array.isArray(days[key]) ? days[key] : [];
 
-                const chips = entries.slice(0, 2).map(entry => {
+                const chips = entries.map((entry, idx) => {
                     const inTime = formatClockTime(entry.check_in);
                     const outTime = formatClockTime(entry.check_out);
                     const text = outTime ? `${inTime} - ${outTime}` : `${inTime}`;
-                    return `<div class="calendar-time" title="${text}">${text}</div>`;
+                    const extraClass = idx >= visibleChipCount ? ' calendar-time--extra' : '';
+                    return `<div class="calendar-time${extraClass}" title="${text}">${text}</div>`;
                 }).join('');
 
-                const more = entries.length > 2 ? `<div class="calendar-more">+${entries.length - 2} more</div>` : '';
+                const hiddenCount = Math.max(entries.length - visibleChipCount, 0);
+                const hasCutOff = hiddenCount > 0;
+                const overflowIndicator = hasCutOff ? '<span class="calendar-overflow-indicator" title="More entries available">⋯</span>' : '';
+                const more = hasCutOff ? `<div class="calendar-more">+${hiddenCount} more</div>` : '';
 
                 gridHtml += `
-                    <div class="calendar-day">
+                    <div class="calendar-day${hasCutOff ? ' has-more' : ''}">
                         <div class="calendar-day-num">${dayNum}</div>
+                        ${overflowIndicator}
                         ${chips || ''}
                         ${more}
                     </div>
@@ -902,6 +1012,77 @@
                 margin: { left: 20, right: 20 }
             });
             doc.save('employees_export.pdf');
+        }
+
+        async function exportCalendarPdf() {
+            const calendarCard = document.getElementById('employeeCalendarCard');
+            const detailCard = document.getElementById('employeeDetail');
+            if (!calendarCard || !detailCard) return;
+
+            const jspdfNS = window.jspdf;
+            const jsPDF = jspdfNS && jspdfNS.jsPDF;
+            if (!jsPDF) {
+                alert('PDF library not loaded.');
+                return;
+            }
+            if (typeof window.html2canvas !== 'function') {
+                alert('Canvas export library not loaded.');
+                return;
+            }
+
+            const surface = document.createElement('div');
+            surface.className = 'calendar-export-surface';
+
+            const detailClone = detailCard.cloneNode(true);
+            const calendarClone = calendarCard.cloneNode(true);
+            detailClone.classList.add('calendar-export-mode');
+            calendarClone.classList.add('calendar-export-mode');
+
+            detailClone.removeAttribute('id');
+            calendarClone.removeAttribute('id');
+            detailClone.querySelectorAll('[id]').forEach((el) => el.removeAttribute('id'));
+            calendarClone.querySelectorAll('[id]').forEach((el) => el.removeAttribute('id'));
+
+            const clonedExportBtn = calendarClone.querySelector('.calendar-export-pdf-btn');
+            if (clonedExportBtn) clonedExportBtn.remove();
+
+            surface.appendChild(detailClone);
+            surface.appendChild(calendarClone);
+            document.body.appendChild(surface);
+
+            try {
+                const canvas = await window.html2canvas(surface, {
+                    scale: 2,
+                    useCORS: true,
+                    backgroundColor: '#ffffff'
+                });
+
+                const imgData = canvas.toDataURL('image/png');
+                const doc = new jsPDF('portrait', 'pt', 'a4');
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const pageHeight = doc.internal.pageSize.getHeight();
+                const margin = 24;
+                const maxWidth = pageWidth - (margin * 2);
+                const maxHeight = pageHeight - (margin * 2);
+
+                const scale = Math.min(maxWidth / canvas.width, maxHeight / canvas.height);
+                const renderWidth = canvas.width * scale;
+                const renderHeight = canvas.height * scale;
+                const offsetX = (pageWidth - renderWidth) / 2;
+
+                doc.addImage(imgData, 'PNG', offsetX, margin, renderWidth, renderHeight, undefined, 'FAST');
+
+                const monthLabel = (document.getElementById('calendarMonthLabel')?.innerText || 'month')
+                    .trim()
+                    .replace(/\s+/g, '_')
+                    .toLowerCase();
+                const pinPart = selectedPin ? `pin_${selectedPin}` : 'no_selected_employee';
+                doc.save(`employee_calendar_${pinPart}_${monthLabel}.pdf`);
+            } catch (err) {
+                alert('Failed to export calendar PDF.');
+            } finally {
+                surface.remove();
+            }
         }
 
         function renderEmployees(rows) {
@@ -1127,6 +1308,7 @@
             setInterval(fetchEmployees, 5000);
             document.getElementById('export-btn')?.addEventListener('click', exportEmployeesCsv);
             document.getElementById('export-pdf-btn')?.addEventListener('click', exportEmployeesPdf);
+            document.getElementById('calendar-export-pdf-btn')?.addEventListener('click', exportCalendarPdf);
             document.getElementById('calendarPrevBtn')?.addEventListener('click', () => shiftCalendarMonth(-1));
             document.getElementById('calendarNextBtn')?.addEventListener('click', () => shiftCalendarMonth(1));
             resetEmployeeCalendarCard();

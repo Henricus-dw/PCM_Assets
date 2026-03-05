@@ -428,7 +428,8 @@ body {
     background-color: #1e5e3e;
 }
 
-#export-pdf-btn:hover {
+#export-pdf-btn:hover,
+.export-pdf-btn:hover {
     background-color: #9b1010;
 }
 
@@ -442,7 +443,8 @@ body {
     width: 16px;
 }
 
-#export-pdf-btn {
+#export-pdf-btn,
+.export-pdf-btn {
     background-color: #f6efe3;
     /* Excel green */
     color: white;
@@ -1446,7 +1448,8 @@ table.sticky th {
     min-height: 0;
 }
 
-@media (max-width: 1366px), (max-height: 820px) {
+@media (max-width: 1366px),
+(max-height: 820px) {
     .home-dashboard .employees-grid {
         grid-template-rows: 0.78fr 1.22fr;
     }
