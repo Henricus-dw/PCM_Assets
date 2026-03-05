@@ -151,11 +151,11 @@
 
                 <section class="card card--tall employee-calendar-card" id="employeeCalendarCard">
                     <header class="card-head">
-                        <div style="display:flex; align-items:center; gap:10px;">
+                        <div class="calendar-head-left" style="display:flex; align-items:center; gap:10px;">
                             <h2 style="margin:0;">Attendance Calendar</h2>
                             <span class="muted" id="calendarEmployeeLabel">Select an employee</span>
                         </div>
-                        <div style="display:flex; align-items:center; gap:8px;">
+                        <div class="calendar-nav-controls" style="display:flex; align-items:center; gap:8px;">
                             <button id="calendarPrevBtn" class="calendar-nav-btn" type="button"
                                 aria-label="Previous month">‹</button>
                             <div id="calendarMonthLabel" class="calendar-month-label">-</div>
@@ -364,33 +364,60 @@
             grid-row: 2;
             grid-column: 2;
             min-height: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .calendar-head-left {
+            min-width: 0;
+        }
+
+        .calendar-nav-controls {
+            display: inline-flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
         }
 
         .calendar-nav-btn {
             border: 1px solid #d1d5db;
             background: #f8fafc;
             border-radius: 6px;
-            width: 26px;
-            height: 26px;
+            width: 24px;
+            height: 24px;
             cursor: pointer;
             color: #374151;
-            font-size: 16px;
+            font-size: 13px;
             line-height: 1;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            top: 6px;
+        }
+
+        .calendar-nav-btn:hover {
+            background: #eef2f7;
         }
 
         .calendar-month-label {
-            min-width: 120px;
+            min-width: 104px;
             text-align: center;
             font-weight: 600;
             color: #111827;
+            font-size: 0.9rem;
+            line-height: 1.2;
         }
 
         .calendar-body {
-            padding: 12px 14px;
-            height: calc(100% - 56px);
+            padding: 8px 10px;
+            flex: 1;
+            min-height: 0;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 5px;
             overflow: hidden;
         }
 
@@ -398,11 +425,17 @@
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, minmax(0, 1fr));
-            gap: 6px;
+            gap: 4px;
+        }
+
+        .calendar-grid {
+            flex: 1;
+            min-height: 0;
+            grid-template-rows: repeat(6, minmax(0, 1fr));
         }
 
         .calendar-weekdays div {
-            font-size: 0.72rem;
+            font-size: 0.66rem;
             color: #6b7280;
             text-align: center;
             font-weight: 600;
@@ -410,13 +443,13 @@
 
         .calendar-day {
             border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            min-height: 62px;
-            padding: 4px;
+            border-radius: 6px;
+            min-height: 0;
+            padding: 3px;
             background: #fff;
             display: flex;
             flex-direction: column;
-            gap: 3px;
+            gap: 2px;
             overflow: hidden;
         }
 
@@ -427,24 +460,24 @@
         }
 
         .calendar-day-num {
-            font-size: 0.72rem;
+            font-size: 0.66rem;
             font-weight: 700;
             color: #374151;
         }
 
         .calendar-time {
-            font-size: 0.66rem;
+            font-size: 0.6rem;
             color: #166534;
             background: #dcfce7;
             border-radius: 999px;
-            padding: 1px 6px;
+            padding: 1px 4px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
         .calendar-more {
-            font-size: 0.64rem;
+            font-size: 0.58rem;
             color: #6b7280;
         }
     </style>
@@ -464,6 +497,7 @@
         };
         let selectedPin = null;
         let calendarCurrentMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+        let calendarLastRenderKey = '';
 
         function openEmployeeModal() {
             employeeFormMode = 'add';
@@ -534,13 +568,32 @@
             return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }
 
+        function getEmptyCalendarData(dateObj) {
+            const year = dateObj.getFullYear();
+            const month = dateObj.getMonth();
+            const jsFirstWeekday = new Date(year, month, 1).getDay();
+            const firstWeekday = (jsFirstWeekday + 6) % 7;
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            return {
+                first_weekday: firstWeekday,
+                days_in_month: daysInMonth,
+                days: {}
+            };
+        }
+
+        function makeCalendarRenderKey(pin, monthKey, data) {
+            return `${String(pin || 'none')}|${monthKey}|${Number(data?.first_weekday ?? 0)}|${Number(data?.days_in_month ?? 0)}|${JSON.stringify(data?.days || {})}`;
+        }
+
         function resetEmployeeCalendarCard() {
             const label = document.getElementById('calendarEmployeeLabel');
             const monthLabel = document.getElementById('calendarMonthLabel');
-            const body = document.getElementById('employeeCalendarBody');
             if (label) label.innerText = 'Select an employee';
             if (monthLabel) monthLabel.innerText = formatMonthLabel(calendarCurrentMonth);
-            if (body) body.innerHTML = '<div class="muted">Select an employee to view monthly attendance.</div>';
+            const monthKey = formatMonthKey(calendarCurrentMonth);
+            const emptyData = getEmptyCalendarData(calendarCurrentMonth);
+            renderEmployeeCalendar(emptyData);
+            calendarLastRenderKey = makeCalendarRenderKey(null, monthKey, emptyData);
         }
 
         function renderEmployeeCalendar(data) {
@@ -603,19 +656,21 @@
 
             const label = document.getElementById('calendarEmployeeLabel');
             const monthLabel = document.getElementById('calendarMonthLabel');
-            const body = document.getElementById('employeeCalendarBody');
             if (label) label.innerText = employeeLabel || `PIN ${pin}`;
             if (monthLabel) monthLabel.innerText = formatMonthLabel(calendarCurrentMonth);
-            if (body) body.innerHTML = '<div class="muted">Loading attendance calendar...</div>';
 
             const month = formatMonthKey(calendarCurrentMonth);
             const res = await fetch(`/api/employees/${encodeURIComponent(pin)}/calendar?month=${encodeURIComponent(month)}`);
             if (!res.ok) {
-                if (body) body.innerHTML = '<div class="muted">Could not load attendance calendar.</div>';
                 return;
             }
             const data = await res.json();
+            const renderKey = makeCalendarRenderKey(pin, month, data);
+            if (renderKey === calendarLastRenderKey) {
+                return;
+            }
             renderEmployeeCalendar(data);
+            calendarLastRenderKey = renderKey;
         }
 
         async function shiftCalendarMonth(delta) {
