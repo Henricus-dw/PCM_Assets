@@ -1430,7 +1430,7 @@ table.sticky th {
 /* Employees page layout: list spans left column (2 rows) */
 .home-dashboard .employees-grid {
     grid-template-columns: 1.35fr 1fr;
-    grid-template-rows: 1fr 1fr;
+    grid-template-rows: 0.9fr 1.1fr;
 }
 
 .home-dashboard .employees-grid .employees-card {
@@ -1439,6 +1439,11 @@ table.sticky th {
 
 .home-dashboard .employees-grid .employee-detail-card {
     grid-row: 1;
+    min-height: 0;
+}
+
+.home-dashboard .employees-grid .employee-calendar-card {
+    min-height: 0;
 }
 
 /* Biometric dashboard layout: sessions spans left column (2 rows) */
