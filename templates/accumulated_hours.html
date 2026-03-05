@@ -6,11 +6,18 @@
     <title>Accumulated Hours</title>
     <link rel="icon" href="/static/pcm-lockup-goldc-final.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/static/styles.css?v={{ time }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <style>
         .no-data {
             padding: 40px;
             text-align: center;
             color: #9ca3af;
+        }
+
+        .card-head .export-button,
+        .card-head #export-pdf-btn {
+            top: 0;
         }
     </style>
 </head>
@@ -57,6 +64,13 @@
                             <option value="division">Division</option>
                         </select>
                         <div style="display:flex; gap:10px; align-items:center;">
+                            <span class="muted" style="font-size:12px;">Export:</span>
+                            <button id="export-btn" class="export-button" type="button" aria-label="Export Excel">
+                                <img src="/static/excel-document.svg" alt="Excel" class="excel-icon">
+                            </button>
+                            <button id="export-pdf-btn" type="button" aria-label="Export PDF">
+                                <img src="/static/download.svg" alt="PDF Icon" class="pdf-icon">
+                            </button>
                             <input id="filterStartDate" type="date" class="input" style="height:32px;" />
                             <input id="filterEndDate" type="date" class="input" style="height:32px;" />
                         </div>
@@ -157,6 +171,77 @@
             `;
         }
 
+        function getAccumulatedTableData() {
+            const table = document.getElementById('accumulatedTable');
+            if (!table) return { headers: [], body: [] };
+
+            const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
+            const body = [];
+
+            table.querySelectorAll('tbody tr').forEach(tr => {
+                const cells = Array.from(tr.querySelectorAll('td')).map(td => td.textContent.trim());
+                if (!cells.length) return;
+                if (cells.length === 1 && tr.querySelector('.muted')) return;
+                body.push(cells);
+            });
+
+            return { headers, body };
+        }
+
+        function downloadFile(filename, text, mime) {
+            const blob = new Blob([text], { type: mime });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        }
+
+        function exportAccumulatedCsv() {
+            const { headers, body } = getAccumulatedTableData();
+            if (!headers.length || !body.length) {
+                alert('No data to export.');
+                return;
+            }
+
+            const csvHeaders = headers.map(h => `"${h.replace(/"/g, '""')}"`).join(',');
+            const csvRows = body
+                .map(row => row.map(cell => `"${(cell || '').replace(/"/g, '""')}"`).join(','))
+                .join('\n');
+            downloadFile('accumulated_hours_export.csv', `${csvHeaders}\n${csvRows}`, 'text/csv;charset=utf-8;');
+        }
+
+        function exportAccumulatedPdf() {
+            const { headers, body } = getAccumulatedTableData();
+            if (!headers.length || !body.length) {
+                alert('No data to export.');
+                return;
+            }
+
+            const jspdfNS = window.jspdf;
+            const jsPDF = jspdfNS && jspdfNS.jsPDF;
+            if (!jsPDF || !('autoTable' in (jsPDF.API || {}))) {
+                alert('PDF library not loaded.');
+                return;
+            }
+
+            const doc = new jsPDF('landscape', 'pt', 'a4');
+            doc.setFontSize(12);
+            doc.text('Accumulated Hours Export', 40, 30);
+            doc.autoTable({
+                head: [headers],
+                body,
+                startY: 45,
+                styles: { fontSize: 8, cellPadding: 4, overflow: 'linebreak' },
+                headStyles: { fillColor: [75, 94, 112] },
+                margin: { left: 20, right: 20 }
+            });
+            doc.save('accumulated_hours_export.pdf');
+        }
+
         async function refreshAccumulated() {
             const mode = document.getElementById('viewMode').value;
             setHeader(mode);
@@ -220,6 +305,8 @@
             document.getElementById('viewMode').addEventListener('change', refreshAccumulated);
             startInput.addEventListener('change', refreshAccumulated);
             endInput.addEventListener('change', refreshAccumulated);
+            document.getElementById('export-btn')?.addEventListener('click', exportAccumulatedCsv);
+            document.getElementById('export-pdf-btn')?.addEventListener('click', exportAccumulatedPdf);
 
             refreshAccumulated();
             autoRefreshInterval = setInterval(() => { refreshAccumulated(); }, 5000);

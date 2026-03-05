@@ -6,6 +6,8 @@
     <title>Employees</title>
     <link rel="icon" href="/static/pcm-lockup-goldc-final.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/static/styles.css?v={{ time }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 </head>
 
 <body class="home-dashboard">
@@ -47,6 +49,13 @@
                         <div style="display:flex; gap:10px; align-items:center;">
                             <input id="employeeSearch" class="input" placeholder="Search by PIN, name or surname"
                                 style="height:32px;" />
+                            <span class="muted" style="font-size:12px;">Export:</span>
+                            <button id="export-btn" class="export-button" type="button" aria-label="Export Excel">
+                                <img src="/static/excel-document.svg" alt="Excel" class="excel-icon">
+                            </button>
+                            <button id="export-pdf-btn" type="button" aria-label="Export PDF">
+                                <img src="/static/download.svg" alt="PDF Icon" class="pdf-icon">
+                            </button>
                             <button class="btn-add" style="background:#4b5e70;" onclick="openEmployeeModal()">Add
                                 Employee</button>
                         </div>
@@ -64,13 +73,48 @@
                             </colgroup>
                             <thead>
                                 <tr>
-                                    <th>PIN</th>
-                                    <th>Name &amp; Surname</th>
-                                    <th>Employee Nr</th>
-                                    <th>Company</th>
-                                    <th>Site</th>
-                                    <th>Division</th>
-                                    <th>Status</th>
+                                    <th data-col="pin">
+                                        <div class="header-label">PIN</div>
+                                        <input type="text" class="header-filter" data-col="pin" style="display:none;" />
+                                        <button class="filter-toggle" data-col="pin" aria-label="Filter">⌕</button>
+                                    </th>
+                                    <th data-col="name">
+                                        <div class="header-label">Name &amp; Surname</div>
+                                        <input type="text" class="header-filter" data-col="name"
+                                            style="display:none;" />
+                                        <button class="filter-toggle" data-col="name" aria-label="Filter">⌕</button>
+                                    </th>
+                                    <th data-col="employee_id">
+                                        <div class="header-label">Employee Nr</div>
+                                        <input type="text" class="header-filter" data-col="employee_id"
+                                            style="display:none;" />
+                                        <button class="filter-toggle" data-col="employee_id"
+                                            aria-label="Filter">⌕</button>
+                                    </th>
+                                    <th data-col="company">
+                                        <div class="header-label">Company</div>
+                                        <input type="text" class="header-filter" data-col="company"
+                                            style="display:none;" />
+                                        <button class="filter-toggle" data-col="company" aria-label="Filter">⌕</button>
+                                    </th>
+                                    <th data-col="site">
+                                        <div class="header-label">Site</div>
+                                        <input type="text" class="header-filter" data-col="site"
+                                            style="display:none;" />
+                                        <button class="filter-toggle" data-col="site" aria-label="Filter">⌕</button>
+                                    </th>
+                                    <th data-col="division">
+                                        <div class="header-label">Division</div>
+                                        <input type="text" class="header-filter" data-col="division"
+                                            style="display:none;" />
+                                        <button class="filter-toggle" data-col="division" aria-label="Filter">⌕</button>
+                                    </th>
+                                    <th data-col="status">
+                                        <div class="header-label">Status</div>
+                                        <input type="text" class="header-filter" data-col="status"
+                                            style="display:none;" />
+                                        <button class="filter-toggle" data-col="status" aria-label="Filter">⌕</button>
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody id="employeeBody">
@@ -153,7 +197,7 @@
                             <option>SG George</option>
                             <option>SG Cape Town</option>
                             <option>SG Joburg</option>
-                            <option>Vector Linbrow</option>
+                            <option>Vector Linbro</option>
                             <option>Vector Bloemfontein</option>
                             <option>Vector Roodepoort</option>
                             <option>Vector Polokwane</option>
@@ -244,12 +288,73 @@
         .employees-table tbody tr.employee-row.selected {
             background-color: #e7e7e7bf;
         }
+
+        .card-head .export-button,
+        .card-head #export-pdf-btn {
+            top: 0;
+        }
+
+        .header-filter {
+            width: 100%;
+            box-sizing: border-box;
+            height: 26px;
+            padding: 4px 6px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 0.78rem;
+            margin-top: 4px;
+        }
+
+        #employeeTable thead th[data-col] {
+            position: relative;
+            vertical-align: top;
+        }
+
+        #employeeTable thead th[data-col] .header-label {
+            display: block;
+        }
+
+        .filter-toggle {
+            margin-top: 0;
+            border: 1px solid rgba(148, 163, 184, 0.45);
+            background: rgba(248, 250, 252, 0.92);
+            border-radius: 3px;
+            font-size: 10px;
+            color: #6b7280;
+            cursor: pointer;
+            width: 14px;
+            height: 14px;
+            line-height: 12px;
+            padding: 0;
+            opacity: 0.9;
+        }
+
+        #employeeTable thead th[data-col] .filter-toggle {
+            position: absolute;
+            top: 50%;
+            right: 3px;
+            transform: translateY(-50%);
+        }
+
+        .filter-toggle:hover {
+            color: #111827;
+            border-color: #cbd5e1;
+        }
     </style>
 
     <script>
         let employeeFormMode = 'add';
         let editingPin = null;
         let editingEmployeeId = null;
+        const employeeColumnFilters = {
+            pin: '',
+            name: '',
+            employee_id: '',
+            company: '',
+            site: '',
+            division: '',
+            status: ''
+        };
 
         function openEmployeeModal() {
             employeeFormMode = 'add';
@@ -321,6 +426,91 @@
             });
         }
 
+        function getEmployeesTableData() {
+            const table = document.getElementById('employeeTable');
+            if (!table) return { headers: [], body: [] };
+
+            const headers = Array.from(table.querySelectorAll('thead tr:first-child th')).map(th => {
+                const label = th.querySelector('.header-label');
+                return (label ? label.textContent : th.textContent).trim();
+            });
+            const body = [];
+
+            table.querySelectorAll('tbody tr').forEach(tr => {
+                const cells = Array.from(tr.querySelectorAll('td')).map(td => td.textContent.trim());
+                if (!cells.length) return;
+                if (cells.length === 1 && tr.querySelector('.muted')) return;
+                body.push(cells);
+            });
+
+            return { headers, body };
+        }
+
+        function getEmployeeColumnValue(e, col) {
+            if (col === 'pin') return String(e.PIN ?? '').toLowerCase();
+            if (col === 'name') return `${String(e.Name_ ?? '')} ${String(e.Surname_ ?? '')}`.toLowerCase();
+            if (col === 'employee_id') return String(e.Employee_id ?? '').toLowerCase();
+            if (col === 'company') return String(e.Company ?? '').toLowerCase();
+            if (col === 'site') return String(e.Site ?? '').toLowerCase();
+            if (col === 'division') return String(e.Division ?? '').toLowerCase();
+            if (col === 'status') return String(e.current_status ?? '').toLowerCase();
+            return '';
+        }
+
+        function downloadFile(filename, text, mime) {
+            const blob = new Blob([text], { type: mime });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        }
+
+        function exportEmployeesCsv() {
+            const { headers, body } = getEmployeesTableData();
+            if (!headers.length || !body.length) {
+                alert('No data to export.');
+                return;
+            }
+
+            const csvHeaders = headers.map(h => `"${h.replace(/"/g, '""')}"`).join(',');
+            const csvRows = body
+                .map(row => row.map(cell => `"${(cell || '').replace(/"/g, '""')}"`).join(','))
+                .join('\n');
+            downloadFile('employees_export.csv', `${csvHeaders}\n${csvRows}`, 'text/csv;charset=utf-8;');
+        }
+
+        function exportEmployeesPdf() {
+            const { headers, body } = getEmployeesTableData();
+            if (!headers.length || !body.length) {
+                alert('No data to export.');
+                return;
+            }
+
+            const jspdfNS = window.jspdf;
+            const jsPDF = jspdfNS && jspdfNS.jsPDF;
+            if (!jsPDF || !('autoTable' in (jsPDF.API || {}))) {
+                alert('PDF library not loaded.');
+                return;
+            }
+
+            const doc = new jsPDF('landscape', 'pt', 'a4');
+            doc.setFontSize(12);
+            doc.text('Employees Export', 40, 30);
+            doc.autoTable({
+                head: [headers],
+                body,
+                startY: 45,
+                styles: { fontSize: 8, cellPadding: 4, overflow: 'linebreak' },
+                headStyles: { fillColor: [75, 94, 112] },
+                margin: { left: 20, right: 20 }
+            });
+            doc.save('employees_export.pdf');
+        }
+
         function renderEmployees(rows) {
             const tbody = document.getElementById('employeeBody');
             if (!rows.length) {
@@ -362,10 +552,6 @@
 
         function applyEmployeeFilter() {
             const q = document.getElementById('employeeSearch').value.trim().toLowerCase();
-            if (!q) {
-                renderEmployees(allEmployees);
-                return;
-            }
             const filtered = allEmployees.filter(e => {
                 const pin = String(e.PIN ?? '').toLowerCase();
                 const name = String(e.Name_ ?? '').toLowerCase();
@@ -374,9 +560,51 @@
                 const company = String(e.Company ?? '').toLowerCase();
                 const site = String(e.Site ?? '').toLowerCase();
                 const division = String(e.Division ?? '').toLowerCase();
-                return pin.includes(q) || name.includes(q) || surname.includes(q) || emp.includes(q) || company.includes(q) || site.includes(q) || division.includes(q);
+                const matchesGlobal = !q || pin.includes(q) || name.includes(q) || surname.includes(q) || emp.includes(q) || company.includes(q) || site.includes(q) || division.includes(q);
+                const matchesColumns = Object.entries(employeeColumnFilters).every(([col, filterVal]) => {
+                    if (!filterVal) return true;
+                    return getEmployeeColumnValue(e, col).includes(filterVal);
+                });
+                return matchesGlobal && matchesColumns;
             });
             renderEmployees(filtered);
+        }
+
+        function bindEmployeeColumnFilters() {
+            document.querySelectorAll('#employeeTable .filter-toggle').forEach((btn) => {
+                const col = btn.dataset.col;
+                const th = btn.closest('th');
+                const input = th?.querySelector('.header-filter');
+                if (!input) return;
+
+                btn.addEventListener('click', () => {
+                    btn.style.display = 'none';
+                    input.style.display = 'inline-block';
+                    input.focus();
+                });
+
+                input.addEventListener('input', () => {
+                    employeeColumnFilters[col] = input.value.trim().toLowerCase();
+                    applyEmployeeFilter();
+                });
+
+                input.addEventListener('blur', () => {
+                    if (!input.value.trim()) {
+                        input.style.display = 'none';
+                        btn.style.display = 'inline-block';
+                    }
+                });
+
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        input.value = '';
+                        employeeColumnFilters[col] = '';
+                        applyEmployeeFilter();
+                        input.style.display = 'none';
+                        btn.style.display = 'inline-block';
+                    }
+                });
+            });
         }
 
         async function fetchEmployees() {
@@ -491,7 +719,10 @@
             fetchEmployees();
             const searchInput = document.getElementById('employeeSearch');
             searchInput?.addEventListener('input', applyEmployeeFilter);
+            bindEmployeeColumnFilters();
             setInterval(fetchEmployees, 5000);
+            document.getElementById('export-btn')?.addEventListener('click', exportEmployeesCsv);
+            document.getElementById('export-pdf-btn')?.addEventListener('click', exportEmployeesPdf);
             updateEditButtonVisibility();
             const handle = document.getElementById("sidebarHandle");
             function toggleSidebar() { document.body.classList.toggle("sidebar-collapsed"); handle?.setAttribute("aria-pressed", String(document.body.classList.contains("sidebar-collapsed"))); }
