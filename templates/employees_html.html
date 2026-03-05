@@ -148,6 +148,25 @@
                         </div>
                     </div>
                 </section>
+
+                <section class="card card--tall employee-calendar-card" id="employeeCalendarCard">
+                    <header class="card-head">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <h2 style="margin:0;">Attendance Calendar</h2>
+                            <span class="muted" id="calendarEmployeeLabel">Select an employee</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <button id="calendarPrevBtn" class="calendar-nav-btn" type="button"
+                                aria-label="Previous month">‹</button>
+                            <div id="calendarMonthLabel" class="calendar-month-label">-</div>
+                            <button id="calendarNextBtn" class="calendar-nav-btn" type="button"
+                                aria-label="Next month">›</button>
+                        </div>
+                    </header>
+                    <div class="calendar-body" id="employeeCalendarBody">
+                        <div class="muted">Select an employee to view monthly attendance.</div>
+                    </div>
+                </section>
             </div>
         </div>
     </div>
@@ -340,6 +359,94 @@
             color: #111827;
             border-color: #cbd5e1;
         }
+
+        .home-dashboard .employees-grid .employee-calendar-card {
+            grid-row: 2;
+            grid-column: 2;
+            min-height: 0;
+        }
+
+        .calendar-nav-btn {
+            border: 1px solid #d1d5db;
+            background: #f8fafc;
+            border-radius: 6px;
+            width: 26px;
+            height: 26px;
+            cursor: pointer;
+            color: #374151;
+            font-size: 16px;
+            line-height: 1;
+        }
+
+        .calendar-month-label {
+            min-width: 120px;
+            text-align: center;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .calendar-body {
+            padding: 12px 14px;
+            height: calc(100% - 56px);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            overflow: hidden;
+        }
+
+        .calendar-weekdays,
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: 6px;
+        }
+
+        .calendar-weekdays div {
+            font-size: 0.72rem;
+            color: #6b7280;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .calendar-day {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            min-height: 62px;
+            padding: 4px;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            overflow: hidden;
+        }
+
+        .calendar-day.empty {
+            background: #f8fafc;
+            border-style: dashed;
+            border-color: #eef2f7;
+        }
+
+        .calendar-day-num {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #374151;
+        }
+
+        .calendar-time {
+            font-size: 0.66rem;
+            color: #166534;
+            background: #dcfce7;
+            border-radius: 999px;
+            padding: 1px 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .calendar-more {
+            font-size: 0.64rem;
+            color: #6b7280;
+        }
     </style>
 
     <script>
@@ -355,6 +462,8 @@
             division: '',
             status: ''
         };
+        let selectedPin = null;
+        let calendarCurrentMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 
         function openEmployeeModal() {
             employeeFormMode = 'add';
@@ -407,6 +516,120 @@
             if (!ts) return '-';
             const d = new Date(ts);
             return d.toLocaleString();
+        }
+
+        function formatMonthKey(dateObj) {
+            const y = dateObj.getFullYear();
+            const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+            return `${y}-${m}`;
+        }
+
+        function formatMonthLabel(dateObj) {
+            return dateObj.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+        }
+
+        function formatClockTime(iso) {
+            if (!iso) return '';
+            const d = new Date(iso);
+            return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function resetEmployeeCalendarCard() {
+            const label = document.getElementById('calendarEmployeeLabel');
+            const monthLabel = document.getElementById('calendarMonthLabel');
+            const body = document.getElementById('employeeCalendarBody');
+            if (label) label.innerText = 'Select an employee';
+            if (monthLabel) monthLabel.innerText = formatMonthLabel(calendarCurrentMonth);
+            if (body) body.innerHTML = '<div class="muted">Select an employee to view monthly attendance.</div>';
+        }
+
+        function renderEmployeeCalendar(data) {
+            const monthLabel = document.getElementById('calendarMonthLabel');
+            const body = document.getElementById('employeeCalendarBody');
+            if (!body) return;
+
+            monthLabel.innerText = formatMonthLabel(calendarCurrentMonth);
+
+            const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            const firstWeekday = Number(data?.first_weekday ?? 0);
+            const daysInMonth = Number(data?.days_in_month ?? 0);
+            const days = data?.days || {};
+
+            const leading = Math.max(0, Math.min(6, firstWeekday));
+            const totalCells = Math.ceil((leading + daysInMonth) / 7) * 7;
+
+            const weekdayHtml = weekdays.map(d => `<div>${d}</div>`).join('');
+            let gridHtml = '';
+
+            for (let i = 0; i < totalCells; i++) {
+                if (i < leading || i >= leading + daysInMonth) {
+                    gridHtml += '<div class="calendar-day empty"></div>';
+                    continue;
+                }
+
+                const dayNum = i - leading + 1;
+                const key = `${formatMonthKey(calendarCurrentMonth)}-${String(dayNum).padStart(2, '0')}`;
+                const entries = Array.isArray(days[key]) ? days[key] : [];
+
+                const chips = entries.slice(0, 2).map(entry => {
+                    const inTime = formatClockTime(entry.check_in);
+                    const outTime = formatClockTime(entry.check_out);
+                    const text = outTime ? `${inTime} - ${outTime}` : `${inTime}`;
+                    return `<div class="calendar-time" title="${text}">${text}</div>`;
+                }).join('');
+
+                const more = entries.length > 2 ? `<div class="calendar-more">+${entries.length - 2} more</div>` : '';
+
+                gridHtml += `
+                    <div class="calendar-day">
+                        <div class="calendar-day-num">${dayNum}</div>
+                        ${chips || ''}
+                        ${more}
+                    </div>
+                `;
+            }
+
+            body.innerHTML = `
+                <div class="calendar-weekdays">${weekdayHtml}</div>
+                <div class="calendar-grid">${gridHtml}</div>
+            `;
+        }
+
+        async function loadEmployeeCalendar(pin, employeeLabel) {
+            if (!pin) {
+                resetEmployeeCalendarCard();
+                return;
+            }
+
+            const label = document.getElementById('calendarEmployeeLabel');
+            const monthLabel = document.getElementById('calendarMonthLabel');
+            const body = document.getElementById('employeeCalendarBody');
+            if (label) label.innerText = employeeLabel || `PIN ${pin}`;
+            if (monthLabel) monthLabel.innerText = formatMonthLabel(calendarCurrentMonth);
+            if (body) body.innerHTML = '<div class="muted">Loading attendance calendar...</div>';
+
+            const month = formatMonthKey(calendarCurrentMonth);
+            const res = await fetch(`/api/employees/${encodeURIComponent(pin)}/calendar?month=${encodeURIComponent(month)}`);
+            if (!res.ok) {
+                if (body) body.innerHTML = '<div class="muted">Could not load attendance calendar.</div>';
+                return;
+            }
+            const data = await res.json();
+            renderEmployeeCalendar(data);
+        }
+
+        async function shiftCalendarMonth(delta) {
+            calendarCurrentMonth = new Date(calendarCurrentMonth.getFullYear(), calendarCurrentMonth.getMonth() + delta, 1);
+            if (!selectedPin) {
+                resetEmployeeCalendarCard();
+                return;
+            }
+
+            const selected = allEmployees.find(e => String(e.PIN) === String(selectedPin));
+            const label = selected
+                ? `${selected.Name_ || ''} ${selected.Surname_ || ''}`.trim() || `PIN ${selectedPin}`
+                : `PIN ${selectedPin}`;
+            await loadEmployeeCalendar(selectedPin, label);
         }
 
         let allEmployees = [];
@@ -613,11 +836,23 @@
             const data = await res.json();
             allEmployees = data.rows || [];
             applyEmployeeFilter();
+
+            if (selectedPin) {
+                const selected = allEmployees.find(emp => String(emp.PIN) === String(selectedPin));
+                if (selected) {
+                    const label = `${selected.Name_ || ''} ${selected.Surname_ || ''}`.trim() || `PIN ${selectedPin}`;
+                    loadEmployeeCalendar(String(selectedPin), label);
+                } else {
+                    selectedPin = null;
+                    resetEmployeeCalendarCard();
+                }
+            }
         }
 
         async function viewEmployee(pin, name, surname, status) {
             document.getElementById('detailName').innerText = `${name} ${surname} (PIN ${pin})`;
             document.getElementById('detailStatus').innerText = status || '-';
+            await loadEmployeeCalendar(pin, `${name} ${surname}`.trim() || `PIN ${pin}`);
 
             const eventsRes = await fetch(`/api/employees/${pin}/events?limit=10`);
             if (eventsRes.ok) {
@@ -645,8 +880,6 @@
                 }
             }
         }
-
-        let selectedPin = null;
 
         function selectEmployeeRow(row) {
             document.querySelectorAll('#employeeTable tbody .employee-row.selected').forEach(r => r.classList.remove('selected'));
@@ -682,6 +915,7 @@
             document.getElementById('detailStatus').innerText = '-';
             document.getElementById('detailSession').innerText = '-';
             document.getElementById('detailEvents').innerText = '-';
+            resetEmployeeCalendarCard();
             await fetchEmployees();
         }
 
@@ -723,6 +957,9 @@
             setInterval(fetchEmployees, 5000);
             document.getElementById('export-btn')?.addEventListener('click', exportEmployeesCsv);
             document.getElementById('export-pdf-btn')?.addEventListener('click', exportEmployeesPdf);
+            document.getElementById('calendarPrevBtn')?.addEventListener('click', () => shiftCalendarMonth(-1));
+            document.getElementById('calendarNextBtn')?.addEventListener('click', () => shiftCalendarMonth(1));
+            resetEmployeeCalendarCard();
             updateEditButtonVisibility();
             const handle = document.getElementById("sidebarHandle");
             function toggleSidebar() { document.body.classList.toggle("sidebar-collapsed"); handle?.setAttribute("aria-pressed", String(document.body.classList.contains("sidebar-collapsed"))); }

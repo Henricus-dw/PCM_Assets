@@ -302,6 +302,61 @@ def api_employee_session(pin: int, request: Request, db: Session = Depends(get_d
     ])
 
 
+@app.get("/api/employees/{pin}/calendar")
+def api_employee_calendar(pin: int, request: Request, db: Session = Depends(get_db), month: Optional[str] = None):
+    if not request.session.get("user_id"):
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    from models import AttendanceSession
+
+    if month:
+        try:
+            month_start = datetime.strptime(month + "-01", "%Y-%m-%d")
+        except ValueError:
+            raise HTTPException(
+                status_code=400, detail="Invalid month format. Use YYYY-MM")
+    else:
+        today = date.today()
+        month_start = datetime(today.year, today.month, 1)
+
+    year = month_start.year
+    month_num = month_start.month
+    days_in_month = calendar.monthrange(year, month_num)[1]
+
+    if month_num == 12:
+        next_month_start = datetime(year + 1, 1, 1)
+    else:
+        next_month_start = datetime(year, month_num + 1, 1)
+
+    pin_str = str(pin)
+    sessions = db.query(AttendanceSession).filter(
+        AttendanceSession.pin == pin_str,
+        AttendanceSession.check_in >= month_start,
+        AttendanceSession.check_in < next_month_start,
+    ).order_by(AttendanceSession.check_in.asc()).all()
+
+    days = {}
+    for session in sessions:
+        if not session.check_in:
+            continue
+        day_key = session.check_in.strftime("%Y-%m-%d")
+        days.setdefault(day_key, []).append({
+            "check_in": session.check_in.isoformat() if session.check_in else None,
+            "check_out": session.check_out.isoformat() if session.check_out else None,
+            "status": session.status,
+        })
+
+    return JSONResponse({
+        "pin": pin_str,
+        "month": f"{year:04d}-{month_num:02d}",
+        "year": year,
+        "month_index": month_num,
+        "days_in_month": days_in_month,
+        "first_weekday": calendar.monthrange(year, month_num)[0],
+        "days": days,
+    })
+
+
 @app.get("/api/attendance/live")
 def api_attendance_live(request: Request, db: Session = Depends(get_db), limit: int = 50):
     if not request.session.get("user_id"):
