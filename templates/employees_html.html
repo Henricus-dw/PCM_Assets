@@ -136,15 +136,15 @@
                         </div>
                         <span class="pill" id="detailStatus">-</span>
                     </header>
-                    <div style="padding: 16px;">
+                    <div class="employee-detail-body">
                         <div class="muted" id="detailName">Select an employee</div>
-                        <div style="margin-top: 10px;">
+                        <div class="employee-detail-block">
                             <strong>Today Session</strong>
-                            <div id="detailSession" class="muted" style="margin-top:6px;">-</div>
+                            <div id="detailSession" class="muted">-</div>
                         </div>
-                        <div style="margin-top: 16px;">
+                        <div class="employee-detail-block employee-detail-block--events">
                             <strong>Recent Events</strong>
-                            <div id="detailEvents" class="muted" style="margin-top:6px;">-</div>
+                            <div id="detailEvents" class="muted">-</div>
                         </div>
                     </div>
                 </section>
@@ -369,8 +369,33 @@
             overflow: hidden;
         }
 
+        .employee-detail-body {
+            padding: 16px;
+        }
+
+        .employee-detail-block {
+            margin-top: 10px;
+        }
+
+        .employee-detail-block--events {
+            margin-top: 16px;
+        }
+
+        #detailSession,
+        #detailEvents {
+            margin-top: 6px;
+        }
+
         .calendar-head-left {
             min-width: 0;
+        }
+
+        #calendarEmployeeLabel {
+            display: inline-block;
+            max-width: 180px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .calendar-nav-controls {
@@ -479,6 +504,96 @@
         .calendar-more {
             font-size: 0.58rem;
             color: #6b7280;
+        }
+
+        @media (max-width: 1366px),
+        (max-height: 820px) {
+            .employee-detail-body {
+                padding: 12px 14px;
+            }
+
+            .employee-detail-block {
+                margin-top: 8px;
+            }
+
+            .employee-detail-block--events {
+                margin-top: 12px;
+            }
+
+            #detailName {
+                font-size: 0.93rem;
+            }
+
+            #employeeDetail strong {
+                font-size: 0.96rem;
+            }
+
+            #detailSession,
+            #detailEvents {
+                margin-top: 4px;
+                font-size: 0.84rem;
+                line-height: 1.28;
+            }
+
+            .calendar-head-left {
+                gap: 6px !important;
+            }
+
+            #calendarEmployeeLabel {
+                max-width: 120px;
+                font-size: 0.86rem;
+            }
+
+            .calendar-nav-controls {
+                gap: 5px;
+            }
+
+            .calendar-nav-btn {
+                width: 22px;
+                height: 22px;
+                font-size: 12px;
+            }
+
+            .calendar-month-label {
+                min-width: 92px;
+                font-size: 0.84rem;
+            }
+
+            .calendar-body {
+                padding: 6px 8px;
+                gap: 4px;
+            }
+
+            .calendar-weekdays,
+            .calendar-grid {
+                gap: 3px;
+            }
+
+            .calendar-weekdays div {
+                font-size: 0.6rem;
+            }
+
+            .calendar-day {
+                padding: 2px;
+                gap: 1px;
+            }
+
+            .calendar-day-num {
+                font-size: 0.62rem;
+            }
+
+            .calendar-time {
+                font-size: 0.54rem;
+                padding: 1px 3px;
+            }
+
+            .calendar-day .calendar-time~.calendar-time {
+                display: none;
+            }
+
+            .calendar-more {
+                font-size: 0.54rem;
+            }
         }
     </style>
 

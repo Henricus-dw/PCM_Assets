@@ -1446,6 +1446,12 @@ table.sticky th {
     min-height: 0;
 }
 
+@media (max-width: 1366px), (max-height: 820px) {
+    .home-dashboard .employees-grid {
+        grid-template-rows: 0.78fr 1.22fr;
+    }
+}
+
 /* Biometric dashboard layout: sessions spans left column (2 rows) */
 .home-dashboard .biometric-grid {
     grid-template-columns: 1.75fr 1fr;
