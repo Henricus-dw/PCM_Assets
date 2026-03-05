@@ -48,9 +48,6 @@
                     <header class="card-head">
                         <h2>Employees</h2>
                         <div style="display:flex; gap:10px; align-items:center;">
-                            <input id="employeeSearch" class="input" placeholder="Search by PIN, name or surname"
-                                style="height:32px;" />
-                            <span class="muted" style="font-size:12px;">Export:</span>
                             <button id="export-btn" class="export-button" type="button" aria-label="Export Excel">
                                 <img src="/static/excel-document.svg" alt="Excel" class="excel-icon">
                             </button>
@@ -606,8 +603,75 @@
             display: none !important;
         }
 
+        @media (max-width: 1600px),
+        (max-height: 900px) {
+            .home-dashboard .content4 {
+                font-size: 0.95rem;
+            }
+
+            .employees-card .card-head h2,
+            .employee-detail-card .card-head h2,
+            .employee-calendar-card .card-head h2 {
+                font-size: 1.22rem;
+            }
+
+            .btn-add,
+            #employeeDetail,
+            #employeeCalendarCard {
+                font-size: 0.92rem;
+            }
+
+            #employeeTable {
+                font-size: 0.88rem;
+            }
+
+            #employeeTable thead th {
+                font-size: 0.82rem;
+            }
+
+            #employeeTable tbody td {
+                font-size: 0.88rem;
+            }
+
+            .status-pill {
+                font-size: 0.74rem;
+            }
+        }
+
         @media (max-width: 1366px),
         (max-height: 820px) {
+            .home-dashboard .content4 {
+                font-size: 0.9rem;
+            }
+
+            .employees-card .card-head h2,
+            .employee-detail-card .card-head h2,
+            .employee-calendar-card .card-head h2 {
+                font-size: 1.08rem;
+            }
+
+            .btn-add,
+            #employeeDetail,
+            #employeeCalendarCard {
+                font-size: 0.86rem;
+            }
+
+            #employeeTable {
+                font-size: 0.8rem;
+            }
+
+            #employeeTable thead th {
+                font-size: 0.76rem;
+            }
+
+            #employeeTable tbody td {
+                font-size: 0.8rem;
+            }
+
+            .status-pill {
+                font-size: 0.68rem;
+            }
+
             .employee-detail-body {
                 padding: 12px 14px;
             }
@@ -693,6 +757,79 @@
 
             .calendar-day.has-more:hover {
                 transform: scale(1.34);
+            }
+        }
+
+        @media (max-width: 1700px),
+        (max-height: 930px) {
+            .home-dashboard .employees-grid .card-head h2 {
+                font-size: 1.02rem !important;
+            }
+
+            .home-dashboard .employees-grid .btn-add,
+            .home-dashboard .employees-grid .muted,
+            .home-dashboard .employees-grid #employeeDetail,
+            .home-dashboard .employees-grid #employeeCalendarCard {
+                font-size: 0.82rem !important;
+            }
+
+            .home-dashboard .employees-grid #employeeTable thead th {
+                font-size: 0.7rem !important;
+                padding: 6px 7px !important;
+            }
+
+            .home-dashboard .employees-grid #employeeTable tbody td {
+                font-size: 0.78rem !important;
+                padding: 6px 7px !important;
+            }
+
+            .home-dashboard .employees-grid .status-pill {
+                font-size: 0.64rem !important;
+                padding: 3px 8px !important;
+            }
+
+            .home-dashboard .employees-grid #detailName,
+            .home-dashboard .employees-grid #detailSession,
+            .home-dashboard .employees-grid #detailEvents,
+            .home-dashboard .employees-grid #calendarEmployeeLabel,
+            .home-dashboard .employees-grid .calendar-month-label {
+                font-size: 0.78rem !important;
+            }
+        }
+
+        @media (max-width: 1440px),
+        (max-height: 820px) {
+            .home-dashboard .employees-grid .card-head h2 {
+                font-size: 0.96rem !important;
+            }
+
+            .home-dashboard .employees-grid .btn-add,
+            .home-dashboard .employees-grid .muted,
+            .home-dashboard .employees-grid #employeeDetail,
+            .home-dashboard .employees-grid #employeeCalendarCard {
+                font-size: 0.76rem !important;
+            }
+
+            .home-dashboard .employees-grid #employeeTable thead th {
+                font-size: 0.66rem !important;
+                padding: 5px 6px !important;
+            }
+
+            .home-dashboard .employees-grid #employeeTable tbody td {
+                font-size: 0.72rem !important;
+                padding: 5px 6px !important;
+            }
+
+            .home-dashboard .employees-grid .status-pill {
+                font-size: 0.6rem !important;
+            }
+
+            .home-dashboard .employees-grid #detailName,
+            .home-dashboard .employees-grid #detailSession,
+            .home-dashboard .employees-grid #detailEvents,
+            .home-dashboard .employees-grid #calendarEmployeeLabel,
+            .home-dashboard .employees-grid .calendar-month-label {
+                font-size: 0.72rem !important;
             }
         }
     </style>
@@ -1043,7 +1180,7 @@
             detailClone.querySelectorAll('[id]').forEach((el) => el.removeAttribute('id'));
             calendarClone.querySelectorAll('[id]').forEach((el) => el.removeAttribute('id'));
 
-            const clonedExportBtn = calendarClone.querySelector('.calendar-export-pdf-btn');
+            const clonedExportBtn = calendarClone.querySelector('#calendar-export-pdf-btn, .export-pdf-btn');
             if (clonedExportBtn) clonedExportBtn.remove();
 
             surface.appendChild(detailClone);
@@ -1125,21 +1262,12 @@
         }
 
         function applyEmployeeFilter() {
-            const q = document.getElementById('employeeSearch').value.trim().toLowerCase();
             const filtered = allEmployees.filter(e => {
-                const pin = String(e.PIN ?? '').toLowerCase();
-                const name = String(e.Name_ ?? '').toLowerCase();
-                const surname = String(e.Surname_ ?? '').toLowerCase();
-                const emp = String(e.Employee_id ?? '').toLowerCase();
-                const company = String(e.Company ?? '').toLowerCase();
-                const site = String(e.Site ?? '').toLowerCase();
-                const division = String(e.Division ?? '').toLowerCase();
-                const matchesGlobal = !q || pin.includes(q) || name.includes(q) || surname.includes(q) || emp.includes(q) || company.includes(q) || site.includes(q) || division.includes(q);
                 const matchesColumns = Object.entries(employeeColumnFilters).every(([col, filterVal]) => {
                     if (!filterVal) return true;
                     return getEmployeeColumnValue(e, col).includes(filterVal);
                 });
-                return matchesGlobal && matchesColumns;
+                return matchesColumns;
             });
             renderEmployees(filtered);
         }
@@ -1302,8 +1430,6 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             fetchEmployees();
-            const searchInput = document.getElementById('employeeSearch');
-            searchInput?.addEventListener('input', applyEmployeeFilter);
             bindEmployeeColumnFilters();
             setInterval(fetchEmployees, 5000);
             document.getElementById('export-btn')?.addEventListener('click', exportEmployeesCsv);
