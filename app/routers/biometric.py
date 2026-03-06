@@ -272,7 +272,9 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
             db.add(log)
             db.flush()
 
-            # Pair into attendance sessions (toggle by last open session).
+            # Pair into attendance sessions (manual status-controlled logic).
+            # status 0 -> open only
+            # status 1 -> close only
             # check_in <= timestamp prevents closing a future open session
             # when historical offline events arrive.
             open_session = db.query(AttendanceSession).filter(
@@ -281,23 +283,36 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
                 AttendanceSession.check_in <= timestamp,
             ).order_by(AttendanceSession.check_in.desc()).first()
 
-            if open_session:
-                # Ignore exact same-time duplicate toggles.
-                if open_session.check_in == timestamp:
+            if status == 0:
+                # Check-in only opens a new session if none is currently open.
+                if open_session:
                     logger.debug(
-                        f"[ATTLOG] Ignoring same-second re-scan: pin={pin} dt={timestamp}")
-                    continue
+                        f"[ATTLOG] Ignoring check-in while open session exists: pin={pin} dt={timestamp}")
+                else:
+                    session = AttendanceSession(
+                        pin=pin,
+                        check_in=timestamp,
+                        check_out=None,
+                        status="open"
+                    )
+                    db.add(session)
+            elif status == 1:
+                # Check-out only closes an existing open session.
+                if open_session:
+                    # Ignore exact same-time duplicate scans.
+                    if open_session.check_in == timestamp:
+                        logger.debug(
+                            f"[ATTLOG] Ignoring same-second re-scan: pin={pin} dt={timestamp}")
+                        continue
 
-                open_session.check_out = timestamp
-                open_session.status = "closed"
+                    open_session.check_out = timestamp
+                    open_session.status = "closed"
+                else:
+                    logger.debug(
+                        f"[ATTLOG] Ignoring check-out with no open session: pin={pin} dt={timestamp}")
             else:
-                session = AttendanceSession(
-                    pin=pin,
-                    check_in=timestamp,
-                    check_out=None,
-                    status="open"
-                )
-                db.add(session)
+                logger.debug(
+                    f"[ATTLOG] Ignoring unsupported status for session pairing: pin={pin} status={status} dt={timestamp}")
 
             db.flush()
             stored_count += 1
