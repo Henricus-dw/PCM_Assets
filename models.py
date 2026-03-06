@@ -175,3 +175,20 @@ class AttendanceSession(Base):
     status = Column(String(20), nullable=False,
                     default="open")  # open | closed | orphan
     created_at = Column(DateTime, server_default=func.now())
+
+
+class SessionFlag(Base):
+    __tablename__ = "session_flags"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    attendance_log_id = Column(Integer, nullable=True, index=True)
+    pin = Column(String(50), nullable=False, index=True)
+    event_timestamp = Column(DateTime, nullable=False, index=True)
+    event_status = Column(Integer, nullable=True)
+    flag_type = Column(String(50), nullable=False, index=True)
+    flag_reason = Column(String(255), nullable=False)
+    status = Column(String(20), nullable=False,
+                    default="open", server_default=text("'open'"), index=True)
+    resolved_at = Column(DateTime, nullable=True)
+    resolved_by_user_id = Column(Integer, nullable=True)
+    created_at = Column(DateTime, server_default=func.now(), index=True)

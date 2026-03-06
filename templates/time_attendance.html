@@ -109,6 +109,45 @@
             color: #111827;
             border-color: #cbd5e1;
         }
+
+        .flags-list {
+            display: grid;
+            gap: 8px;
+        }
+
+        .flag-row {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 8px 10px;
+            background: #fff;
+        }
+
+        .flag-row .top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 4px;
+        }
+
+        .flag-row .reason {
+            font-size: 0.78rem;
+            color: #6b7280;
+            line-height: 1.3;
+        }
+
+        .flag-type-pill {
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: #fee2e2;
+            color: #991b1b;
+            white-space: nowrap;
+        }
     </style>
 </head>
 
@@ -233,6 +272,18 @@
                         </table>
                     </div>
                 </section>
+
+                <section class="card card--tall">
+                    <header class="card-head">
+                        <h2>Session Flags</h2>
+                        <span class="pill" id="sessionFlagsCount">0</span>
+                    </header>
+                    <div class="table-wrap" style="padding:10px; overflow:auto;">
+                        <div id="sessionFlagsBody" class="flags-list">
+                            <div class="muted">Loading flags...</div>
+                        </div>
+                    </div>
+                </section>
             </div>
         </div>
     </div>
@@ -262,6 +313,46 @@
             const minutes = Math.floor((total % 3600) / 60);
             const secs = Math.floor(total % 60);
             return `${hours}h ${minutes}m ${secs}s`;
+        }
+
+        function formatFlagType(flagType) {
+            if (!flagType) return 'Flag';
+            return String(flagType).replace(/_/g, ' ');
+        }
+
+        async function refreshSessionFlags() {
+            const body = document.getElementById('sessionFlagsBody');
+            const countEl = document.getElementById('sessionFlagsCount');
+            if (!body || !countEl) return;
+
+            const res = await fetch('/api/session-flags?status=open&limit=50');
+            if (!res.ok) {
+                body.innerHTML = '<div class="muted">Could not load flags</div>';
+                return;
+            }
+
+            const flags = await res.json();
+            const rows = Array.isArray(flags) ? flags : [];
+            countEl.innerText = String(rows.length);
+
+            if (!rows.length) {
+                body.innerHTML = '<div class="muted">No open session flags</div>';
+                return;
+            }
+
+            body.innerHTML = rows.map((flag) => {
+                const ts = flag.event_timestamp ? fmt(flag.event_timestamp) : '-';
+                const type = formatFlagType(flag.flag_type);
+                return `
+                    <div class="flag-row">
+                        <div class="top">
+                            <span>PIN ${flag.pin || '-'}</span>
+                            <span class="flag-type-pill">${type}</span>
+                        </div>
+                        <div class="reason">${flag.flag_reason || '-'}<br><small>${ts}</small></div>
+                    </div>
+                `;
+            }).join('');
         }
 
         function getSessionTableData() {
@@ -451,7 +542,11 @@
             startInput.addEventListener('change', refreshSessions);
             endInput.addEventListener('change', refreshSessions);
             refreshSessions();
-            autoRefreshInterval = setInterval(() => { refreshSessions(); }, 5000);
+            refreshSessionFlags();
+            autoRefreshInterval = setInterval(() => {
+                refreshSessions();
+                refreshSessionFlags();
+            }, 5000);
 
             document.getElementById('export-btn')?.addEventListener('click', exportSessionsCsv);
             document.getElementById('export-pdf-btn')?.addEventListener('click', exportSessionsPdf);

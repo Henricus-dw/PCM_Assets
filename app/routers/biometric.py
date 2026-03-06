@@ -7,7 +7,7 @@ import logging
 from urllib.parse import parse_qs
 
 from database import SessionLocal
-from models import AttendanceLog, AttendanceSession
+from models import AttendanceLog, AttendanceSession, SessionFlag
 
 
 # ========================= -
@@ -272,6 +272,17 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
             db.add(log)
             db.flush()
 
+            def add_session_flag(flag_type: str, flag_reason: str):
+                db.add(SessionFlag(
+                    attendance_log_id=log.id,
+                    pin=pin,
+                    event_timestamp=timestamp,
+                    event_status=status,
+                    flag_type=flag_type,
+                    flag_reason=flag_reason,
+                    status="open",
+                ))
+
             # Pair into attendance sessions (manual status-controlled logic).
             # status 0 -> open only
             # status 1 -> close only
@@ -286,6 +297,10 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
             if status == 0:
                 # Check-in only opens a new session if none is currently open.
                 if open_session:
+                    add_session_flag(
+                        "checkin_while_open",
+                        "Check-in received while an open session already exists for this PIN."
+                    )
                     logger.debug(
                         f"[ATTLOG] Ignoring check-in while open session exists: pin={pin} dt={timestamp}")
                 else:
@@ -308,9 +323,17 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
                     open_session.check_out = timestamp
                     open_session.status = "closed"
                 else:
+                    add_session_flag(
+                        "checkout_without_open",
+                        "Check-out received but no open session exists for this PIN."
+                    )
                     logger.debug(
                         f"[ATTLOG] Ignoring check-out with no open session: pin={pin} dt={timestamp}")
             else:
+                add_session_flag(
+                    "unsupported_status",
+                    f"Unsupported attendance status {status} for session pairing."
+                )
                 logger.debug(
                     f"[ATTLOG] Ignoring unsupported status for session pairing: pin={pin} status={status} dt={timestamp}")
 

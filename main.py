@@ -25,7 +25,7 @@ import requests
 from auth import get_current_user, require_admin
 
 # ---- Your models & DB ----
-from models import VodacomSubscription, Device, User, PendingUser, DeviceEditRequest, ContractEditRequest
+from models import VodacomSubscription, Device, User, PendingUser, DeviceEditRequest, ContractEditRequest, SessionFlag
 from database import SessionLocal, engine, Base
 
 
@@ -506,6 +506,39 @@ def api_sessions_today(request: Request, db: Session = Depends(get_db), start_da
         })
 
     return JSONResponse(out)
+
+
+@app.get("/api/session-flags")
+def api_session_flags(
+    request: Request,
+    db: Session = Depends(get_db),
+    status: str = "open",
+    limit: int = 50,
+):
+    _ensure_api_access(request, "time_attendance")
+
+    limit = max(1, min(int(limit), 200))
+    q = db.query(SessionFlag)
+    if status:
+        q = q.filter(SessionFlag.status == status)
+
+    rows = q.order_by(SessionFlag.created_at.desc()).limit(limit).all()
+    return JSONResponse([
+        {
+            "id": r.id,
+            "attendance_log_id": r.attendance_log_id,
+            "pin": r.pin,
+            "event_timestamp": r.event_timestamp.isoformat() if r.event_timestamp else None,
+            "event_status": r.event_status,
+            "flag_type": r.flag_type,
+            "flag_reason": r.flag_reason,
+            "status": r.status,
+            "created_at": r.created_at.isoformat() if r.created_at else None,
+            "resolved_at": r.resolved_at.isoformat() if r.resolved_at else None,
+            "resolved_by_user_id": r.resolved_by_user_id,
+        }
+        for r in rows
+    ])
 
 
 @app.get("/api/accumulated-hours")
