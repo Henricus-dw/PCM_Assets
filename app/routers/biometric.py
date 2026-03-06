@@ -493,6 +493,16 @@ async def biometric_debug(db: Session = Depends(get_db)):
             <small>This only queues the command. Device receives it on next <code>/iclock/getrequest</code> poll.</small>
         </div>
 
+        <h2>🖥️ Test: Virtual Terminal (PIN 1)</h2>
+        <div style="border:1px solid #ccc; padding:10px; margin-bottom:15px; background:#fafafa;">
+            <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
+                <button onclick="sendFakeScan(0)" style="padding:6px 10px; cursor:pointer;">Fake Check In (status 0)</button>
+                <button onclick="sendFakeScan(1)" style="padding:6px 10px; cursor:pointer;">Fake Check Out (status 1)</button>
+            </div>
+            <div id="fakeScanResult" style="margin-top:8px;"></div>
+            <small>Sends ATTLOG line via <code>/iclock/cdata?table=ATTLOG</code> with pin <code>1</code> and current timestamp.</small>
+        </div>
+
         <h2>📈 Stats</h2>
         <ul>
             <li>Database logs: {len(recent_logs)}</li>
@@ -515,6 +525,38 @@ async def biometric_debug(db: Session = Depends(get_db)):
                     const res = await fetch('/admin/device/' + encodeURIComponent(sn) + '/clear-attlog', {{ method: 'POST' }});
                     const data = await res.json();
                     out.textContent = JSON.stringify(data);
+                }} catch (err) {{
+                    out.textContent = 'Request failed: ' + err;
+                }}
+            }}
+
+            function nowIclockFormat() {{
+                const d = new Date();
+                const pad = (n) => String(n).padStart(2, '0');
+                const y = d.getFullYear();
+                const m = pad(d.getMonth() + 1);
+                const day = pad(d.getDate());
+                const hh = pad(d.getHours());
+                const mm = pad(d.getMinutes());
+                const ss = pad(d.getSeconds());
+                return `${{y}}-${{m}}-${{day}} ${{hh}}:${{mm}}:${{ss}}`;
+            }}
+
+            async function sendFakeScan(status) {{
+                const sn = document.getElementById('snInput').value.trim() || 'AAML174460003';
+                const out = document.getElementById('fakeScanResult');
+                const ts = nowIclockFormat();
+                const payload = `1\t${{ts}}\t${{status}}\t1`;
+
+                out.textContent = `Sending... pin=1 status=${{status}} ts=${{ts}} sn=${{sn}}`;
+                try {{
+                    const res = await fetch(`/iclock/cdata?SN=${{encodeURIComponent(sn)}}&table=ATTLOG`, {{
+                        method: 'POST',
+                        headers: {{ 'Content-Type': 'text/plain' }},
+                        body: payload
+                    }});
+                    const text = await res.text();
+                    out.textContent = `Response: ${{res.status}} ${{text.trim() || '(empty)'}} | sent: ${{payload}}`;
                 }} catch (err) {{
                     out.textContent = 'Request failed: ' + err;
                 }}
