@@ -333,18 +333,22 @@
 
         <div class="modules-grid">
             <!-- Vodacom Module -->
+            {% if request.session.get('is_admin') or request.session.get('vodacom') %}
             <a href="/dashboard/vodacom" class="module-card vodacom">
                 <div class="module-icon">📱</div>
                 <h2>Vodacom</h2>
                 <p>Manage subscriptions, contracts, devices, and SIM cards</p>
             </a>
+            {% endif %}
 
             <!-- Time & Attendance Module -->
+            {% if request.session.get('is_admin') or request.session.get('time_attendance') %}
             <a href="/time-attendance" class="module-card time-attendance">
                 <div class="module-icon">⏰</div>
                 <h2>Time & Attendance</h2>
                 <p>Employee management, biometric enrollment, and attendance tracking</p>
             </a>
+            {% endif %}
 
             <a href="#" class="module-card personnel">
                 <div class="module-icon">👥</div>

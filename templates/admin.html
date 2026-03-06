@@ -189,6 +189,72 @@
             /* adjust this to match Delete button size */
             text-align: center;
         }
+
+        .modules-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(17, 24, 39, 0.45);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1100;
+        }
+
+        .modules-modal.open {
+            display: flex;
+        }
+
+        .modules-modal-card {
+            width: min(420px, 92vw);
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+            padding: 18px;
+        }
+
+        .modules-modal-title {
+            margin: 0 0 8px 0;
+            font-size: 1rem;
+            font-weight: 800;
+            color: #111827;
+        }
+
+        .modules-modal-user {
+            margin: 0 0 14px 0;
+            color: #6b7280;
+            font-size: 0.9rem;
+            word-break: break-word;
+        }
+
+        .module-check {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .modules-modal-actions {
+            margin-top: 16px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .btn-secondary {
+            border: 1px solid #d1d5db;
+            background: #fff;
+            color: #111827;
+            border-radius: 8px;
+            padding: 0.6rem 1rem;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-secondary:hover {
+            background: #f9fafb;
+        }
     </style>
 </head>
 
@@ -318,6 +384,12 @@
                             <button class="btn btn-deny" type="submit">Delete</button>
                         </form>
 
+                        <button class="btn btn-admin" type="button" style="margin-left:8px;" data-user-id="{{ u.id }}"
+                            data-email="{{ u.email }}" data-vodacom="{{ 1 if u.vodacom else 0 }}"
+                            data-time-attendance="{{ 1 if u.time_attendance else 0 }}" onclick="openModulesModal(this)">
+                            Modules
+                        </button>
+
                         <!-- ⬇️ add make/revoke buttons inline (no new layout wrappers) -->
                         {% if not u.is_admin %}
                         <form method="post" action="/admin/users/{{ u.id }}/make-admin"
@@ -408,6 +480,32 @@
 
     </div>
 
+    <div id="modulesModal" class="modules-modal" aria-hidden="true">
+        <div class="modules-modal-card" role="dialog" aria-modal="true" aria-labelledby="modulesModalTitle">
+            <h3 id="modulesModalTitle" class="modules-modal-title">Assign Modules</h3>
+            <p class="modules-modal-user" id="modulesModalUser">-</p>
+
+            <form id="modulesForm" method="post" action="/admin/users/0/modules">
+                <input type="hidden" name="module_ctx" value="{{ module or '' }}" />
+
+                <label class="module-check">
+                    <input type="checkbox" id="moduleVodacom" name="vodacom" />
+                    <span>Vodacom</span>
+                </label>
+
+                <label class="module-check">
+                    <input type="checkbox" id="moduleTimeAttendance" name="time_attendance" />
+                    <span>Time & Attendance</span>
+                </label>
+
+                <div class="modules-modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closeModulesModal()">Cancel</button>
+                    <button type="submit" class="btn btn-approve">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
@@ -461,6 +559,43 @@
                 btnEl.textContent = el.classList.contains('expanded') ? 'Shrink' : 'Expand';
             }
         }
+
+        function openModulesModal(btn) {
+            const modal = document.getElementById('modulesModal');
+            const form = document.getElementById('modulesForm');
+            const userLabel = document.getElementById('modulesModalUser');
+            const vodacom = document.getElementById('moduleVodacom');
+            const timeAttendance = document.getElementById('moduleTimeAttendance');
+            if (!modal || !form || !vodacom || !timeAttendance) return;
+
+            const userId = btn?.dataset?.userId;
+            const email = btn?.dataset?.email || '';
+            const hasVodacom = String(btn?.dataset?.vodacom || '0') === '1';
+            const hasTimeAttendance = String(btn?.dataset?.timeAttendance || '0') === '1';
+
+            form.action = `/admin/users/${userId}/modules`;
+            userLabel.textContent = email;
+            vodacom.checked = hasVodacom;
+            timeAttendance.checked = hasTimeAttendance;
+
+            modal.classList.add('open');
+            modal.setAttribute('aria-hidden', 'false');
+        }
+
+        function closeModulesModal() {
+            const modal = document.getElementById('modulesModal');
+            if (!modal) return;
+            modal.classList.remove('open');
+            modal.setAttribute('aria-hidden', 'true');
+        }
+
+        document.addEventListener('click', (e) => {
+            const modal = document.getElementById('modulesModal');
+            if (!modal || !modal.classList.contains('open')) return;
+            if (e.target === modal) {
+                closeModulesModal();
+            }
+        });
 
 
         document.addEventListener("DOMContentLoaded", () => {

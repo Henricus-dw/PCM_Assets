@@ -54,6 +54,10 @@ class User(Base):
     created_at = Column(DateTime, server_default=func.now())
     is_admin = Column(Boolean, nullable=False,
                       server_default=text("0"), default=False)
+    vodacom = Column(Boolean, nullable=True,
+                     server_default=text("0"), default=False)
+    time_attendance = Column(Boolean, nullable=True,
+                             server_default=text("0"), default=False)
 
     __table_args__ = (UniqueConstraint('email', name='uq_users_email'),)
 

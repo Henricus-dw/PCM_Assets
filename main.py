@@ -55,6 +55,56 @@ def verify_password(plain: str, hashed: str) -> bool:
     return pwd_context.verify(plain, hashed)
 
 
+def _sync_session_permissions(request: Request, user: User) -> None:
+    request.session["is_admin"] = bool(getattr(user, "is_admin", False))
+    request.session["vodacom"] = bool(getattr(user, "vodacom", False))
+    request.session["time_attendance"] = bool(
+        getattr(user, "time_attendance", False))
+
+
+def _get_or_refresh_permission(request: Request, key: str) -> bool:
+    if key in request.session:
+        return bool(request.session.get(key))
+
+    user_id = request.session.get("user_id")
+    if not user_id:
+        return False
+
+    db = SessionLocal()
+    try:
+        user = db.get(User, user_id)
+        if not user:
+            return False
+        _sync_session_permissions(request, user)
+        return bool(request.session.get(key))
+    finally:
+        db.close()
+
+
+def _ensure_page_access(request: Request, module_key: Optional[str] = None):
+    if not request.session.get("user_id"):
+        return RedirectResponse(url="/login", status_code=302)
+
+    if bool(_get_or_refresh_permission(request, "is_admin")):
+        return None
+
+    if module_key and not bool(_get_or_refresh_permission(request, module_key)):
+        return RedirectResponse(url="/", status_code=302)
+
+    return None
+
+
+def _ensure_api_access(request: Request, module_key: Optional[str] = None):
+    if not request.session.get("user_id"):
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    if bool(_get_or_refresh_permission(request, "is_admin")):
+        return
+
+    if module_key and not bool(_get_or_refresh_permission(request, module_key)):
+        raise HTTPException(status_code=403, detail="Module access denied")
+
+
 app.include_router(biometric_router)
 
 # Static files & templates
@@ -109,7 +159,7 @@ def login_post(
             status_code=400,
         )
     request.session["user_id"] = user.id
-    request.session["is_admin"] = bool(getattr(user, "is_admin", False))
+    _sync_session_permissions(request, user)
     return RedirectResponse(url="/", status_code=302)
 
 
@@ -124,11 +174,14 @@ def logout(request: Request):
 
 @app.get("/", response_class=HTMLResponse)
 def read_root(request: Request):
-    if not request.session.get("user_id"):
-        return RedirectResponse(url="/login", status_code=302)
+    redirect = _ensure_page_access(request)
+    if redirect:
+        return redirect
     db = SessionLocal()
     try:
         current_user = db.get(User, request.session.get("user_id"))
+        if current_user:
+            _sync_session_permissions(request, current_user)
         return templates.TemplateResponse("landing.html", {"request": request, "current_user": current_user})
     finally:
         db.close()
@@ -139,8 +192,9 @@ def read_root(request: Request):
 
 @app.get("/time-attendance", response_class=HTMLResponse)
 def time_attendance_home(request: Request):
-    if not request.session.get("user_id"):
-        return RedirectResponse(url="/login", status_code=302)
+    redirect = _ensure_page_access(request, "time_attendance")
+    if redirect:
+        return redirect
     return templates.TemplateResponse(
         "employees_html.html",
         {"request": request, "section": "time-attendance",
@@ -150,8 +204,7 @@ def time_attendance_home(request: Request):
 
 @app.get("/api/employees")
 def api_list_employees(request: Request, db: Session = Depends(get_db)):
-    if not request.session.get("user_id"):
-        raise HTTPException(status_code=401, detail="Not authenticated")
+    _ensure_api_access(request, "time_attendance")
     from models import Employee
     rows = db.query(Employee).all()
     out = []
@@ -171,8 +224,7 @@ def api_list_employees(request: Request, db: Session = Depends(get_db)):
 
 @app.get("/api/employees/summary")
 def api_employees_summary(request: Request, db: Session = Depends(get_db)):
-    if not request.session.get("user_id"):
-        raise HTTPException(status_code=401, detail="Not authenticated")
+    _ensure_api_access(request, "time_attendance")
     from models import Employee, AttendanceLog, AttendanceSession
 
     employees = db.query(Employee).all()
@@ -252,8 +304,7 @@ def api_employees_summary(request: Request, db: Session = Depends(get_db)):
 
 @app.get("/api/employees/{pin}/events")
 def api_employee_events(pin: int, request: Request, db: Session = Depends(get_db), limit: int = 20):
-    if not request.session.get("user_id"):
-        raise HTTPException(status_code=401, detail="Not authenticated")
+    _ensure_api_access(request, "time_attendance")
     from models import AttendanceLog
     pin_str = str(pin)
     logs = db.query(AttendanceLog).filter(AttendanceLog.pin == pin_str).order_by(
@@ -269,8 +320,7 @@ def api_employee_events(pin: int, request: Request, db: Session = Depends(get_db
 
 @app.get("/api/employees/{pin}/session")
 def api_employee_session(pin: int, request: Request, db: Session = Depends(get_db), date_str: Optional[str] = None):
-    if not request.session.get("user_id"):
-        raise HTTPException(status_code=401, detail="Not authenticated")
+    _ensure_api_access(request, "time_attendance")
     from models import AttendanceSession
     if date_str:
         try:
@@ -304,8 +354,7 @@ def api_employee_session(pin: int, request: Request, db: Session = Depends(get_d
 
 @app.get("/api/employees/{pin}/calendar")
 def api_employee_calendar(pin: int, request: Request, db: Session = Depends(get_db), month: Optional[str] = None):
-    if not request.session.get("user_id"):
-        raise HTTPException(status_code=401, detail="Not authenticated")
+    _ensure_api_access(request, "time_attendance")
 
     from models import AttendanceSession
 
@@ -359,8 +408,7 @@ def api_employee_calendar(pin: int, request: Request, db: Session = Depends(get_
 
 @app.get("/api/attendance/live")
 def api_attendance_live(request: Request, db: Session = Depends(get_db), limit: int = 50):
-    if not request.session.get("user_id"):
-        raise HTTPException(status_code=401, detail="Not authenticated")
+    _ensure_api_access(request, "time_attendance")
     from models import AttendanceLog
     logs = db.query(AttendanceLog).order_by(
         AttendanceLog.timestamp.desc()).limit(limit).all()
@@ -385,8 +433,7 @@ def api_attendance_live(request: Request, db: Session = Depends(get_db), limit: 
 
 @app.get("/api/sessions/today")
 def api_sessions_today(request: Request, db: Session = Depends(get_db), start_date: Optional[str] = None, end_date: Optional[str] = None):
-    if not request.session.get("user_id"):
-        raise HTTPException(status_code=401, detail="Not authenticated")
+    _ensure_api_access(request, "time_attendance")
     from models import AttendanceSession, Employee
 
     def parse_date(value: Optional[str]) -> date:
@@ -469,8 +516,7 @@ def api_accumulated_hours(
     end_date: Optional[str] = None,
     group_by: str = "employee",
 ):
-    if not request.session.get("user_id"):
-        raise HTTPException(status_code=401, detail="Not authenticated")
+    _ensure_api_access(request, "time_attendance")
     from models import AttendanceSession, Employee
 
     def parse_date(value: Optional[str]) -> date:
@@ -586,8 +632,7 @@ def api_accumulated_hours(
 
 @app.post("/api/employees")
 async def api_create_employee(request: Request, db: Session = Depends(get_db)):
-    if not request.session.get("user_id"):
-        raise HTTPException(status_code=401, detail="Not authenticated")
+    _ensure_api_access(request, "time_attendance")
     payload = await request.json()
     Employee_id = payload.get('Employee_id')
     if not Employee_id:
@@ -633,8 +678,7 @@ async def api_create_employee(request: Request, db: Session = Depends(get_db)):
 
 @app.put("/api/employees/{pin}")
 async def api_update_employee(pin: int, request: Request, db: Session = Depends(get_db)):
-    if not request.session.get("user_id"):
-        raise HTTPException(status_code=401, detail="Not authenticated")
+    _ensure_api_access(request, "time_attendance")
 
     from models import Employee
 
@@ -688,8 +732,7 @@ async def api_update_employee(pin: int, request: Request, db: Session = Depends(
 
 @app.delete("/api.employees/{employee_id}")
 def api_delete_employee(employee_id: str, request: Request, db: Session = Depends(get_db)):
-    if not request.session.get("user_id"):
-        raise HTTPException(status_code=401, detail="Not authenticated")
+    _ensure_api_access(request, "time_attendance")
     from models import Employee
     row = db.query(Employee).filter(
         Employee.Employee_id == employee_id).first()
@@ -702,8 +745,7 @@ def api_delete_employee(employee_id: str, request: Request, db: Session = Depend
 
 @app.post("/api/devices/push_employees")
 async def api_push_employees(request: Request, db: Session = Depends(get_db)):
-    if not request.session.get("user_id"):
-        raise HTTPException(status_code=401, detail="Not authenticated")
+    _ensure_api_access(request, "time_attendance")
     payload = await request.json()
     device_url = payload.get("device_url")
     if not device_url:
@@ -732,8 +774,9 @@ async def api_push_employees(request: Request, db: Session = Depends(get_db)):
 
 @app.get("/time-attendance-dashboard", response_class=HTMLResponse)
 def biometric_dashboard(request: Request):
-    if not request.session.get("user_id"):
-        return RedirectResponse(url="/login", status_code=302)
+    redirect = _ensure_page_access(request, "time_attendance")
+    if redirect:
+        return redirect
     return templates.TemplateResponse(
         "time_attendance.html",
         {"request": request, "section": "time-attendance-dashboard",
@@ -743,8 +786,9 @@ def biometric_dashboard(request: Request):
 
 @app.get("/hours-accumulated", response_class=HTMLResponse)
 def accumulated_hours_dashboard(request: Request):
-    if not request.session.get("user_id"):
-        return RedirectResponse(url="/login", status_code=302)
+    redirect = _ensure_page_access(request, "time_attendance")
+    if redirect:
+        return redirect
     return templates.TemplateResponse(
         "accumulated_hours.html",
         {"request": request, "section": "accumulated-hours",
@@ -754,8 +798,9 @@ def accumulated_hours_dashboard(request: Request):
 
 # 3) VODACOM HOME DASHBOARD
 def dashboard_home(request: Request):
-    if not request.session.get("user_id"):
-        return RedirectResponse(url="/login", status_code=302)
+    redirect = _ensure_page_access(request, "vodacom")
+    if redirect:
+        return redirect
     return templates.TemplateResponse(
         "dashboard_home.html",
         {"request": request, "section": "home"}
@@ -764,8 +809,9 @@ def dashboard_home(request: Request):
 
 @app.get("/dashboard", response_class=HTMLResponse)
 def dashboard_home_alias(request: Request):
-    if not request.session.get("user_id"):
-        return RedirectResponse(url="/login", status_code=302)
+    redirect = _ensure_page_access(request, "vodacom")
+    if redirect:
+        return redirect
     return templates.TemplateResponse(
         "dashboard_home.html",
         {"request": request, "section": "home"}
@@ -774,8 +820,9 @@ def dashboard_home_alias(request: Request):
 
 @app.get("/dashboard/home", response_class=HTMLResponse)
 def dashboard_home_explicit(request: Request):
-    if not request.session.get("user_id"):
-        return RedirectResponse(url="/login", status_code=302)
+    redirect = _ensure_page_access(request, "vodacom")
+    if redirect:
+        return redirect
     return templates.TemplateResponse(
         "dashboard_home.html",
         {"request": request, "section": "home"}
@@ -786,8 +833,9 @@ def dashboard_home_explicit(request: Request):
 
 @app.get("/dashboard/vodacom", response_class=HTMLResponse)
 def dashboard_vodacom(request: Request):
-    if not request.session.get("user_id"):
-        return RedirectResponse(url="/login", status_code=302)
+    redirect = _ensure_page_access(request, "vodacom")
+    if redirect:
+        return redirect
 
     db: Session = SessionLocal()
     try:
@@ -811,8 +859,9 @@ def dashboard_vodacom(request: Request):
 
 @app.get("/dashboard/devices", response_class=HTMLResponse)
 def dashboard_devices(request: Request, db: Session = Depends(get_db)):
-    if not request.session.get("user_id"):
-        return RedirectResponse(url="/login", status_code=302)
+    redirect = _ensure_page_access(request, "vodacom")
+    if redirect:
+        return redirect
 
     # 1) Load devices
     devices = db.query(Device).order_by(Device.id.desc()).all()
@@ -850,8 +899,9 @@ def dashboard_devices(request: Request, db: Session = Depends(get_db)):
 
 @app.get("/form", response_class=HTMLResponse)
 def vodacom_form(request: Request):
-    if not request.session.get("user_id"):
-        return RedirectResponse(url="/login", status_code=302)
+    redirect = _ensure_page_access(request, "vodacom")
+    if redirect:
+        return redirect
     return templates.TemplateResponse(
         "form.html",
         {"request": request, "section": "form",
@@ -879,8 +929,9 @@ def submit_form(
     Sim_Card_Number: str = Form(...),
     db: Session = Depends(get_db)
 ):
-    if not request.session.get("user_id"):
-        return RedirectResponse(url="/login", status_code=302)
+    redirect = _ensure_page_access(request, "vodacom")
+    if redirect:
+        return redirect
 
     subscription = VodacomSubscription(
         Name_=Name_,
@@ -916,8 +967,9 @@ def submit_device(
     insurance: str = Form(...),
     db: Session = Depends(get_db)
 ):
-    if not request.session.get("user_id"):
-        return RedirectResponse(url="/login", status_code=302)
+    redirect = _ensure_page_access(request, "vodacom")
+    if redirect:
+        return redirect
 
     device = Device(
         Name_=AName_,
@@ -1003,8 +1055,9 @@ def submit_all_forms(
 
     db: Session = Depends(get_db)
 ):
-    if not request.session.get("user_id"):
-        return RedirectResponse(url="/login", status_code=302)
+    redirect = _ensure_page_access(request, "vodacom")
+    if redirect:
+        return redirect
 
     # Save VodacomSubscription
     subscription = VodacomSubscription(
@@ -1100,7 +1153,8 @@ class DeviceOut(BaseModel):
 
 
 @app.get("/contracts/{contract_id}/devices", response_model=List[DeviceOut])
-def get_devices_for_contract(contract_id: int, db: Session = Depends(get_db)):
+def get_devices_for_contract(contract_id: int, request: Request, db: Session = Depends(get_db)):
+    _ensure_api_access(request, "vodacom")
     return db.query(Device).filter(Device.vd_id == contract_id).all()
 
 
@@ -1123,7 +1177,8 @@ class ContractOut(BaseModel):
 
 
 @app.get("/devices/{device_id}/contract", response_model=ContractOut)
-def get_contract_for_device(device_id: int, db: Session = Depends(get_db)):
+def get_contract_for_device(device_id: int, request: Request, db: Session = Depends(get_db)):
+    _ensure_api_access(request, "vodacom")
     device = db.query(Device).filter(Device.id == device_id).first()
     if not device or not device.vd_id:
         return None
@@ -1143,7 +1198,8 @@ app.add_middleware(
 
 
 @app.get("/search/devices")
-def search_devices(query: str = "", db: Session = Depends(get_db)):
+def search_devices(request: Request, query: str = "", db: Session = Depends(get_db)):
+    _ensure_api_access(request, "vodacom")
     results = db.query(Device).filter(
         or_(
             Device.Name_.ilike(f"%{query}%"),
@@ -1165,7 +1221,8 @@ def search_devices(query: str = "", db: Session = Depends(get_db)):
 
 
 @app.get("/search/contracts")
-def search_contracts(query: str, db: Session = Depends(get_db)):
+def search_contracts(request: Request, query: str, db: Session = Depends(get_db)):
+    _ensure_api_access(request, "vodacom")
     results = db.query(VodacomSubscription).filter(
         (VodacomSubscription.Name_.ilike(f"%{query}%")) |
         (VodacomSubscription.Surname_.ilike(f"%{query}%")) |
@@ -1194,8 +1251,9 @@ def submit_transfer(
     AClient_Division_10: str = Form(...),
     db: Session = Depends(get_db)
 ):
-    if not request.session.get("user_id"):
-        return RedirectResponse(url="/login", status_code=302)
+    redirect = _ensure_page_access(request, "vodacom")
+    if redirect:
+        return redirect
 
     if selectedDeviceId:
         device = db.query(Device).filter(Device.id == selectedDeviceId).first()
@@ -1269,9 +1327,7 @@ def add_months(d: date, months: int) -> date:
 
 @app.get("/dashboard/home-data")
 def get_home_data(request: Request, db: Session = Depends(get_db)):
-    # If you want this JSON locked too, keep this guard. If not, remove the next 2 lines.
-    if not request.session.get("user_id"):
-        return RedirectResponse(url="/login", status_code=302)
+    _ensure_api_access(request, "vodacom")
 
     today = date.today()
 
@@ -1553,9 +1609,7 @@ def register_post(
 
 @app.get("/api/devices/{device_id}")
 def api_get_device(device_id: int, request: Request, db: Session = Depends(get_db)):
-    # session-guard like the rest of your app
-    if not request.session.get("user_id"):
-        raise HTTPException(status_code=401, detail="Not authenticated")
+    _ensure_api_access(request, "vodacom")
 
     device = db.query(Device).filter(Device.id == device_id).first()
     if not device:
@@ -1585,8 +1639,7 @@ def api_update_device(
     updates: dict = Body(...),
     db: Session = Depends(get_db)
 ):
-    if not request.session.get("user_id"):
-        raise HTTPException(status_code=401, detail="Not authenticated")
+    _ensure_api_access(request, "vodacom")
 
     device = db.query(Device).filter(Device.id == device_id).first()
     if not device:
@@ -1647,8 +1700,7 @@ def create_device_edit_request(
     payload: dict = Body(...),
     db: Session = Depends(get_db)
 ):
-    if not request.session.get("user_id"):
-        raise HTTPException(status_code=401, detail="Not authenticated")
+    _ensure_api_access(request, "vodacom")
 
     device_id = payload.get("device_id")
     changes = payload.get("changes") or {}
@@ -1716,8 +1768,7 @@ def create_edit_request(
     db: Session = Depends(get_db)
 ):
     # Require login like your other APIs
-    if not request.session.get("user_id"):
-        raise HTTPException(status_code=401, detail="Not authenticated")
+    _ensure_api_access(request, "vodacom")
 
     # Basic device check
     device = db.query(Device).filter(Device.id == device_id).first()
@@ -1816,8 +1867,7 @@ def create_contract_edit_request(
     payload: dict = Body(...),
     db: Session = Depends(get_db)
 ):
-    if not request.session.get("user_id"):
-        raise HTTPException(status_code=401, detail="Not authenticated")
+    _ensure_api_access(request, "vodacom")
 
     contract = db.query(VodacomSubscription).filter(
         VodacomSubscription.id == contract_id).first()
@@ -1943,6 +1993,33 @@ def revoke_admin(
         db.commit()
         if request and current_user.id == u.id:
             request.session["is_admin"] = False
+    return RedirectResponse(url="/admin", status_code=303)
+
+
+@app.post("/admin/users/{user_id}/modules")
+def update_user_modules(
+    user_id: int = Path(...),
+    request: Request = None,
+    vodacom: Optional[str] = Form(None),
+    time_attendance: Optional[str] = Form(None),
+    module_ctx: Optional[str] = Form(None),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
+):
+    u = db.query(User).filter(User.id == user_id).first()
+    if not u:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    u.vodacom = bool(vodacom)
+    u.time_attendance = bool(time_attendance)
+    db.commit()
+
+    if request and current_user.id == u.id:
+        request.session["vodacom"] = bool(u.vodacom)
+        request.session["time_attendance"] = bool(u.time_attendance)
+
+    if module_ctx == "biometric":
+        return RedirectResponse(url="/admin?module=biometric", status_code=303)
     return RedirectResponse(url="/admin", status_code=303)
 
 
