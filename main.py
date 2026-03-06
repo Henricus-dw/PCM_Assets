@@ -516,6 +516,7 @@ def api_session_flags(
     limit: int = 50,
 ):
     _ensure_api_access(request, "time_attendance")
+    from models import Employee, AttendanceLog, AttendanceSession
 
     limit = max(1, min(int(limit), 200))
     q = db.query(SessionFlag)
@@ -523,11 +524,74 @@ def api_session_flags(
         q = q.filter(SessionFlag.status == status)
 
     rows = q.order_by(SessionFlag.created_at.desc()).limit(limit).all()
+
+    pins = {str(r.pin) for r in rows if r.pin is not None}
+    pin_ints = []
+    for pin in pins:
+        try:
+            pin_ints.append(int(pin))
+        except (TypeError, ValueError):
+            continue
+
+    employees = []
+    if pins:
+        filters = [Employee.Employee_id.in_(pins)]
+        if pin_ints:
+            filters.append(Employee.PIN.in_(pin_ints))
+        employees = db.query(Employee).filter(or_(*filters)).all()
+
+    employee_by_pin = {str(e.Employee_id): e for e in employees}
+    for e in employees:
+        employee_by_pin.setdefault(str(e.PIN), e)
+
+    def get_flag_preview(flag_row: SessionFlag):
+        if flag_row.flag_type == "checkin_while_open":
+            open_session = db.query(AttendanceSession).filter(
+                AttendanceSession.pin == str(flag_row.pin),
+                AttendanceSession.check_out.is_(None),
+                AttendanceSession.check_in <= flag_row.event_timestamp,
+            ).order_by(AttendanceSession.check_in.desc()).first()
+
+            if not open_session:
+                return None
+
+            duration_seconds = int(
+                (flag_row.event_timestamp - open_session.check_in).total_seconds())
+            return {
+                "original_check_in": open_session.check_in.isoformat() if open_session.check_in else None,
+                "proposed_check_out": flag_row.event_timestamp.isoformat() if flag_row.event_timestamp else None,
+                "proposed_duration_seconds": max(0, duration_seconds),
+                "action": "change_to_checkout",
+            }
+
+        if flag_row.flag_type == "checkout_without_open":
+            previous_checkout = db.query(AttendanceSession).filter(
+                AttendanceSession.pin == str(flag_row.pin),
+                AttendanceSession.check_out.isnot(None),
+                AttendanceSession.check_out <= flag_row.event_timestamp,
+            ).order_by(AttendanceSession.check_out.desc()).first()
+
+            return {
+                "previous_check_out": previous_checkout.check_out.isoformat() if previous_checkout and previous_checkout.check_out else None,
+                "proposed_check_in": flag_row.event_timestamp.isoformat() if flag_row.event_timestamp else None,
+                "action": "change_to_checkin",
+            }
+
+        return None
+
     return JSONResponse([
         {
             "id": r.id,
             "attendance_log_id": r.attendance_log_id,
             "pin": r.pin,
+            "employee_name": (
+                f"{(employee_by_pin.get(str(r.pin)).Name_ or '').strip()} {(employee_by_pin.get(str(r.pin)).Surname_ or '').strip()}".strip()
+                if employee_by_pin.get(str(r.pin)) else None
+            ),
+            "employee_number": (
+                employee_by_pin.get(str(r.pin)).Employee_id if employee_by_pin.get(
+                    str(r.pin)) else None
+            ),
             "event_timestamp": r.event_timestamp.isoformat() if r.event_timestamp else None,
             "event_status": r.event_status,
             "flag_type": r.flag_type,
@@ -536,9 +600,109 @@ def api_session_flags(
             "created_at": r.created_at.isoformat() if r.created_at else None,
             "resolved_at": r.resolved_at.isoformat() if r.resolved_at else None,
             "resolved_by_user_id": r.resolved_by_user_id,
+            "preview": get_flag_preview(r),
         }
         for r in rows
     ])
+
+
+@app.post("/api/session-flags/{flag_id}/remediate")
+async def api_remediate_session_flag(
+    flag_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    _ensure_api_access(request, "time_attendance")
+    payload = await request.json()
+    action = (payload or {}).get("action", "")
+
+    flag = db.query(SessionFlag).filter(
+        SessionFlag.id == flag_id,
+        SessionFlag.status == "open"
+    ).with_for_update().first()
+    if not flag:
+        raise HTTPException(
+            status_code=404, detail="Open session flag not found")
+
+    current_user_id = request.session.get("user_id")
+
+    if action == "discard_false_entry":
+        db.delete(flag)
+        db.commit()
+        return JSONResponse({"ok": True, "action": action})
+
+    if not flag.attendance_log_id:
+        raise HTTPException(
+            status_code=400, detail="Flag has no linked attendance log")
+
+    from models import AttendanceLog, AttendanceSession
+    log = db.query(AttendanceLog).filter(
+        AttendanceLog.id == flag.attendance_log_id
+    ).with_for_update().first()
+    if not log:
+        raise HTTPException(
+            status_code=404, detail="Linked attendance log not found")
+
+    if action == "change_to_checkout":
+        if flag.flag_type != "checkin_while_open":
+            raise HTTPException(
+                status_code=400, detail="Invalid action for this flag type")
+
+        open_session = db.query(AttendanceSession).filter(
+            AttendanceSession.pin == str(flag.pin),
+            AttendanceSession.check_out.is_(None),
+            AttendanceSession.check_in <= flag.event_timestamp,
+        ).order_by(AttendanceSession.check_in.desc()).with_for_update().first()
+
+        if not open_session:
+            raise HTTPException(
+                status_code=400, detail="No open session available to close")
+
+        if open_session.check_in == flag.event_timestamp:
+            raise HTTPException(
+                status_code=400, detail="Cannot close with same timestamp as check-in")
+
+        log.status = 1
+        open_session.check_out = flag.event_timestamp
+        open_session.status = "closed"
+
+        flag.status = "resolved"
+        flag.resolved_at = datetime.utcnow()
+        flag.resolved_by_user_id = current_user_id
+
+        db.commit()
+        return JSONResponse({"ok": True, "action": action})
+
+    if action == "change_to_checkin":
+        if flag.flag_type != "checkout_without_open":
+            raise HTTPException(
+                status_code=400, detail="Invalid action for this flag type")
+
+        existing_open = db.query(AttendanceSession).filter(
+            AttendanceSession.pin == str(flag.pin),
+            AttendanceSession.check_out.is_(None),
+        ).with_for_update().first()
+
+        if existing_open:
+            raise HTTPException(
+                status_code=400, detail="An open session already exists for this PIN")
+
+        log.status = 0
+        db.add(AttendanceSession(
+            pin=str(flag.pin),
+            check_in=flag.event_timestamp,
+            check_out=None,
+            status="open",
+        ))
+
+        flag.status = "resolved"
+        flag.resolved_at = datetime.utcnow()
+        flag.resolved_by_user_id = current_user_id
+
+        db.commit()
+        return JSONResponse({"ok": True, "action": action})
+
+    raise HTTPException(status_code=400, detail="Invalid remediation action")
 
 
 @app.get("/api/accumulated-hours")

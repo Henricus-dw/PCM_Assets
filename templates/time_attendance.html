@@ -148,6 +148,107 @@
             color: #991b1b;
             white-space: nowrap;
         }
+
+        .flag-meta {
+            font-size: 0.74rem;
+            color: #6b7280;
+            margin-top: 3px;
+        }
+
+        .flag-actions {
+            margin-top: 8px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .btn-remediate {
+            border: none;
+            background: #4b5e70;
+            color: #fff;
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-weight: 700;
+            font-size: 0.74rem;
+            cursor: pointer;
+        }
+
+        .btn-remediate:hover {
+            background: #37495d;
+        }
+
+        .flag-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.45);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1200;
+        }
+
+        .flag-modal.open {
+            display: flex;
+        }
+
+        .flag-modal-card {
+            background: #fff;
+            border-radius: 12px;
+            width: min(520px, 92vw);
+            box-shadow: 0 18px 45px rgba(0, 0, 0, 0.2);
+            padding: 16px;
+        }
+
+        .flag-modal-card h3 {
+            margin: 0 0 8px;
+            font-size: 1rem;
+            color: #111827;
+        }
+
+        .flag-preview-box {
+            border: 1px solid #e5e7eb;
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 0.82rem;
+            color: #374151;
+            line-height: 1.35;
+            margin-bottom: 12px;
+        }
+
+        .flag-modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .btn-secondary {
+            border: 1px solid #d1d5db;
+            background: #fff;
+            color: #111827;
+            border-radius: 8px;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-secondary:hover {
+            background: #f8fafc;
+        }
+
+        .btn-danger {
+            border: none;
+            background: #8b0000;
+            color: #fff;
+            border-radius: 8px;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .btn-danger:hover {
+            background: #6e0000;
+        }
     </style>
 </head>
 
@@ -288,9 +389,23 @@
         </div>
     </div>
 
+    <div id="flagModal" class="flag-modal" aria-hidden="true">
+        <div class="flag-modal-card" role="dialog" aria-modal="true" aria-labelledby="flagModalTitle">
+            <h3 id="flagModalTitle">Remediate Flag</h3>
+            <div class="flag-preview-box" id="flagModalPreview">Loading...</div>
+            <div id="flagModalError" class="muted" style="display:none; color:#b91c1c; margin-bottom:8px;"></div>
+            <div class="flag-modal-actions">
+                <button type="button" class="btn-secondary" onclick="closeFlagModal()">Cancel</button>
+                <button type="button" id="flagActionConvert" class="btn-remediate">Apply change</button>
+                <button type="button" id="flagActionDiscard" class="btn-danger">Discard false entry</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         let autoRefreshInterval;
         let sessionsData = [];
+        let activeFlagForModal = null;
         const sessionColumnFilters = {
             name: '',
             company: '',
@@ -316,8 +431,131 @@
         }
 
         function formatFlagType(flagType) {
-            if (!flagType) return 'Flag';
-            return String(flagType).replace(/_/g, ' ');
+            if (flagType === 'checkin_while_open') return 'Check-in duplicate';
+            if (flagType === 'checkout_without_open') return 'Check-out duplicate';
+            if (flagType === 'unsupported_status') return 'Unsupported action';
+            return 'Session flag';
+        }
+
+        function getFriendlyFlagReason(flag) {
+            if (flag.flag_type === 'checkin_while_open') {
+                return 'Check-in while already checked in.';
+            }
+            if (flag.flag_type === 'checkout_without_open') {
+                return 'Check-out while already checked out.';
+            }
+            return flag.flag_reason || 'Session issue detected.';
+        }
+
+        function buildPersonLabel(flag) {
+            const name = (flag.employee_name || '').trim();
+            const employeeNumber = (flag.employee_number || '').trim();
+            if (name && employeeNumber) return `${name} (${employeeNumber})`;
+            if (name) return name;
+            if (employeeNumber) return employeeNumber;
+            return `PIN ${flag.pin || '-'}`;
+        }
+
+        function previewDuration(seconds) {
+            if (seconds === null || seconds === undefined) return '-';
+            return formatDuration(seconds);
+        }
+
+        function openFlagModal(flag) {
+            activeFlagForModal = flag;
+            const modal = document.getElementById('flagModal');
+            const title = document.getElementById('flagModalTitle');
+            const preview = document.getElementById('flagModalPreview');
+            const convertBtn = document.getElementById('flagActionConvert');
+            const discardBtn = document.getElementById('flagActionDiscard');
+            const errorBox = document.getElementById('flagModalError');
+
+            if (!modal || !title || !preview || !convertBtn || !discardBtn) return;
+
+            errorBox.style.display = 'none';
+            errorBox.innerText = '';
+
+            const person = buildPersonLabel(flag);
+            const eventTs = flag.event_timestamp ? fmt(flag.event_timestamp) : '-';
+
+            if (flag.flag_type === 'checkin_while_open') {
+                const originalCheckIn = flag.preview?.original_check_in ? fmt(flag.preview.original_check_in) : '-';
+                const proposedCheckOut = flag.preview?.proposed_check_out ? fmt(flag.preview.proposed_check_out) : eventTs;
+                const duration = previewDuration(flag.preview?.proposed_duration_seconds);
+
+                title.innerText = 'Remediate: Check-in duplicate';
+                preview.innerHTML = `
+                    <div><strong>${person}</strong></div>
+                    <div style="margin-top:6px;">Existing check-in: <strong>${originalCheckIn}</strong></div>
+                    <div>Incoming mistaken scan time: <strong>${eventTs}</strong></div>
+                    <div style="margin-top:8px;">If changed to check-out, session becomes:</div>
+                    <div>Check-in: ${originalCheckIn}</div>
+                    <div>Check-out: ${proposedCheckOut}</div>
+                    <div>Duration: ${duration}</div>
+                `;
+                convertBtn.innerText = 'Change to check-out';
+                convertBtn.dataset.action = 'change_to_checkout';
+                convertBtn.style.display = 'inline-block';
+            } else if (flag.flag_type === 'checkout_without_open') {
+                const previousCheckout = flag.preview?.previous_check_out ? fmt(flag.preview.previous_check_out) : 'No previous check-out found';
+                const proposedCheckIn = flag.preview?.proposed_check_in ? fmt(flag.preview.proposed_check_in) : eventTs;
+
+                title.innerText = 'Remediate: Check-out duplicate';
+                preview.innerHTML = `
+                    <div><strong>${person}</strong></div>
+                    <div style="margin-top:6px;">Latest previous check-out: <strong>${previousCheckout}</strong></div>
+                    <div>Incoming mistaken scan time: <strong>${eventTs}</strong></div>
+                    <div style="margin-top:8px;">If changed to check-in, a new open session starts at:</div>
+                    <div>Check-in: ${proposedCheckIn}</div>
+                `;
+                convertBtn.innerText = 'Change to check-in';
+                convertBtn.dataset.action = 'change_to_checkin';
+                convertBtn.style.display = 'inline-block';
+            } else {
+                title.innerText = 'Remediate Session Flag';
+                preview.innerHTML = `<div><strong>${person}</strong></div><div style="margin-top:6px;">${getFriendlyFlagReason(flag)}</div>`;
+                convertBtn.style.display = 'none';
+                convertBtn.dataset.action = '';
+            }
+
+            discardBtn.dataset.action = 'discard_false_entry';
+            modal.classList.add('open');
+            modal.setAttribute('aria-hidden', 'false');
+        }
+
+        function closeFlagModal() {
+            const modal = document.getElementById('flagModal');
+            if (!modal) return;
+            modal.classList.remove('open');
+            modal.setAttribute('aria-hidden', 'true');
+            activeFlagForModal = null;
+        }
+
+        async function remediateFlag(action) {
+            const errorBox = document.getElementById('flagModalError');
+            if (!activeFlagForModal?.id || !action) return;
+
+            errorBox.style.display = 'none';
+            errorBox.innerText = '';
+
+            try {
+                const res = await fetch(`/api/session-flags/${activeFlagForModal.id}/remediate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action })
+                });
+                if (!res.ok) {
+                    const txt = await res.text();
+                    throw new Error(txt || 'Remediation failed');
+                }
+
+                closeFlagModal();
+                await refreshSessionFlags();
+                await refreshSessions();
+            } catch (err) {
+                errorBox.innerText = String(err.message || err);
+                errorBox.style.display = 'block';
+            }
         }
 
         async function refreshSessionFlags() {
@@ -343,16 +581,30 @@
             body.innerHTML = rows.map((flag) => {
                 const ts = flag.event_timestamp ? fmt(flag.event_timestamp) : '-';
                 const type = formatFlagType(flag.flag_type);
+                const person = buildPersonLabel(flag);
+                const reason = getFriendlyFlagReason(flag);
                 return `
                     <div class="flag-row">
                         <div class="top">
-                            <span>PIN ${flag.pin || '-'}</span>
+                            <span>${person}</span>
                             <span class="flag-type-pill">${type}</span>
                         </div>
-                        <div class="reason">${flag.flag_reason || '-'}<br><small>${ts}</small></div>
+                        <div class="reason">${reason}</div>
+                        <div class="flag-meta">${ts}</div>
+                        <div class="flag-actions">
+                            <button class="btn-remediate" data-flag-id="${flag.id}" type="button">Remediate</button>
+                        </div>
                     </div>
                 `;
             }).join('');
+
+            body.querySelectorAll('.btn-remediate').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    const id = Number(btn.dataset.flagId);
+                    const flag = rows.find((item) => Number(item.id) === id);
+                    if (flag) openFlagModal(flag);
+                });
+            });
         }
 
         function getSessionTableData() {
@@ -547,6 +799,21 @@
                 refreshSessions();
                 refreshSessionFlags();
             }, 5000);
+
+            document.getElementById('flagActionConvert')?.addEventListener('click', () => {
+                const action = document.getElementById('flagActionConvert')?.dataset?.action;
+                if (action) remediateFlag(action);
+            });
+
+            document.getElementById('flagActionDiscard')?.addEventListener('click', () => {
+                remediateFlag('discard_false_entry');
+            });
+
+            document.getElementById('flagModal')?.addEventListener('click', (e) => {
+                if (e.target?.id === 'flagModal') {
+                    closeFlagModal();
+                }
+            });
 
             document.getElementById('export-btn')?.addEventListener('click', exportSessionsCsv);
             document.getElementById('export-pdf-btn')?.addEventListener('click', exportSessionsPdf);

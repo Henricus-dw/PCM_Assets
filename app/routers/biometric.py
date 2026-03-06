@@ -299,7 +299,7 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
                 if open_session:
                     add_session_flag(
                         "checkin_while_open",
-                        "Check-in received while an open session already exists for this PIN."
+                        "Check-in while already checked in."
                     )
                     logger.debug(
                         f"[ATTLOG] Ignoring check-in while open session exists: pin={pin} dt={timestamp}")
@@ -325,7 +325,7 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
                 else:
                     add_session_flag(
                         "checkout_without_open",
-                        "Check-out received but no open session exists for this PIN."
+                        "Check-out while already checked out."
                     )
                     logger.debug(
                         f"[ATTLOG] Ignoring check-out with no open session: pin={pin} dt={timestamp}")
