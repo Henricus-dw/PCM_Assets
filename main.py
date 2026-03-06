@@ -626,22 +626,59 @@ async def api_remediate_session_flag(
 
     current_user_id = request.session.get("user_id")
 
+    def apply_event_to_sessions(pin: str, event_timestamp: datetime, event_status: Optional[int]) -> bool:
+        open_session = db.query(AttendanceSession).filter(
+            AttendanceSession.pin == pin,
+            AttendanceSession.check_out.is_(None),
+            AttendanceSession.check_in <= event_timestamp,
+        ).order_by(AttendanceSession.check_in.desc()).with_for_update().first()
+
+        if event_status == 0:
+            if open_session:
+                return False
+            db.add(AttendanceSession(
+                pin=pin,
+                check_in=event_timestamp,
+                check_out=None,
+                status="open",
+            ))
+            return True
+
+        if event_status == 1:
+            if not open_session:
+                return False
+            if open_session.check_in == event_timestamp:
+                return False
+            open_session.check_out = event_timestamp
+            open_session.status = "closed"
+            return True
+
+        return False
+
+    def cascade_resolve_later_flags(base_flag: SessionFlag) -> list[int]:
+        auto_resolved_ids: list[int] = []
+        later_flags = db.query(SessionFlag).filter(
+            SessionFlag.pin == str(base_flag.pin),
+            SessionFlag.status == "open",
+            SessionFlag.id != base_flag.id,
+            SessionFlag.event_timestamp >= base_flag.event_timestamp,
+        ).order_by(SessionFlag.event_timestamp.asc(), SessionFlag.id.asc()).with_for_update().all()
+
+        for later in later_flags:
+            if apply_event_to_sessions(str(later.pin), later.event_timestamp, later.event_status):
+                later.status = "resolved"
+                later.resolved_at = datetime.utcnow()
+                later.resolved_by_user_id = current_user_id
+                auto_resolved_ids.append(later.id)
+
+        return auto_resolved_ids
+
     if action == "discard_false_entry":
         db.delete(flag)
         db.commit()
         return JSONResponse({"ok": True, "action": action})
 
-    if not flag.attendance_log_id:
-        raise HTTPException(
-            status_code=400, detail="Flag has no linked attendance log")
-
-    from models import AttendanceLog, AttendanceSession
-    log = db.query(AttendanceLog).filter(
-        AttendanceLog.id == flag.attendance_log_id
-    ).with_for_update().first()
-    if not log:
-        raise HTTPException(
-            status_code=404, detail="Linked attendance log not found")
+    from models import AttendanceSession
 
     if action == "change_to_checkout":
         if flag.flag_type != "checkin_while_open":
@@ -662,7 +699,6 @@ async def api_remediate_session_flag(
             raise HTTPException(
                 status_code=400, detail="Cannot close with same timestamp as check-in")
 
-        log.status = 1
         open_session.check_out = flag.event_timestamp
         open_session.status = "closed"
 
@@ -670,8 +706,15 @@ async def api_remediate_session_flag(
         flag.resolved_at = datetime.utcnow()
         flag.resolved_by_user_id = current_user_id
 
+        auto_resolved_ids = cascade_resolve_later_flags(flag)
+
         db.commit()
-        return JSONResponse({"ok": True, "action": action})
+        return JSONResponse({
+            "ok": True,
+            "action": action,
+            "auto_resolved_count": len(auto_resolved_ids),
+            "auto_resolved_flag_ids": auto_resolved_ids,
+        })
 
     if action == "change_to_checkin":
         if flag.flag_type != "checkout_without_open":
@@ -687,7 +730,6 @@ async def api_remediate_session_flag(
             raise HTTPException(
                 status_code=400, detail="An open session already exists for this PIN")
 
-        log.status = 0
         db.add(AttendanceSession(
             pin=str(flag.pin),
             check_in=flag.event_timestamp,
@@ -699,8 +741,15 @@ async def api_remediate_session_flag(
         flag.resolved_at = datetime.utcnow()
         flag.resolved_by_user_id = current_user_id
 
+        auto_resolved_ids = cascade_resolve_later_flags(flag)
+
         db.commit()
-        return JSONResponse({"ok": True, "action": action})
+        return JSONResponse({
+            "ok": True,
+            "action": action,
+            "auto_resolved_count": len(auto_resolved_ids),
+            "auto_resolved_flag_ids": auto_resolved_ids,
+        })
 
     raise HTTPException(status_code=400, detail="Invalid remediation action")
 

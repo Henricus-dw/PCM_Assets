@@ -549,6 +549,11 @@
                     throw new Error(txt || 'Remediation failed');
                 }
 
+                const result = await res.json();
+                if (Number(result.auto_resolved_count || 0) > 0) {
+                    alert(`Remediation applied. Auto-resolved ${result.auto_resolved_count} follow-up flag(s) for this employee.`);
+                }
+
                 closeFlagModal();
                 await refreshSessionFlags();
                 await refreshSessions();
