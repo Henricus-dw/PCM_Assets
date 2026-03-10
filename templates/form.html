@@ -991,6 +991,8 @@
                 if (!vodacomForm || !deviceForm) return;
 
                 // Ensure visibility/disabled state is up-to-date
+                // Map first device's indexed fields to base names the server expects
+                mapFirstDeviceFieldsToBase();
                 updateDeviceBlocksFromCount();
 
                 // Validate Vodacom
@@ -1033,6 +1035,42 @@
                     console.error(e);
                     alert("Network error submitting forms.");
                 }
+            }
+
+            // Map the first device's numbered field names (AName_1, ASurname_1, etc.)
+            // to the base names the server expects (AName_, ASurname_, Device_Name, ...)
+            function mapFirstDeviceFieldsToBase() {
+                if (!deviceForm) return;
+
+                function getVal(id) {
+                    const el = document.getElementById(id);
+                    return el ? el.value : "";
+                }
+
+                function setHidden(name, value) {
+                    let inp = deviceForm.querySelector('input[name="' + name + '"]');
+                    if (!inp) {
+                        inp = document.createElement('input');
+                        inp.type = 'hidden';
+                        inp.name = name;
+                        deviceForm.appendChild(inp);
+                    }
+                    inp.value = value;
+                }
+
+                // Primary mappings (first device -> expected base names)
+                setHidden('AName_', getVal('AName_1'));
+                setHidden('ASurname_', getVal('ASurname_1'));
+                setHidden('APersonnel_nr', getVal('APersonnel_nr_1'));
+                setHidden('ACompany', getVal('ACompany_1'));
+                setHidden('AClient_Division', getVal('AClient_Division_1'));
+                setHidden('Device_Name', getVal('Device_Name_1'));
+                setHidden('Serial_Number', getVal('Serial_Number_1'));
+                setHidden('Device_Description', getVal('Device_Description_1'));
+
+                // insurance radio mapping (insurance_1 -> insurance)
+                const ins = deviceForm.querySelector('input[name="insurance_1"]:checked');
+                setHidden('insurance', ins ? ins.value : '');
             }
 
             // ====== DEVICE SEARCH ======
@@ -1169,6 +1207,13 @@
 
             // Submit both
             if (submitAllBtn) submitAllBtn.addEventListener("click", submitBothForms);
+
+            // Ensure mapping runs before device-only submit so backend receives expected names
+            if (deviceForm) {
+                deviceForm.addEventListener('submit', () => {
+                    mapFirstDeviceFieldsToBase();
+                });
+            }
 
             // ====== INITIALIZE ======
             calculateVAT();
