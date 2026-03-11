@@ -90,64 +90,69 @@
                             <button class="filter-toggle" data-col="1" aria-label="Search"> ⌕ </button>
                         </th>
                         <th data-col="2">
-                            <div class="header-label">Devices</div><br>
+                            <div class="header-label">Contract Number</div><br>
                             <input type="text" class="header-filter" data-col="2" style="display:none;" />
                             <button class="filter-toggle" data-col="2" aria-label="Search"> ⌕ </button>
                         </th>
                         <th data-col="3">
-                            <div class="header-label">Name</div><br>
+                            <div class="header-label">Devices</div><br>
                             <input type="text" class="header-filter" data-col="3" style="display:none;" />
                             <button class="filter-toggle" data-col="3" aria-label="Search"> ⌕ </button>
                         </th>
                         <th data-col="4">
-                            <div class="header-label">Surname</div><br>
+                            <div class="header-label">Name</div><br>
                             <input type="text" class="header-filter" data-col="4" style="display:none;" />
                             <button class="filter-toggle" data-col="4" aria-label="Search"> ⌕ </button>
                         </th>
                         <th data-col="5">
-                            <div class="header-label">Monthly Costs</div><br>
+                            <div class="header-label">Surname</div><br>
                             <input type="text" class="header-filter" data-col="5" style="display:none;" />
                             <button class="filter-toggle" data-col="5" aria-label="Search"> ⌕ </button>
                         </th>
                         <th data-col="6">
-                            <div class="header-label">VAT</div><br>
+                            <div class="header-label">Monthly Costs</div><br>
                             <input type="text" class="header-filter" data-col="6" style="display:none;" />
                             <button class="filter-toggle" data-col="6" aria-label="Search"> ⌕ </button>
                         </th>
                         <th data-col="7">
-                            <div class="header-label">Monthly Cost(Excl.VAT)</div><br>
+                            <div class="header-label">VAT</div><br>
                             <input type="text" class="header-filter" data-col="7" style="display:none;" />
                             <button class="filter-toggle" data-col="7" aria-label="Search"> ⌕ </button>
                         </th>
                         <th data-col="8">
-                            <div class="header-label">Contract Type</div><br>
+                            <div class="header-label">Monthly Cost(Excl.VAT)</div><br>
                             <input type="text" class="header-filter" data-col="8" style="display:none;" />
                             <button class="filter-toggle" data-col="8" aria-label="Search"> ⌕ </button>
                         </th>
                         <th data-col="9">
-                            <div class="header-label">Contract Term</div><br>
+                            <div class="header-label">Contract Type</div><br>
                             <input type="text" class="header-filter" data-col="9" style="display:none;" />
                             <button class="filter-toggle" data-col="9" aria-label="Search"> ⌕ </button>
                         </th>
                         <th data-col="10">
-                            <div class="header-label">SIM Card Number</div><br>
+                            <div class="header-label">Contract Term</div><br>
                             <input type="text" class="header-filter" data-col="10" style="display:none;" />
                             <button class="filter-toggle" data-col="10" aria-label="Search"> ⌕ </button>
                         </th>
                         <th data-col="11">
-                            <div class="header-label">Personnel Number</div><br>
+                            <div class="header-label">SIM Card Number</div><br>
                             <input type="text" class="header-filter" data-col="11" style="display:none;" />
                             <button class="filter-toggle" data-col="11" aria-label="Search"> ⌕ </button>
                         </th>
                         <th data-col="12">
-                            <div class="header-label">Company</div><br>
+                            <div class="header-label">Personnel Number</div><br>
                             <input type="text" class="header-filter" data-col="12" style="display:none;" />
                             <button class="filter-toggle" data-col="12" aria-label="Search"> ⌕ </button>
                         </th>
                         <th data-col="13">
-                            <div class="header-label">Client Division</div><br>
+                            <div class="header-label">Company</div><br>
                             <input type="text" class="header-filter" data-col="13" style="display:none;" />
                             <button class="filter-toggle" data-col="13" aria-label="Search"> ⌕ </button>
+                        </th>
+                        <th data-col="14">
+                            <div class="header-label">Client Division</div><br>
+                            <input type="text" class="header-filter" data-col="14" style="display:none;" />
+                            <button class="filter-toggle" data-col="14" aria-label="Search"> ⌕ </button>
                         </th>
                     </tr>
 
@@ -159,6 +164,7 @@
                     <tr data-contract-id="{{ sub.id }}">
                         <td>{{ sub.Inception_Date.strftime('%Y-%m-%d') if sub.Inception_Date else '' }}</td>
                         <td>{{ sub.Termination_Date.strftime('%Y-%m-%d') if sub.Termination_Date else '' }}</td>
+                        <td>{{ sub.contract_number or '' }}</td>
                         <td>
                             {% if sub.devices and sub.devices | length > 0 %}
                             <button class="view-contracts-btn" onclick="showDevicesModal('{{ sub.id }}')">View
@@ -268,7 +274,7 @@
 
             // Single source of truth for editable fields and header mapping
             const FIELD_KEYS = [
-                "Inception_Date", "Termination_Date", "Name_", "Surname_",
+                "Inception_Date", "Termination_Date", "contract_number", "Name_", "Surname_",
                 "Monthly_Costs", "VAT", "Monthly_Cost_Excl_VAT",
                 "Contract_Type", "Contract_Term", "Sim_Card_Number",
                 "Personnel_nr", "Company", "Client_Division", "due_upgrade"
@@ -277,6 +283,7 @@
             const keyToHeader = {
                 Inception_Date: ["inception date"],
                 Termination_Date: ["termination date"],
+                contract_number: ["contract number"],
                 Name_: ["name"],
                 Surname_: ["surname"],
                 Monthly_Costs: ["monthly costs", "monthly cost"],
@@ -304,7 +311,7 @@
             Array.from(tbody.rows).forEach((tr, i) => (tr.dataset.origIndex = String(i)));
 
             // Some tables include a "View Devices" button column (index 2); exclude from exports
-            const VIEW_DEVICES_COL_INDEX = 2;
+            const VIEW_DEVICES_COL_INDEX = 3;
 
             // -----------------------------
             // Header filters
