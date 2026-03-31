@@ -1438,9 +1438,9 @@
                     return;
                 }
                 const vat = +(cost * 0.15).toFixed(2);
-                const excl = +(cost - vat).toFixed(2);
+                const incl = +(cost + vat).toFixed(2);
                 vatInput.value = String(vat);
-                exclInput.value = String(excl);
+                exclInput.value = String(incl);
             }
 
             function calculateTerminationDate() {
