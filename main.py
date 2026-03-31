@@ -1160,6 +1160,7 @@ def vodacom_form(request: Request):
 @app.post("/submit", response_class=HTMLResponse)
 def submit_form(
     request: Request,
+    company_number: str = Form(...),
     contract_number: str = Form(...),
     Name_: str = Form(...),
     Surname_: str = Form(...),
@@ -1181,6 +1182,7 @@ def submit_form(
         return redirect
 
     subscription = VodacomSubscription(
+        company_number=company_number,
         contract_number=contract_number,
         Name_=Name_,
         Surname_=Surname_,
@@ -1239,6 +1241,7 @@ def submit_device(
 def submit_all_forms(
     request: Request,
     # Vodacom Subscription fields
+    company_number: str = Form(...),
     contract_number: str = Form(...),
     Name_: str = Form(...),
     Surname_: str = Form(...),
@@ -1310,6 +1313,7 @@ def submit_all_forms(
 
     # Save VodacomSubscription
     subscription = VodacomSubscription(
+        company_number=company_number,
         contract_number=contract_number,
         Name_=Name_,
         Surname_=Surname_,
@@ -1927,7 +1931,7 @@ ALLOWED_DEVICE_FIELDS = {
 }
 
 ALLOWED_CONTRACT_FIELDS = {
-    "contract_number", "Name_", "Surname_", "Personnel_nr", "Company", "Client_Division",
+    "company_number", "contract_number", "Name_", "Surname_", "Personnel_nr", "Company", "Client_Division",
     "Contract_Type", "Monthly_Costs", "VAT", "Monthly_Cost_Excl_VAT",
     "Contract_Term", "Inception_Date", "Termination_Date", "Sim_Card_Number", "due_upgrade"
 }

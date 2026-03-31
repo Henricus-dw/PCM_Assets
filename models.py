@@ -8,6 +8,7 @@ class VodacomSubscription(Base):
     __tablename__ = "Vodacom_subscription"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    company_number = Column(String(250))
     contract_number = Column(String(250))
     Name_ = Column(String(50))
     Surname_ = Column(String(50))
