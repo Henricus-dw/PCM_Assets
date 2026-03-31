@@ -1406,10 +1406,55 @@ class DeviceOut(BaseModel):
         from_attributes = True
 
 
+class DeviceCreateIn(BaseModel):
+    Name_: str
+    Surname_: str
+    Personnel_nr: str
+    Company: str
+    Client_Division: str
+    Device_Name: str
+    Serial_Number: str
+    Device_Description: str
+    insurance: str
+
+
 @app.get("/contracts/{contract_id}/devices", response_model=List[DeviceOut])
 def get_devices_for_contract(contract_id: int, request: Request, db: Session = Depends(get_db)):
     _ensure_api_access(request, "vodacom")
     return db.query(Device).filter(Device.vd_id == contract_id).all()
+
+
+@app.post("/api/contracts/{contract_id}/devices")
+def create_device_for_contract(
+    contract_id: int,
+    request: Request,
+    payload: DeviceCreateIn = Body(...),
+    db: Session = Depends(get_db),
+):
+    _ensure_api_access(request, "vodacom")
+
+    contract = db.query(VodacomSubscription).filter(
+        VodacomSubscription.id == contract_id).first()
+    if not contract:
+        raise HTTPException(status_code=404, detail="Contract not found")
+
+    device = Device(
+        vd_id=contract_id,
+        Name_=(payload.Name_ or "").strip(),
+        Surname_=(payload.Surname_ or "").strip(),
+        Personnel_nr=(payload.Personnel_nr or "").strip(),
+        Company=(payload.Company or "").strip(),
+        Client_Division=(payload.Client_Division or "").strip(),
+        Device_Name=(payload.Device_Name or "").strip(),
+        Serial_Number=(payload.Serial_Number or "").strip(),
+        Device_Description=(payload.Device_Description or "").strip(),
+        insurance=(payload.insurance or "").strip(),
+    )
+    db.add(device)
+    db.commit()
+    db.refresh(device)
+
+    return {"created": True, "device_id": device.id, "contract_id": contract_id}
 
 
 class ContractOut(BaseModel):

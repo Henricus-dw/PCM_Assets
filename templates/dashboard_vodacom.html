@@ -249,6 +249,76 @@
             font-weight: bold;
             cursor: pointer;
         }
+
+        #editRowModal {
+            padding: 24px 16px;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+
+        #editRowModal .modal-content {
+            max-height: calc(100vh - 48px);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #editRowBody {
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+
+        #editSubmitWrap {
+            flex-shrink: 0;
+        }
+
+        .add-device-panel {
+            margin-top: 14px;
+            border: 1px solid #d9d9d9;
+            border-radius: 8px;
+            background: #faf7f2;
+            padding: 14px;
+        }
+
+        .add-device-panel h3 {
+            margin: 0 0 10px;
+            font-size: 16px;
+        }
+
+        .add-device-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(180px, 1fr));
+            gap: 10px 12px;
+        }
+
+        .add-device-grid label {
+            display: block;
+            font-size: 12px;
+            color: #4b4b4b;
+            margin-bottom: 3px;
+        }
+
+        .add-device-grid input,
+        .add-device-grid select {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 7px 8px;
+            border: 1px solid #bdbdbd;
+            border-radius: 5px;
+            background: #fff;
+        }
+
+        .add-device-actions {
+            margin-top: 12px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        @media (max-width: 900px) {
+            .add-device-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 
 
@@ -677,7 +747,7 @@
                     return rec;
                 }
 
-                function buildEditGrid(record) {
+                                function buildEditGrid(record, devicesText) {
                     const tableEl = document.createElement("table");
                     tableEl.className = "editgrid";
                     tableEl.innerHTML = `
@@ -713,18 +783,141 @@
                         tBody.appendChild(rowEl);
                     });
 
+                                        const deviceRow = document.createElement("tr");
+                                        deviceRow.innerHTML = `
+                    <td class="field-col">Devices</td>
+                    <td class="value-col"><div class="pill">${(devicesText || "Linked to this contract")}</div></td>
+                    <td class="edit-col">
+                        <button type="button" class="confirm add-device-btn">Add Device</button>
+                    </td>
+                    <td class="new-col"><div class="pill">Create and link a new device</div></td>`;
+                                        tBody.appendChild(deviceRow);
+
                     return tableEl;
                 }
+
+                                function buildDeviceAddPanel(record) {
+                                        const panel = document.createElement("div");
+                                        panel.className = "add-device-panel";
+                                        panel.style.display = "none";
+                                        panel.innerHTML = `
+                <h3>Add Linked Device</h3>
+                <form class="add-device-form">
+                    <div class="add-device-grid">
+                        <div>
+                            <label>Name of Device Owner</label>
+                            <input type="text" name="Name_" required>
+                        </div>
+                        <div>
+                            <label>Surname of Device Owner</label>
+                            <input type="text" name="Surname_" required>
+                        </div>
+                        <div>
+                            <label>Personnel Number</label>
+                            <input type="text" name="Personnel_nr" required>
+                        </div>
+                        <div>
+                            <label>Company</label>
+                            <select name="Company" required>
+                                <option>PCM</option>
+                                <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
+                                <option>PAS/PAC</option>
+                                <option>INT</option>
+                                <option>PSSS</option>
+                                <option>POLYGRAPH</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Client Division</label>
+                            <input type="text" name="Client_Division" required>
+                        </div>
+                        <div>
+                            <label>Device Name</label>
+                            <input type="text" name="Device_Name" required>
+                        </div>
+                        <div>
+                            <label>Serial Number</label>
+                            <input type="text" name="Serial_Number" required>
+                        </div>
+                        <div>
+                            <label>Device Description</label>
+                            <select name="Device_Description" required>
+                                <option>Laptop</option>
+                                <option>Tablet</option>
+                                <option>Cell-Phone</option>
+                                <option>Monitor-Screen</option>
+                                <option>Desktop</option>
+                                <option>Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Insurance</label>
+                            <select name="insurance" required>
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="add-device-actions">
+                        <button type="submit" class="confirm add-device-submit">Add Linked Device</button>
+                    </div>
+                </form>`;
+
+                                        const form = panel.querySelector(".add-device-form");
+                                        form.querySelector('[name="Name_"]').value = (record.Name_ || "").toString();
+                                        form.querySelector('[name="Surname_"]').value = (record.Surname_ || "").toString();
+                                        form.querySelector('[name="Personnel_nr"]').value = (record.Personnel_nr || "").toString();
+                                        form.querySelector('[name="Company"]').value = (record.Company || "PCM").toString();
+                                        form.querySelector('[name="Client_Division"]').value = (record.Client_Division || "").toString();
+
+                                        form.addEventListener("submit", async (e) => {
+                                                e.preventDefault();
+                                                if (!currentContractId) {
+                                                        alert("No contract ID.");
+                                                        return;
+                                                }
+
+                                                const submitDeviceBtn = form.querySelector(".add-device-submit");
+                                                const payload = Object.fromEntries(new FormData(form).entries());
+                                                submitDeviceBtn.disabled = true;
+                                                try {
+                                                        const resp = await fetch(`/api/contracts/${currentContractId}/devices`, {
+                                                                method: "POST",
+                                                                headers: { "Content-Type": "application/json" },
+                                                                body: JSON.stringify(payload)
+                                                        });
+                                                        const data = await resp.json().catch(() => ({}));
+                                                        if (!resp.ok || !data.created) {
+                                                                throw new Error(data.detail || "Failed to add linked device.");
+                                                        }
+                                                        alert("Linked device added successfully.");
+                                                        window.location.reload();
+                                                } catch (err) {
+                                                        alert(err?.message || "Failed to add linked device.");
+                                                } finally {
+                                                        submitDeviceBtn.disabled = false;
+                                                }
+                                        });
+
+                                        return panel;
+                                }
 
                 function openEditModalFromRow(tr) {
                     currentContractId = tr.getAttribute("data-contract-id") || currentContractId;
                     if (!currentContractId) return;
 
                     const record = snapshotRecord(tr);
-                    const grid = buildEditGrid(record);
+                                        const devicesCol = headerIndex[norm("devices")];
+                                        const devicesText = devicesCol != null && tr.cells[devicesCol]
+                                                ? tr.cells[devicesCol].textContent.trim()
+                                                : "Linked to this contract";
+                                        const grid = buildEditGrid(record, devicesText);
+                                        const addDevicePanel = buildDeviceAddPanel(record);
 
                     modalBody.innerHTML = "";
                     modalBody.appendChild(grid);
+                                        modalBody.appendChild(addDevicePanel);
+                                        modalBody._currentRecord = record;
                     submitWrap.style.display = "none";
                     pending = {};
                     openModal();
@@ -732,21 +925,31 @@
                     if (!modalBody._delegationBound) {
                         modalBody._delegationBound = true;
                         modalBody.addEventListener("click", (e) => {
+                            const addBtn = e.target.closest(".add-device-btn");
+                            if (addBtn) {
+                                const panel = modalBody.querySelector(".add-device-panel");
+                                if (!panel) return;
+                                panel.style.display = panel.style.display === "none" ? "block" : "none";
+                                return;
+                            }
+
                             const btn = e.target.closest(".edit-row-btn");
                             if (!btn) return;
                             const key = btn.dataset.key;
                             const wrap = modalBody.querySelector(`.edit-input-wrap[data-key="${key}"]`);
                             if (!wrap) return;
 
+                            const currentRecord = modalBody._currentRecord || {};
+
                             wrap.style.display = "flex";
                             const input = wrap.querySelector(".edit-input");
-                            input.value = (record[key] ?? "");
+                            input.value = (currentRecord[key] ?? "");
                             input.focus();
 
                             if (!input._bound) {
                                 input._bound = true;
                                 input.addEventListener("input", () => {
-                                    const before = (record[key] ?? "").toString();
+                                    const before = (currentRecord[key] ?? "").toString();
                                     const after = input.value;
                                     if (after !== before) pending[key] = after;
                                     else delete pending[key];
