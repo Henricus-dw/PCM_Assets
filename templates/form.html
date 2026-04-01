@@ -191,8 +191,10 @@
                         <label for="Inception_Date">Inception Date:</label>
                         <input type="date" id="Inception_Date" name="Inception_Date" required>
 
-                        <label for="Termination_Date">Termination Date:</label>
-                        <input type="date" id="Termination_Date" name="Termination_Date" readonly>
+                        <label for="Termination_Date">Termination Date: <small id="terminationAutoLink"
+                                style="font-weight:normal;font-size:0.8em;color:#1a73e8;cursor:pointer;text-decoration:underline;margin-left:6px;"
+                                title="Recalculate from Inception Date and Contract Term">Reset to auto</small></label>
+                        <input type="date" id="Termination_Date" name="Termination_Date">
                     </div>
                     <button type="submit" id="vodacomSubmitBtn" class="formSubmitButton">Submit</button>
                 </form>
@@ -1485,8 +1487,11 @@
                 exclInput.value = String(incl);
             }
 
-            function calculateTerminationDate() {
+            let terminationManuallySet = false;
+
+            function calculateTerminationDate(force) {
                 if (!inceptionInput || !terminationInput) return;
+                if (terminationManuallySet && !force) return;
                 const inception = new Date(inceptionInput.value);
                 if (isNaN(inception.getTime())) return;
                 const months = parseTermMonths();
@@ -1494,6 +1499,18 @@
                 const term = new Date(inception);
                 term.setMonth(term.getMonth() + months);
                 terminationInput.value = term.toISOString().split("T")[0];
+            }
+
+            terminationInput.addEventListener("change", function () {
+                terminationManuallySet = true;
+            });
+
+            const terminationAutoLink = document.getElementById("terminationAutoLink");
+            if (terminationAutoLink) {
+                terminationAutoLink.addEventListener("click", function () {
+                    terminationManuallySet = false;
+                    calculateTerminationDate(true);
+                });
             }
 
             // ====== CHECKBOX LINKING ======
