@@ -114,24 +114,34 @@
                             <button class="filter-toggle" data-col="6" aria-label="Search"> ⌕ </button>
                         </th>
                         <th data-col="7">
-                            <div class="header-label">Serial Number</div><br>
+                            <div class="header-label">Device Make</div><br>
                             <input type="text" class="header-filter" data-col="7" style="display:none;" />
                             <button class="filter-toggle" data-col="7" aria-label="Search"> ⌕ </button>
                         </th>
                         <th data-col="8">
-                            <div class="header-label">Description</div><br>
+                            <div class="header-label">Device Model</div><br>
                             <input type="text" class="header-filter" data-col="8" style="display:none;" />
                             <button class="filter-toggle" data-col="8" aria-label="Search"> ⌕ </button>
                         </th>
                         <th data-col="9">
-                            <div class="header-label">Insurance</div><br>
+                            <div class="header-label">Serial Number</div><br>
                             <input type="text" class="header-filter" data-col="9" style="display:none;" />
                             <button class="filter-toggle" data-col="9" aria-label="Search"> ⌕ </button>
                         </th>
                         <th data-col="10">
-                            <div class="header-label">Past Device Owners</div><br>
+                            <div class="header-label">Description</div><br>
                             <input type="text" class="header-filter" data-col="10" style="display:none;" />
                             <button class="filter-toggle" data-col="10" aria-label="Search"> ⌕ </button>
+                        </th>
+                        <th data-col="11">
+                            <div class="header-label">Insurance</div><br>
+                            <input type="text" class="header-filter" data-col="11" style="display:none;" />
+                            <button class="filter-toggle" data-col="11" aria-label="Search"> ⌕ </button>
+                        </th>
+                        <th data-col="12">
+                            <div class="header-label">Past Device Owners</div><br>
+                            <input type="text" class="header-filter" data-col="12" style="display:none;" />
+                            <button class="filter-toggle" data-col="12" aria-label="Search"> ⌕ </button>
                         </th>
                     </tr>
                 </thead>
@@ -153,6 +163,8 @@
                         </td>
 
                         <td>{{ device.Device_Name }}</td>
+                        <td>{{ device.device_make or '' }}</td>
+                        <td>{{ device.device_model or '' }}</td>
                         <td>{{ device.Serial_Number }}</td>
                         <td>{{ device.Device_Description }}</td>
                         <td>{{ device.insurance }}</td>
@@ -542,6 +554,8 @@
                 Company: ["company"],
                 Client_Division: ["client division", "division"],
                 Device_Name: ["device name", "device"],
+                device_make: ["device make", "make"],
+                device_model: ["device model", "model"],
                 Serial_Number: ["serial number", "serial #", "serial"],
                 Device_Description: ["description", "device description"],
                 insurance: ["insurance"]
@@ -725,6 +739,8 @@
                     ["Company", "Company"],
                     ["Client_Division", "Client Division"],
                     ["Device_Name", "Device Name"],
+                    ["device_make", "Device Make"],
+                    ["device_model", "Device Model"],
                     ["Serial_Number", "Serial Number"],
                     ["Device_Description", "Description"],
                     ["insurance", "Insurance"]

@@ -135,29 +135,34 @@
                             <button class="filter-toggle" data-col="10" aria-label="Search"> ⌕ </button>
                         </th>
                         <th data-col="11">
-                            <div class="header-label">Contract Term</div><br>
+                            <div class="header-label">Contract Title</div><br>
                             <input type="text" class="header-filter" data-col="11" style="display:none;" />
                             <button class="filter-toggle" data-col="11" aria-label="Search"> ⌕ </button>
                         </th>
                         <th data-col="12">
-                            <div class="header-label">SIM Card Number</div><br>
+                            <div class="header-label">Contract Term</div><br>
                             <input type="text" class="header-filter" data-col="12" style="display:none;" />
                             <button class="filter-toggle" data-col="12" aria-label="Search"> ⌕ </button>
                         </th>
                         <th data-col="13">
-                            <div class="header-label">Personnel Number</div><br>
+                            <div class="header-label">SIM Card Number</div><br>
                             <input type="text" class="header-filter" data-col="13" style="display:none;" />
                             <button class="filter-toggle" data-col="13" aria-label="Search"> ⌕ </button>
                         </th>
                         <th data-col="14">
-                            <div class="header-label">Company</div><br>
+                            <div class="header-label">Personnel Number</div><br>
                             <input type="text" class="header-filter" data-col="14" style="display:none;" />
                             <button class="filter-toggle" data-col="14" aria-label="Search"> ⌕ </button>
                         </th>
                         <th data-col="15">
-                            <div class="header-label">Client Division</div><br>
+                            <div class="header-label">Company</div><br>
                             <input type="text" class="header-filter" data-col="15" style="display:none;" />
                             <button class="filter-toggle" data-col="15" aria-label="Search"> ⌕ </button>
+                        </th>
+                        <th data-col="16">
+                            <div class="header-label">Client Division</div><br>
+                            <input type="text" class="header-filter" data-col="16" style="display:none;" />
+                            <button class="filter-toggle" data-col="16" aria-label="Search"> ⌕ </button>
                         </th>
                     </tr>
 
@@ -185,6 +190,7 @@
                         <td>{{ sub.VAT }}</td>
                         <td>{{ sub.Monthly_Cost_Excl_VAT }}</td>
                         <td>{{ sub.Contract_Type }}</td>
+                        <td>{{ sub.contract_title or '' }}</td>
                         <td>{{ sub.Contract_Term }}</td>
                         <td>{{ sub.Sim_Card_Number }}</td>
                         <td>{{ sub.Personnel_nr }}</td>
@@ -352,7 +358,7 @@
             const FIELD_KEYS = [
                 "Inception_Date", "Termination_Date", "company_number", "contract_number", "Name_", "Surname_",
                 "Monthly_Costs", "VAT", "Monthly_Cost_Excl_VAT",
-                "Contract_Type", "Contract_Term", "Sim_Card_Number",
+                "Contract_Type", "contract_title", "Contract_Term", "Sim_Card_Number",
                 "Personnel_nr", "Company", "Client_Division", "due_upgrade"
             ];
 
@@ -367,6 +373,7 @@
                 VAT: ["vat"],
                 Monthly_Cost_Excl_VAT: ["monthly cost(excl.vat)", "monthly cost (excl.vat)"],
                 Contract_Type: ["contract type"],
+                contract_title: ["contract title"],
                 Contract_Term: ["contract term"],
                 Sim_Card_Number: ["sim card number", "sim"],
                 Personnel_nr: ["personnel nr", "personnel number", "personnel #"],
@@ -833,11 +840,19 @@
                         </div>
                         <div>
                             <label>Device Name</label>
-                            <input type="text" name="Device_Name" required>
+                            <input type="text" name="Device_Name">
+                        </div>
+                        <div>
+                            <label>Device Make</label>
+                            <input type="text" name="device_make">
+                        </div>
+                        <div>
+                            <label>Device Model</label>
+                            <input type="text" name="device_model">
                         </div>
                         <div>
                             <label>Serial Number</label>
-                            <input type="text" name="Serial_Number" required>
+                            <input type="text" name="Serial_Number">
                         </div>
                         <div>
                             <label>Device Description</label>
@@ -1035,6 +1050,8 @@
                     <th>Company</th>
                     <th>Client Division</th>
                     <th>Device Name</th>
+                                        <th>Device Make</th>
+                                        <th>Device Model</th>
                     <th>Serial Number</th>
                     <th>Description</th>
                     <th>Insurance</th>
@@ -1049,6 +1066,8 @@
                       <td>${d.Company ?? ""}</td>
                       <td>${d.Client_Division ?? ""}</td>
                       <td>${d.Device_Name ?? ""}</td>
+                      <td>${d.device_make ?? ""}</td>
+                      <td>${d.device_model ?? ""}</td>
                       <td>${d.Serial_Number ?? ""}</td>
                       <td>${d.Device_Description ?? ""}</td>
                       <td>${d.insurance ?? ""}</td>

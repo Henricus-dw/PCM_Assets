@@ -16,6 +16,7 @@ class VodacomSubscription(Base):
     Company = Column(String(100))
     Client_Division = Column(String(100))
     Contract_Type = Column(String(50))
+    contract_title = Column(String(250))
     Monthly_Costs = Column(Float)
     VAT = Column(Float)  # ✅ Fixed
     Monthly_Cost_Excl_VAT = Column(Float)  # ✅ Fixed
@@ -38,6 +39,8 @@ class Device(Base):
     Company = Column(String(250))
     Client_Division = Column(String(250))
     Device_Name = Column(String(250))
+    device_make = Column(String(250))
+    device_model = Column(String(250))
     Serial_Number = Column(String(250))
     Device_Description = Column(String(250))
     insurance = Column(String(10))

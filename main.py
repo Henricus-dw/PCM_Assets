@@ -1168,6 +1168,7 @@ def submit_form(
     Company: str = Form(...),
     Client_Division: str = Form(...),
     Contract_Type: str = Form(...),
+    contract_title: Optional[str] = Form(None),
     Monthly_Costs: float = Form(...),
     VAT: float = Form(...),
     Monthly_Cost_Excl_VAT: float = Form(...),
@@ -1190,6 +1191,7 @@ def submit_form(
         Company=Company,
         Client_Division=Client_Division,
         Contract_Type=Contract_Type,
+        contract_title=(contract_title or "").strip() or None,
         Monthly_Costs=Monthly_Costs,
         VAT=VAT,
         Monthly_Cost_Excl_VAT=Monthly_Cost_Excl_VAT,
@@ -1210,8 +1212,10 @@ def submit_device(
     ASurname_: str = Form(...),
     ACompany: str = Form(...),
     AClient_Division: str = Form(...),
-    Device_Name: str = Form(...),
-    Serial_Number: str = Form(...),
+    Device_Name: Optional[str] = Form(None),
+    device_make: Optional[str] = Form(None),
+    device_model: Optional[str] = Form(None),
+    Serial_Number: Optional[str] = Form(None),
     APersonnel_nr=Form(...),
     Device_Description: str = Form(...),
     insurance: str = Form(...),
@@ -1228,6 +1232,8 @@ def submit_device(
         Company=ACompany,
         Client_Division=AClient_Division,
         Device_Name=Device_Name,
+        device_make=device_make,
+        device_model=device_model,
         Serial_Number=Serial_Number,
         Device_Description=Device_Description,
         insurance=insurance
@@ -1249,6 +1255,7 @@ def submit_all_forms(
     Company: str = Form(...),
     Client_Division: str = Form(...),
     Contract_Type: str = Form(...),
+    contract_title: Optional[str] = Form(None),
     Monthly_Costs: float = Form(...),
     VAT: float = Form(...),
     Monthly_Cost_Excl_VAT: float = Form(...),
@@ -1263,47 +1270,49 @@ def submit_all_forms(
     APersonnel_nr_1: str = Form(...),
     ACompany_1: str = Form(...),
     AClient_Division_1: str = Form(...),
-    Device_Name_1: str = Form(...),
-    Serial_Number_1: str = Form(...),
+    Device_Name_1: Optional[str] = Form(None),
+    device_make_1: Optional[str] = Form(None),
+    device_model_1: Optional[str] = Form(None),
+    Serial_Number_1: Optional[str] = Form(None),
     Device_Description_1: str = Form(...),
     insurance_1: str = Form(...),
 
     # Device 2..10 (optional)
     AName_2: Optional[str] = Form(None), ASurname_2: Optional[str] = Form(None), APersonnel_nr_2: Optional[str] = Form(None),
     ACompany_2: Optional[str] = Form(None), AClient_Division_2: Optional[str] = Form(None), Device_Name_2: Optional[str] = Form(None),
-    Serial_Number_2: Optional[str] = Form(None), Device_Description_2: Optional[str] = Form(None), insurance_2: Optional[str] = Form(None),
+    device_make_2: Optional[str] = Form(None), device_model_2: Optional[str] = Form(None), Serial_Number_2: Optional[str] = Form(None), Device_Description_2: Optional[str] = Form(None), insurance_2: Optional[str] = Form(None),
 
     AName_3: Optional[str] = Form(None), ASurname_3: Optional[str] = Form(None), APersonnel_nr_3: Optional[str] = Form(None),
     ACompany_3: Optional[str] = Form(None), AClient_Division_3: Optional[str] = Form(None), Device_Name_3: Optional[str] = Form(None),
-    Serial_Number_3: Optional[str] = Form(None), Device_Description_3: Optional[str] = Form(None), insurance_3: Optional[str] = Form(None),
+    device_make_3: Optional[str] = Form(None), device_model_3: Optional[str] = Form(None), Serial_Number_3: Optional[str] = Form(None), Device_Description_3: Optional[str] = Form(None), insurance_3: Optional[str] = Form(None),
 
     AName_4: Optional[str] = Form(None), ASurname_4: Optional[str] = Form(None), APersonnel_nr_4: Optional[str] = Form(None),
     ACompany_4: Optional[str] = Form(None), AClient_Division_4: Optional[str] = Form(None), Device_Name_4: Optional[str] = Form(None),
-    Serial_Number_4: Optional[str] = Form(None), Device_Description_4: Optional[str] = Form(None), insurance_4: Optional[str] = Form(None),
+    device_make_4: Optional[str] = Form(None), device_model_4: Optional[str] = Form(None), Serial_Number_4: Optional[str] = Form(None), Device_Description_4: Optional[str] = Form(None), insurance_4: Optional[str] = Form(None),
 
     AName_5: Optional[str] = Form(None), ASurname_5: Optional[str] = Form(None), APersonnel_nr_5: Optional[str] = Form(None),
     ACompany_5: Optional[str] = Form(None), AClient_Division_5: Optional[str] = Form(None), Device_Name_5: Optional[str] = Form(None),
-    Serial_Number_5: Optional[str] = Form(None), Device_Description_5: Optional[str] = Form(None), insurance_5: Optional[str] = Form(None),
+    device_make_5: Optional[str] = Form(None), device_model_5: Optional[str] = Form(None), Serial_Number_5: Optional[str] = Form(None), Device_Description_5: Optional[str] = Form(None), insurance_5: Optional[str] = Form(None),
 
     AName_6: Optional[str] = Form(None), ASurname_6: Optional[str] = Form(None), APersonnel_nr_6: Optional[str] = Form(None),
     ACompany_6: Optional[str] = Form(None), AClient_Division_6: Optional[str] = Form(None), Device_Name_6: Optional[str] = Form(None),
-    Serial_Number_6: Optional[str] = Form(None), Device_Description_6: Optional[str] = Form(None), insurance_6: Optional[str] = Form(None),
+    device_make_6: Optional[str] = Form(None), device_model_6: Optional[str] = Form(None), Serial_Number_6: Optional[str] = Form(None), Device_Description_6: Optional[str] = Form(None), insurance_6: Optional[str] = Form(None),
 
     AName_7: Optional[str] = Form(None), ASurname_7: Optional[str] = Form(None), APersonnel_nr_7: Optional[str] = Form(None),
     ACompany_7: Optional[str] = Form(None), AClient_Division_7: Optional[str] = Form(None), Device_Name_7: Optional[str] = Form(None),
-    Serial_Number_7: Optional[str] = Form(None), Device_Description_7: Optional[str] = Form(None), insurance_7: Optional[str] = Form(None),
+    device_make_7: Optional[str] = Form(None), device_model_7: Optional[str] = Form(None), Serial_Number_7: Optional[str] = Form(None), Device_Description_7: Optional[str] = Form(None), insurance_7: Optional[str] = Form(None),
 
     AName_8: Optional[str] = Form(None), ASurname_8: Optional[str] = Form(None), APersonnel_nr_8: Optional[str] = Form(None),
     ACompany_8: Optional[str] = Form(None), AClient_Division_8: Optional[str] = Form(None), Device_Name_8: Optional[str] = Form(None),
-    Serial_Number_8: Optional[str] = Form(None), Device_Description_8: Optional[str] = Form(None), insurance_8: Optional[str] = Form(None),
+    device_make_8: Optional[str] = Form(None), device_model_8: Optional[str] = Form(None), Serial_Number_8: Optional[str] = Form(None), Device_Description_8: Optional[str] = Form(None), insurance_8: Optional[str] = Form(None),
 
     AName_9: Optional[str] = Form(None), ASurname_9: Optional[str] = Form(None), APersonnel_nr_9: Optional[str] = Form(None),
     ACompany_9: Optional[str] = Form(None), AClient_Division_9: Optional[str] = Form(None), Device_Name_9: Optional[str] = Form(None),
-    Serial_Number_9: Optional[str] = Form(None), Device_Description_9: Optional[str] = Form(None), insurance_9: Optional[str] = Form(None),
+    device_make_9: Optional[str] = Form(None), device_model_9: Optional[str] = Form(None), Serial_Number_9: Optional[str] = Form(None), Device_Description_9: Optional[str] = Form(None), insurance_9: Optional[str] = Form(None),
 
     AName_10: Optional[str] = Form(None), ASurname_10: Optional[str] = Form(None), APersonnel_nr_10: Optional[str] = Form(None),
     ACompany_10: Optional[str] = Form(None), AClient_Division_10: Optional[str] = Form(None), Device_Name_10: Optional[str] = Form(None),
-    Serial_Number_10: Optional[str] = Form(None), Device_Description_10: Optional[str] = Form(None), insurance_10: Optional[str] = Form(None),
+    device_make_10: Optional[str] = Form(None), device_model_10: Optional[str] = Form(None), Serial_Number_10: Optional[str] = Form(None), Device_Description_10: Optional[str] = Form(None), insurance_10: Optional[str] = Form(None),
 
     db: Session = Depends(get_db)
 ):
@@ -1321,6 +1330,7 @@ def submit_all_forms(
         Company=Company,
         Client_Division=Client_Division,
         Contract_Type=Contract_Type,
+        contract_title=(contract_title or "").strip() or None,
         Monthly_Costs=Monthly_Costs,
         VAT=VAT,
         Monthly_Cost_Excl_VAT=Monthly_Cost_Excl_VAT,
@@ -1342,6 +1352,8 @@ def submit_all_forms(
         Company=ACompany_1,
         Client_Division=AClient_Division_1,
         Device_Name=Device_Name_1,
+        device_make=device_make_1,
+        device_model=device_model_1,
         Serial_Number=Serial_Number_1,
         Device_Description=Device_Description_1,
         insurance=insurance_1
@@ -1349,7 +1361,7 @@ def submit_all_forms(
     db.add(device_1)
 
     # Device 2..10 (optional)
-    def maybe_add_device(name, surname, pers, company, division, devname, serial, descr, ins):
+    def maybe_add_device(name, surname, pers, company, division, devname, devmake, devmodel, serial, descr, ins):
         if name:
             db.add(Device(
                 vd_id=subscription.id,
@@ -1359,29 +1371,31 @@ def submit_all_forms(
                 Company=company,
                 Client_Division=division,
                 Device_Name=devname,
+                device_make=devmake,
+                device_model=devmodel,
                 Serial_Number=serial,
                 Device_Description=descr,
                 insurance=ins
             ))
 
     maybe_add_device(AName_2, ASurname_2, APersonnel_nr_2, ACompany_2, AClient_Division_2,
-                     Device_Name_2, Serial_Number_2, Device_Description_2, insurance_2)
+                     Device_Name_2, device_make_2, device_model_2, Serial_Number_2, Device_Description_2, insurance_2)
     maybe_add_device(AName_3, ASurname_3, APersonnel_nr_3, ACompany_3, AClient_Division_3,
-                     Device_Name_3, Serial_Number_3, Device_Description_3, insurance_3)
+                     Device_Name_3, device_make_3, device_model_3, Serial_Number_3, Device_Description_3, insurance_3)
     maybe_add_device(AName_4, ASurname_4, APersonnel_nr_4, ACompany_4, AClient_Division_4,
-                     Device_Name_4, Serial_Number_4, Device_Description_4, insurance_4)
+                     Device_Name_4, device_make_4, device_model_4, Serial_Number_4, Device_Description_4, insurance_4)
     maybe_add_device(AName_5, ASurname_5, APersonnel_nr_5, ACompany_5, AClient_Division_5,
-                     Device_Name_5, Serial_Number_5, Device_Description_5, insurance_5)
+                     Device_Name_5, device_make_5, device_model_5, Serial_Number_5, Device_Description_5, insurance_5)
     maybe_add_device(AName_6, ASurname_6, APersonnel_nr_6, ACompany_6, AClient_Division_6,
-                     Device_Name_6, Serial_Number_6, Device_Description_6, insurance_6)
+                     Device_Name_6, device_make_6, device_model_6, Serial_Number_6, Device_Description_6, insurance_6)
     maybe_add_device(AName_7, ASurname_7, APersonnel_nr_7, ACompany_7, AClient_Division_7,
-                     Device_Name_7, Serial_Number_7, Device_Description_7, insurance_7)
+                     Device_Name_7, device_make_7, device_model_7, Serial_Number_7, Device_Description_7, insurance_7)
     maybe_add_device(AName_8, ASurname_8, APersonnel_nr_8, ACompany_8, AClient_Division_8,
-                     Device_Name_8, Serial_Number_8, Device_Description_8, insurance_8)
+                     Device_Name_8, device_make_8, device_model_8, Serial_Number_8, Device_Description_8, insurance_8)
     maybe_add_device(AName_9, ASurname_9, APersonnel_nr_9, ACompany_9, AClient_Division_9,
-                     Device_Name_9, Serial_Number_9, Device_Description_9, insurance_9)
+                     Device_Name_9, device_make_9, device_model_9, Serial_Number_9, Device_Description_9, insurance_9)
     maybe_add_device(AName_10, ASurname_10, APersonnel_nr_10, ACompany_10, AClient_Division_10,
-                     Device_Name_10, Serial_Number_10, Device_Description_10, insurance_10)
+                     Device_Name_10, device_make_10, device_model_10, Serial_Number_10, Device_Description_10, insurance_10)
 
     # Commit all device rows
     db.commit()
@@ -1397,8 +1411,10 @@ class DeviceOut(BaseModel):
     Personnel_nr: str
     Company: str
     Client_Division: str
-    Device_Name: str
-    Serial_Number: str
+    Device_Name: Optional[str] = None
+    device_make: Optional[str] = None
+    device_model: Optional[str] = None
+    Serial_Number: Optional[str] = None
     Device_Description: str
     insurance: str
 
@@ -1412,8 +1428,10 @@ class DeviceCreateIn(BaseModel):
     Personnel_nr: str
     Company: str
     Client_Division: str
-    Device_Name: str
-    Serial_Number: str
+    Device_Name: Optional[str] = None
+    device_make: Optional[str] = None
+    device_model: Optional[str] = None
+    Serial_Number: Optional[str] = None
     Device_Description: str
     insurance: str
 
@@ -1446,6 +1464,8 @@ def create_device_for_contract(
         Company=(payload.Company or "").strip(),
         Client_Division=(payload.Client_Division or "").strip(),
         Device_Name=(payload.Device_Name or "").strip(),
+        device_make=(payload.device_make or "").strip(),
+        device_model=(payload.device_model or "").strip(),
         Serial_Number=(payload.Serial_Number or "").strip(),
         Device_Description=(payload.Device_Description or "").strip(),
         insurance=(payload.insurance or "").strip(),
@@ -1464,6 +1484,7 @@ class ContractOut(BaseModel):
     Company: str
     Client_Division: str
     Contract_Type: str
+    contract_title: Optional[str] = None
     Monthly_Costs: float
     VAT: float
     Monthly_Cost_Excl_VAT: float
@@ -1923,6 +1944,8 @@ def api_get_device(device_id: int, request: Request, db: Session = Depends(get_d
         "Company": device.Company,
         "Client_Division": device.Client_Division,
         "Device_Name": device.Device_Name,
+        "device_make": getattr(device, "device_make", None),
+        "device_model": getattr(device, "device_model", None),
         "Serial_Number": device.Serial_Number,
         "Device_Description": device.Device_Description,
         "insurance": device.insurance,
@@ -1952,6 +1975,8 @@ def api_update_device(
         "Company",
         "Client_Division",
         "Device_Name",
+        "device_make",
+        "device_model",
         "Serial_Number",
         "Device_Description",
         "insurance",
@@ -1972,12 +1997,12 @@ def api_update_device(
 
 ALLOWED_DEVICE_FIELDS = {
     "Name_", "Surname_", "Personnel_nr", "Company", "Client_Division",
-    "Device_Name", "Serial_Number", "Device_Description", "insurance"
+    "Device_Name", "device_make", "device_model", "Serial_Number", "Device_Description", "insurance"
 }
 
 ALLOWED_CONTRACT_FIELDS = {
     "company_number", "contract_number", "Name_", "Surname_", "Personnel_nr", "Company", "Client_Division",
-    "Contract_Type", "Monthly_Costs", "VAT", "Monthly_Cost_Excl_VAT",
+    "Contract_Type", "contract_title", "Monthly_Costs", "VAT", "Monthly_Cost_Excl_VAT",
     "Contract_Term", "Inception_Date", "Termination_Date", "Sim_Card_Number", "due_upgrade"
 }
 
