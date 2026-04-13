@@ -6,8 +6,8 @@ from datetime import datetime
 from sqlalchemy import text, Column, Integer, String, Float, DateTime, func, or_, exc
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
-from fastapi import FastAPI, Request, Form, Depends, HTTPException, APIRouter, Path
-from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
+from fastapi import FastAPI, Request, Form, Depends, HTTPException, APIRouter, Path, UploadFile, File
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
@@ -18,6 +18,7 @@ from typing import List, Optional
 from datetime import date, datetime, timedelta
 import calendar
 import os
+import uuid
 from starlette.responses import RedirectResponse
 import json
 import requests
@@ -25,7 +26,7 @@ import requests
 from auth import get_current_user, require_admin
 
 # ---- Your models & DB ----
-from models import VodacomSubscription, Device, User, PendingUser, DeviceEditRequest, ContractEditRequest, SessionFlag
+from models import VodacomSubscription, Device, User, PendingUser, DeviceEditRequest, ContractEditRequest, SessionFlag, PolicyDocument, PolicyDocumentUserAccess
 from database import SessionLocal, engine, Base
 
 
@@ -60,6 +61,37 @@ def _sync_session_permissions(request: Request, user: User) -> None:
     request.session["vodacom"] = bool(getattr(user, "vodacom", False))
     request.session["time_attendance"] = bool(
         getattr(user, "time_attendance", False))
+    request.session["is_manager"] = bool(getattr(user, "is_manager", False))
+    request.session["can_manage_policies"] = bool(
+        getattr(user, "can_manage_policies", False))
+
+
+POLICY_STORAGE_DIR = os.path.join("storage", "policies")
+ALLOWED_POLICY_EXTENSIONS = {".pdf"}
+MAX_POLICY_UPLOAD_SIZE_BYTES = 20 * 1024 * 1024  # 20 MB
+
+
+def _require_policy_admin(request: Request) -> None:
+    if not request.session.get("user_id"):
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    if not bool(_get_or_refresh_permission(request, "can_manage_policies")):
+        raise HTTPException(
+            status_code=403, detail="Policy admin access required")
+
+
+def _document_is_visible_to_user(document: PolicyDocument, user: User, db: Session) -> bool:
+    scope = (document.visibility_scope or "all").lower()
+    if scope == "all":
+        return True
+    if scope == "managers":
+        return bool(getattr(user, "is_manager", False))
+    if scope == "selected":
+        grant = db.query(PolicyDocumentUserAccess).filter(
+            PolicyDocumentUserAccess.policy_document_id == document.id,
+            PolicyDocumentUserAccess.user_id == user.id
+        ).first()
+        return grant is not None
+    return False
 
 
 def _get_or_refresh_permission(request: Request, key: str) -> bool:
@@ -185,6 +217,253 @@ def read_root(request: Request):
         return templates.TemplateResponse("landing.html", {"request": request, "current_user": current_user})
     finally:
         db.close()
+
+
+@app.get("/policies", response_class=HTMLResponse)
+def policies_page(request: Request, db: Session = Depends(get_db)):
+    redirect = _ensure_page_access(request)
+    if redirect:
+        return redirect
+
+    current_user = db.get(User, request.session.get("user_id"))
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=302)
+
+    docs = db.query(PolicyDocument).filter(
+        PolicyDocument.is_active == True
+    ).order_by(PolicyDocument.created_at.desc()).all()
+
+    visible_docs = [
+        d for d in docs if _document_is_visible_to_user(d, current_user, db)
+    ]
+
+    categories = sorted({(d.category or "General") for d in visible_docs})
+    return templates.TemplateResponse(
+        "policies.html",
+        {
+            "request": request,
+            "section": "policies",
+            "documents": visible_docs,
+            "categories": categories,
+            "can_manage": bool(getattr(current_user, "can_manage_policies", False)),
+        }
+    )
+
+
+@app.get("/policies/documents/{document_id}/preview")
+def preview_policy_document(
+    document_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    _ensure_api_access(request)
+    current_user = db.get(User, request.session.get("user_id"))
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    doc = db.query(PolicyDocument).filter(
+        PolicyDocument.id == document_id,
+        PolicyDocument.is_active == True
+    ).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    if not _document_is_visible_to_user(doc, current_user, db):
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    if not os.path.isfile(doc.file_path):
+        raise HTTPException(status_code=404, detail="Document file is missing")
+
+    return FileResponse(
+        path=doc.file_path,
+        media_type="application/pdf",
+        filename=doc.original_file_name,
+        headers={
+            "Content-Disposition": f'inline; filename="{doc.original_file_name}"'}
+    )
+
+
+@app.get("/policies/documents/{document_id}/download")
+def download_policy_document(
+    document_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    _ensure_api_access(request)
+    current_user = db.get(User, request.session.get("user_id"))
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    doc = db.query(PolicyDocument).filter(
+        PolicyDocument.id == document_id,
+        PolicyDocument.is_active == True
+    ).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    if not _document_is_visible_to_user(doc, current_user, db):
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    if not os.path.isfile(doc.file_path):
+        raise HTTPException(status_code=404, detail="Document file is missing")
+
+    return FileResponse(
+        path=doc.file_path,
+        media_type="application/pdf",
+        filename=doc.original_file_name,
+    )
+
+
+@app.get("/policies/manage", response_class=HTMLResponse)
+def manage_policies_page(request: Request, db: Session = Depends(get_db)):
+    _require_policy_admin(request)
+
+    documents = db.query(PolicyDocument).order_by(
+        PolicyDocument.created_at.desc()
+    ).all()
+    users = db.query(User).order_by(User.email.asc()).all()
+
+    selected_access = {}
+    for d in documents:
+        selected_access[d.id] = {
+            row.user_id for row in db.query(PolicyDocumentUserAccess).filter(
+                PolicyDocumentUserAccess.policy_document_id == d.id
+            ).all()
+        }
+
+    return templates.TemplateResponse(
+        "policies_manage.html",
+        {
+            "request": request,
+            "section": "policies-manage",
+            "documents": documents,
+            "users": users,
+            "selected_access": selected_access,
+        }
+    )
+
+
+@app.post("/policies/manage/upload")
+async def upload_policy_document(
+    request: Request,
+    title: str = Form(...),
+    category: str = Form("General"),
+    description: str = Form(""),
+    version: str = Form("1.0"),
+    visibility_scope: str = Form("all"),
+    selected_user_ids: Optional[List[int]] = Form(None),
+    policy_file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+):
+    _require_policy_admin(request)
+    current_user = db.get(User, request.session.get("user_id"))
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    normalized_scope = (visibility_scope or "all").strip().lower()
+    if normalized_scope not in {"all", "managers", "selected"}:
+        raise HTTPException(status_code=400, detail="Invalid visibility scope")
+
+    _, ext = os.path.splitext(policy_file.filename or "")
+    if ext.lower() not in ALLOWED_POLICY_EXTENSIONS:
+        raise HTTPException(
+            status_code=400, detail="Only PDF files are allowed")
+
+    content = await policy_file.read()
+    if not content:
+        raise HTTPException(status_code=400, detail="File is empty")
+    if len(content) > MAX_POLICY_UPLOAD_SIZE_BYTES:
+        raise HTTPException(status_code=400, detail="File exceeds 20 MB limit")
+
+    os.makedirs(POLICY_STORAGE_DIR, exist_ok=True)
+    stored_name = f"{uuid.uuid4().hex}{ext.lower()}"
+    stored_path = os.path.join(POLICY_STORAGE_DIR, stored_name)
+
+    with open(stored_path, "wb") as f:
+        f.write(content)
+
+    doc = PolicyDocument(
+        title=title.strip(),
+        category=(category or "General").strip(),
+        description=(description or "").strip(),
+        visibility_scope=normalized_scope,
+        file_path=stored_path,
+        original_file_name=(policy_file.filename or stored_name).strip(),
+        file_size_bytes=len(content),
+        version=(version or "1.0").strip(),
+        is_active=True,
+        uploaded_by_user_id=current_user.id,
+    )
+    db.add(doc)
+    db.commit()
+    db.refresh(doc)
+
+    if normalized_scope == "selected" and selected_user_ids:
+        unique_user_ids = sorted({int(uid) for uid in selected_user_ids})
+        rows = [
+            PolicyDocumentUserAccess(policy_document_id=doc.id, user_id=uid)
+            for uid in unique_user_ids
+        ]
+        if rows:
+            db.add_all(rows)
+            db.commit()
+
+    return RedirectResponse(url="/policies/manage", status_code=303)
+
+
+@app.post("/policies/manage/{document_id}/visibility")
+def update_policy_visibility(
+    document_id: int,
+    request: Request,
+    visibility_scope: str = Form(...),
+    selected_user_ids: Optional[List[int]] = Form(None),
+    db: Session = Depends(get_db),
+):
+    _require_policy_admin(request)
+    doc = db.query(PolicyDocument).filter(
+        PolicyDocument.id == document_id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    normalized_scope = (visibility_scope or "all").strip().lower()
+    if normalized_scope not in {"all", "managers", "selected"}:
+        raise HTTPException(status_code=400, detail="Invalid visibility scope")
+
+    doc.visibility_scope = normalized_scope
+    db.query(PolicyDocumentUserAccess).filter(
+        PolicyDocumentUserAccess.policy_document_id == doc.id
+    ).delete()
+
+    if normalized_scope == "selected" and selected_user_ids:
+        unique_user_ids = sorted({int(uid) for uid in selected_user_ids})
+        rows = [
+            PolicyDocumentUserAccess(policy_document_id=doc.id, user_id=uid)
+            for uid in unique_user_ids
+        ]
+        if rows:
+            db.add_all(rows)
+
+    db.add(doc)
+    db.commit()
+    return RedirectResponse(url="/policies/manage", status_code=303)
+
+
+@app.post("/policies/manage/{document_id}/archive")
+def archive_policy_document(
+    document_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    _require_policy_admin(request)
+    doc = db.query(PolicyDocument).filter(
+        PolicyDocument.id == document_id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    doc.is_active = False
+    db.add(doc)
+    db.commit()
+    return RedirectResponse(url="/policies/manage", status_code=303)
 
 
 # 2) TIME & ATTENDANCE + BIOMETRIC

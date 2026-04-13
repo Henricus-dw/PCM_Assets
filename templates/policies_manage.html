@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Manage Policies</title>
+    <link rel="icon" href="/static/pcm-lockup-goldc-final.svg" type="image/svg+xml" />
+    <style>
+        :root {
+            --ink: #1b1f3b;
+            --ink-soft: #3b4168;
+            --paper: #f7f7fb;
+            --line: #dadced;
+            --card: #ffffff;
+            --accent: #0f766e;
+            --warn: #b45309;
+            --danger: #b91c1c;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background:
+                radial-gradient(circle at 92% 6%, #d6f5ea 0%, transparent 25%),
+                radial-gradient(circle at 5% 12%, #fcebd6 0%, transparent 30%),
+                linear-gradient(150deg, #f4f6fb 0%, #eceff6 100%);
+            color: var(--ink);
+            font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+            min-height: 100vh;
+        }
+
+        .page {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 24px 16px 40px;
+        }
+
+        .top {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 10px;
+            padding: 10px 14px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform .15s ease, box-shadow .2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-back {
+            color: #fff;
+            background: var(--ink);
+            box-shadow: 0 8px 18px rgba(27, 31, 59, .25);
+        }
+
+        .title {
+            margin: 0;
+            font-size: clamp(1.3rem, 3.2vw, 2rem);
+        }
+
+        .subtitle {
+            margin: 6px 0 18px;
+            color: #5f6686;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1.05fr 1fr;
+            gap: 16px;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 10px 24px rgba(43, 50, 82, 0.08);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            margin-bottom: 12px;
+            font-size: 1.05rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        .field label {
+            font-size: 0.84rem;
+            color: #47506f;
+            font-weight: 700;
+        }
+
+        .field input,
+        .field select,
+        .field textarea {
+            width: 100%;
+            border: 1px solid #cfd4e8;
+            border-radius: 10px;
+            padding: 9px 10px;
+            font: inherit;
+            background: #fff;
+        }
+
+        .field textarea {
+            min-height: 86px;
+            resize: vertical;
+        }
+
+        .field.full {
+            grid-column: 1 / -1;
+        }
+
+        .actions {
+            margin-top: 6px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .btn-save {
+            background: var(--accent);
+            color: #fff;
+            box-shadow: 0 8px 18px rgba(15, 118, 110, .2);
+        }
+
+        .list {
+            display: grid;
+            gap: 10px;
+            max-height: 70vh;
+            overflow: auto;
+            padding-right: 4px;
+        }
+
+        .row {
+            border: 1px solid #d8dbee;
+            border-radius: 12px;
+            padding: 10px;
+            background: #fcfcff;
+        }
+
+        .row-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .row-title {
+            margin: 0;
+            font-size: 0.98rem;
+        }
+
+        .row-meta {
+            color: #5d6589;
+            font-size: 0.82rem;
+            margin-top: 4px;
+        }
+
+        .inline {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+            align-items: center;
+        }
+
+        .btn-archive {
+            background: var(--danger);
+            color: #fff;
+        }
+
+        .small {
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+
+        .users-box {
+            max-height: 130px;
+            overflow: auto;
+            border: 1px solid #d3d8eb;
+            border-radius: 10px;
+            padding: 8px;
+            background: #fff;
+        }
+
+        .users-box label {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 5px;
+            font-size: 0.84rem;
+            color: #3f4663;
+        }
+
+        .is-hidden {
+            display: none;
+        }
+
+        @media (max-width: 950px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .top {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page">
+        <div class="top">
+            <a href="/policies" class="btn btn-back">Back to Policies</a>
+            <a href="/" class="btn btn-back">Back to Modules</a>
+        </div>
+
+        <h1 class="title">Policy Management</h1>
+        <p class="subtitle">Upload policy PDFs, set document visibility, and archive old policy versions.</p>
+
+        <div class="grid">
+            <section class="card">
+                <h2>Upload New Policy</h2>
+                <form method="post" action="/policies/manage/upload" enctype="multipart/form-data">
+                    <div class="form-grid">
+                        <div class="field">
+                            <label for="title">Policy Title</label>
+                            <input id="title" name="title" required />
+                        </div>
+
+                        <div class="field">
+                            <label for="category">Category</label>
+                            <input id="category" name="category" value="General" />
+                        </div>
+
+                        <div class="field">
+                            <label for="version">Version</label>
+                            <input id="version" name="version" value="1.0" />
+                        </div>
+
+                        <div class="field">
+                            <label for="visibility_scope">Visibility</label>
+                            <select id="visibility_scope" name="visibility_scope"
+                                onchange="toggleUploadSelectedUsers(this.value)">
+                                <option value="all">All Employees</option>
+                                <option value="managers">Managers Only</option>
+                                <option value="selected">Specific Users</option>
+                            </select>
+                        </div>
+
+                        <div id="uploadSelectedUsers" class="field full" style="display:none;">
+                            <label>Choose users allowed to view this document</label>
+                            <div class="users-box">
+                                {% for u in users %}
+                                <label>
+                                    <input type="checkbox" name="selected_user_ids" value="{{ u.id }}" />
+                                    <span>{{ u.email }}</span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="field full">
+                            <label for="description">Summary</label>
+                            <textarea id="description" name="description"
+                                placeholder="Briefly explain the policy."></textarea>
+                        </div>
+
+                        <div class="field full">
+                            <label for="policy_file">PDF File</label>
+                            <input id="policy_file" type="file" name="policy_file" accept="application/pdf,.pdf"
+                                required />
+                            <div class="small">Only PDF files are accepted. Maximum file size: 20 MB.</div>
+                        </div>
+                    </div>
+
+                    <div class="actions">
+                        <button type="submit" class="btn btn-save">Upload Policy</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="card">
+                <h2>Existing Documents</h2>
+                {% if documents %}
+                <div class="list">
+                    {% for d in documents %}
+                    <article class="row">
+                        <div class="row-head">
+                            <h3 class="row-title">{{ d.title }}</h3>
+                            {% if d.is_active %}
+                            <span class="small" style="color:#0f766e; font-weight:700;">ACTIVE</span>
+                            {% else %}
+                            <span class="small" style="color:#b91c1c; font-weight:700;">ARCHIVED</span>
+                            {% endif %}
+                        </div>
+                        <div class="row-meta">
+                            {{ d.category or 'General' }} | v{{ d.version or '1.0' }} | {{ d.original_file_name }}
+                        </div>
+
+                        {% if d.is_active %}
+                        <form method="post" action="/policies/manage/{{ d.id }}/visibility">
+                            <div class="inline">
+                                <select name="visibility_scope" class="visibility-select" data-doc-id="{{ d.id }}">
+                                    <option value="all" {% if d.visibility_scope=='all' %}selected{% endif %}>All
+                                        Employees</option>
+                                    <option value="managers" {% if d.visibility_scope=='managers' %}selected{% endif %}>
+                                        Managers Only</option>
+                                    <option value="selected" {% if d.visibility_scope=='selected' %}selected{% endif %}>
+                                        Specific Users</option>
+                                </select>
+                                <button type="submit" class="btn btn-save">Save Visibility</button>
+                            </div>
+
+                            <div id="rowUsers{{ d.id }}"
+                                class="users-box {% if d.visibility_scope != 'selected' %}is-hidden{% endif %}"
+                                style="margin-top:8px;">
+                                {% set selected_set = selected_access.get(d.id) or [] %}
+                                {% for u in users %}
+                                <label>
+                                    <input type="checkbox" name="selected_user_ids" value="{{ u.id }}" {% if u.id in
+                                        selected_set %}checked{% endif %} />
+                                    <span>{{ u.email }}</span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </form>
+
+                        <form method="post" action="/policies/manage/{{ d.id }}/archive"
+                            onsubmit="return confirm('Archive this document?');">
+                            <div class="inline">
+                                <a class="btn btn-back" href="/policies/documents/{{ d.id }}/preview" target="_blank"
+                                    rel="noopener">Preview</a>
+                                <a class="btn btn-save" href="/policies/documents/{{ d.id }}/download">Download</a>
+                                <button type="submit" class="btn btn-archive">Archive</button>
+                            </div>
+                        </form>
+                        {% else %}
+                        <div class="inline">
+                            <a class="btn btn-back" href="/policies/documents/{{ d.id }}/download">Download Archive</a>
+                        </div>
+                        {% endif %}
+                    </article>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="small">No policy documents uploaded yet.</p>
+                {% endif %}
+            </section>
+        </div>
+    </div>
+
+    <script>
+        function toggleUploadSelectedUsers(scope) {
+            const box = document.getElementById('uploadSelectedUsers');
+            if (!box) return;
+            box.style.display = scope === 'selected' ? 'block' : 'none';
+        }
+
+        function toggleRowUsers(docId, scope) {
+            const box = document.getElementById('rowUsers' + docId);
+            if (!box) return;
+            box.classList.toggle('is-hidden', scope !== 'selected');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.visibility-select').forEach((el) => {
+                el.addEventListener('change', () => {
+                    toggleRowUsers(el.dataset.docId, el.value);
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

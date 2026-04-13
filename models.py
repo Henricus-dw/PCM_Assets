@@ -63,6 +63,10 @@ class User(Base):
                      server_default=text("0"), default=False)
     time_attendance = Column(Boolean, nullable=True,
                              server_default=text("0"), default=False)
+    is_manager = Column(Boolean, nullable=True,
+                        server_default=text("0"), default=False)
+    can_manage_policies = Column(Boolean, nullable=True,
+                                 server_default=text("0"), default=False)
 
     __table_args__ = (UniqueConstraint('email', name='uq_users_email'),)
 
@@ -197,3 +201,38 @@ class SessionFlag(Base):
     resolved_at = Column(DateTime, nullable=True)
     resolved_by_user_id = Column(Integer, nullable=True)
     created_at = Column(DateTime, server_default=func.now(), index=True)
+
+
+class PolicyDocument(Base):
+    __tablename__ = "policy_documents"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    title = Column(String(255), nullable=False)
+    category = Column(String(100), nullable=True)
+    description = Column(Text, nullable=True)
+    visibility_scope = Column(String(30), nullable=False,
+                              server_default=text("'all'"))
+    file_path = Column(String(500), nullable=False)
+    original_file_name = Column(String(255), nullable=False)
+    file_size_bytes = Column(Integer, nullable=True)
+    version = Column(String(30), nullable=False, server_default=text("'1.0'"))
+    is_active = Column(Boolean, nullable=False,
+                       server_default=text("1"), default=True)
+    uploaded_by_user_id = Column(Integer, nullable=False)
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime, server_default=func.now(),
+                        onupdate=func.now(), nullable=False)
+
+
+class PolicyDocumentUserAccess(Base):
+    __tablename__ = "policy_document_user_access"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    policy_document_id = Column(Integer, nullable=False, index=True)
+    user_id = Column(Integer, nullable=False, index=True)
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint('policy_document_id', 'user_id',
+                         name='uq_policy_document_user_access'),
+    )
