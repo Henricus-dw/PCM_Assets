@@ -466,6 +466,35 @@ def archive_policy_document(
     return RedirectResponse(url="/policies/manage", status_code=303)
 
 
+@app.post("/policies/manage/{document_id}/delete")
+def delete_policy_document(
+    document_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    _require_policy_admin(request)
+    doc = db.query(PolicyDocument).filter(
+        PolicyDocument.id == document_id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    file_path = doc.file_path
+    db.query(PolicyDocumentUserAccess).filter(
+        PolicyDocumentUserAccess.policy_document_id == document_id
+    ).delete()
+    db.delete(doc)
+    db.commit()
+
+    if file_path and os.path.isfile(file_path):
+        try:
+            os.remove(file_path)
+        except OSError:
+            # Keep DB change successful even if file deletion fails.
+            pass
+
+    return RedirectResponse(url="/policies/manage", status_code=303)
+
+
 # 2) TIME & ATTENDANCE + BIOMETRIC
 
 
