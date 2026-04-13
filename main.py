@@ -477,6 +477,11 @@ def delete_policy_document(
         PolicyDocument.id == document_id).first()
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
+    if bool(getattr(doc, "is_active", False)):
+        raise HTTPException(
+            status_code=400,
+            detail="Document must be archived before it can be deleted"
+        )
 
     file_path = doc.file_path
     db.query(PolicyDocumentUserAccess).filter(

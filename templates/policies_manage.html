@@ -376,13 +376,6 @@
                                 <button type="submit" class="btn btn-archive">Archive</button>
                             </div>
                         </form>
-
-                        <form method="post" action="/policies/manage/{{ d.id }}/delete"
-                            onsubmit="return confirm('Delete this document permanently? This cannot be undone.');">
-                            <div class="inline">
-                                <button type="submit" class="btn btn-delete">Delete</button>
-                            </div>
-                        </form>
                         {% else %}
                         <div class="inline">
                             <a class="btn btn-back" href="/policies/documents/{{ d.id }}/download">Download Archive</a>
