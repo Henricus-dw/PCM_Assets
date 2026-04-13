@@ -386,7 +386,9 @@
 
                         <button class="btn btn-admin" type="button" style="margin-left:8px;" data-user-id="{{ u.id }}"
                             data-email="{{ u.email }}" data-vodacom="{{ 1 if u.vodacom else 0 }}"
-                            data-time-attendance="{{ 1 if u.time_attendance else 0 }}" onclick="openModulesModal(this)">
+                            data-time-attendance="{{ 1 if u.time_attendance else 0 }}"
+                            data-can-manage-policies="{{ 1 if u.can_manage_policies else 0 }}"
+                            onclick="openModulesModal(this)">
                             Modules
                         </button>
 
@@ -498,6 +500,11 @@
                     <span>Time & Attendance</span>
                 </label>
 
+                <label class="module-check">
+                    <input type="checkbox" id="modulePoliciesAdmin" name="can_manage_policies" />
+                    <span>Rules and Policies administrator</span>
+                </label>
+
                 <div class="modules-modal-actions">
                     <button type="button" class="btn-secondary" onclick="closeModulesModal()">Cancel</button>
                     <button type="submit" class="btn btn-approve">Save</button>
@@ -566,17 +573,20 @@
             const userLabel = document.getElementById('modulesModalUser');
             const vodacom = document.getElementById('moduleVodacom');
             const timeAttendance = document.getElementById('moduleTimeAttendance');
-            if (!modal || !form || !vodacom || !timeAttendance) return;
+            const policiesAdmin = document.getElementById('modulePoliciesAdmin');
+            if (!modal || !form || !vodacom || !timeAttendance || !policiesAdmin) return;
 
             const userId = btn?.dataset?.userId;
             const email = btn?.dataset?.email || '';
             const hasVodacom = String(btn?.dataset?.vodacom || '0') === '1';
             const hasTimeAttendance = String(btn?.dataset?.timeAttendance || '0') === '1';
+            const hasPoliciesAdmin = String(btn?.dataset?.canManagePolicies || '0') === '1';
 
             form.action = `/admin/users/${userId}/modules`;
             userLabel.textContent = email;
             vodacom.checked = hasVodacom;
             timeAttendance.checked = hasTimeAttendance;
+            policiesAdmin.checked = hasPoliciesAdmin;
 
             modal.classList.add('open');
             modal.setAttribute('aria-hidden', 'false');

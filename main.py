@@ -2605,6 +2605,7 @@ def update_user_modules(
     request: Request = None,
     vodacom: Optional[str] = Form(None),
     time_attendance: Optional[str] = Form(None),
+    can_manage_policies: Optional[str] = Form(None),
     module_ctx: Optional[str] = Form(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_admin),
@@ -2615,11 +2616,13 @@ def update_user_modules(
 
     u.vodacom = bool(vodacom)
     u.time_attendance = bool(time_attendance)
+    u.can_manage_policies = bool(can_manage_policies)
     db.commit()
 
     if request and current_user.id == u.id:
         request.session["vodacom"] = bool(u.vodacom)
         request.session["time_attendance"] = bool(u.time_attendance)
+        request.session["can_manage_policies"] = bool(u.can_manage_policies)
 
     if module_ctx == "biometric":
         return RedirectResponse(url="/admin?module=biometric", status_code=303)
