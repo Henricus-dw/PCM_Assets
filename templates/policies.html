@@ -262,17 +262,22 @@
                 to ensure each team sees the correct documents.</p>
         </section>
 
-        <div class="filters" id="filters">
+        <div class="filters" id="categoryFilters">
             <button type="button" class="chip active" data-category="all">All Categories</button>
             {% for category in categories %}
             <button type="button" class="chip" data-category="{{ category|lower }}">{{ category }}</button>
             {% endfor %}
         </div>
 
+        <div class="filters" id="subcategoryFilters" style="display: none;">
+            <!-- Subcategory chips will be inserted here by JavaScript -->
+        </div>
+
         {% if documents %}
         <section class="grid" id="policyGrid">
             {% for doc in documents %}
-            <article class="card" data-category="{{ (doc.category or 'General')|lower }}">
+            <article class="card" data-category="{{ (doc.category or 'General')|lower }}"
+                data-subcategory="{{ (doc.subcategory or '')|lower }}">
                 <div class="meta">
                     <span class="badge">{{ doc.category or 'General' }}{% if doc.subcategory %} / {{ doc.subcategory
                         }}{% endif %}</span>
@@ -295,20 +300,79 @@
     </div>
 
     <script>
-        const chips = Array.from(document.querySelectorAll('.chip'));
+        const subcategoriesByCategory = {{ subcategories_by_category | tojson }};
+        let selectedCategory = 'all';
+        let selectedSubcategory = 'all';
+
+        const categoryChips = Array.from(document.querySelectorAll('#categoryFilters .chip'));
         const cards = Array.from(document.querySelectorAll('.card'));
 
-        chips.forEach((chip) => {
-            chip.addEventListener('click', () => {
-                chips.forEach((c) => c.classList.remove('active'));
-                chip.classList.add('active');
-                const selected = chip.dataset.category || 'all';
+        function updateSubcategoryFilter() {
+            const subcategoryContainer = document.getElementById('subcategoryFilters');
+            subcategoryContainer.innerHTML = '';
+            selectedSubcategory = 'all';
 
-                cards.forEach((card) => {
-                    const category = card.dataset.category || '';
-                    card.style.display = (selected === 'all' || category === selected) ? 'flex' : 'none';
-                });
+            if (selectedCategory === 'all') {
+                subcategoryContainer.style.display = 'none';
+                return;
+            }
+
+            const subs = subcategoriesByCategory[selectedCategory] || [];
+            if (subs.length === 0) {
+                subcategoryContainer.style.display = 'none';
+                return;
+            }
+
+            subcategoryContainer.style.display = 'flex';
+            const allSubBtn = document.createElement('button');
+            allSubBtn.type = 'button';
+            allSubBtn.className = 'chip active';
+            allSubBtn.textContent = 'All in ' + selectedCategory;
+            allSubBtn.dataset.subcategory = 'all';
+            allSubBtn.addEventListener('click', () => { handleSubcategoryClick(allSubBtn); });
+            subcategoryContainer.appendChild(allSubBtn);
+
+            subs.forEach((sub) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'chip';
+                btn.textContent = sub;
+                btn.dataset.subcategory = sub.toLowerCase();
+                btn.addEventListener('click', () => { handleSubcategoryClick(btn); });
+                subcategoryContainer.appendChild(btn);
             });
+        }
+
+        function handleCategoryClick(chip) {
+            categoryChips.forEach((c) => c.classList.remove('active'));
+            chip.classList.add('active');
+            selectedCategory = chip.dataset.category || 'all';
+            updateSubcategoryFilter();
+            filterCards();
+        }
+
+        function handleSubcategoryClick(chip) {
+            const subcategoryChips = Array.from(document.querySelectorAll('#subcategoryFilters .chip'));
+            subcategoryChips.forEach((c) => c.classList.remove('active'));
+            chip.classList.add('active');
+            selectedSubcategory = chip.dataset.subcategory || 'all';
+            filterCards();
+        }
+
+        function filterCards() {
+            cards.forEach((card) => {
+                const cardCategory = card.dataset.category || '';
+                const cardSubcategory = card.dataset.subcategory || '';
+
+                const catMatch = selectedCategory === 'all' || cardCategory === selectedCategory;
+                const subMatch = selectedSubcategory === 'all' || cardSubcategory === selectedSubcategory;
+
+                card.style.display = (catMatch && subMatch) ? 'flex' : 'none';
+            });
+        }
+
+        categoryChips.forEach((chip) => {
+            chip.addEventListener('click', () => { handleCategoryClick(chip); });
         });
     </script>
 </body>

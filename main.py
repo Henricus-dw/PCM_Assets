@@ -238,6 +238,19 @@ def policies_page(request: Request, db: Session = Depends(get_db)):
     ]
 
     categories = sorted({(d.category or "General") for d in visible_docs})
+
+    subcategories_by_category = {}
+    for doc in visible_docs:
+        cat = doc.category or "General"
+        if cat not in subcategories_by_category:
+            subcategories_by_category[cat] = set()
+        if doc.subcategory:
+            subcategories_by_category[cat].add(doc.subcategory)
+
+    subcategories_by_category = {
+        cat: sorted(list(subs)) for cat, subs in subcategories_by_category.items()
+    }
+
     return templates.TemplateResponse(
         "policies.html",
         {
@@ -245,6 +258,7 @@ def policies_page(request: Request, db: Session = Depends(get_db)):
             "section": "policies",
             "documents": visible_docs,
             "categories": categories,
+            "subcategories_by_category": subcategories_by_category,
             "can_manage": bool(getattr(current_user, "can_manage_policies", False)),
         }
     )
