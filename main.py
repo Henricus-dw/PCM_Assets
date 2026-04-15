@@ -428,6 +428,56 @@ async def upload_policy_document(
     return RedirectResponse(url="/policies/manage", status_code=303)
 
 
+@app.get("/policies/manage/{document_id}/edit", response_class=HTMLResponse)
+def edit_policy_form(
+    document_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    _require_policy_admin(request)
+    doc = db.query(PolicyDocument).filter(
+        PolicyDocument.id == document_id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    return templates.TemplateResponse(
+        "policies_edit.html",
+        {
+            "request": request,
+            "document": doc,
+        }
+    )
+
+
+@app.post("/policies/manage/{document_id}/edit")
+def update_policy_document(
+    document_id: int,
+    request: Request,
+    title: str = Form(...),
+    category: str = Form("General"),
+    subcategory: str = Form(""),
+    description: str = Form(""),
+    version: str = Form("1.0"),
+    db: Session = Depends(get_db),
+):
+    _require_policy_admin(request)
+    doc = db.query(PolicyDocument).filter(
+        PolicyDocument.id == document_id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    doc.title = title.strip()
+    doc.category = (category or "General").strip()
+    doc.subcategory = (subcategory or "").strip()
+    doc.description = (description or "").strip()
+    doc.version = (version or "1.0").strip()
+
+    db.add(doc)
+    db.commit()
+
+    return RedirectResponse(url="/policies/manage", status_code=303)
+
+
 @app.post("/policies/manage/{document_id}/visibility")
 def update_policy_visibility(
     document_id: int,

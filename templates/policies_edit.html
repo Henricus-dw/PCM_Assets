@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Edit Policy</title>
+    <link rel="icon" href="/static/pcm-lockup-goldc-final.svg" type="image/svg+xml" />
+    <style>
+        :root {
+            --ink: #1b1f3b;
+            --ink-soft: #3b4168;
+            --paper: #f7f7fb;
+            --line: #dadced;
+            --card: #ffffff;
+            --accent: #0f766e;
+            --warn: #b45309;
+            --danger: #b91c1c;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background:
+                radial-gradient(circle at 92% 6%, #d6f5ea 0%, transparent 25%),
+                radial-gradient(circle at 5% 12%, #fcebd6 0%, transparent 30%),
+                linear-gradient(150deg, #f4f6fb 0%, #eceff6 100%);
+            color: var(--ink);
+            font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+            min-height: 100vh;
+        }
+
+        .page {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 24px 16px 40px;
+        }
+
+        .top {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 10px;
+            padding: 10px 14px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform .15s ease, box-shadow .2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-back {
+            color: #fff;
+            background: var(--ink);
+            box-shadow: 0 8px 18px rgba(27, 31, 59, .25);
+        }
+
+        .title {
+            margin: 0;
+            font-size: clamp(1.3rem, 3.2vw, 2rem);
+        }
+
+        .subtitle {
+            margin: 6px 0 18px;
+            color: #5f6686;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 24px rgba(43, 50, 82, 0.08);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .field label {
+            font-size: 0.84rem;
+            color: #47506f;
+            font-weight: 700;
+        }
+
+        .field input,
+        .field select,
+        .field textarea {
+            width: 100%;
+            border: 1px solid #cfd4e8;
+            border-radius: 10px;
+            padding: 9px 10px;
+            font: inherit;
+            background: #fff;
+        }
+
+        .field textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .field.full {
+            grid-column: 1 / -1;
+        }
+
+        .actions {
+            margin-top: 24px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .btn-save {
+            background: var(--accent);
+            color: #fff;
+            box-shadow: 0 8px 18px rgba(15, 118, 110, .2);
+        }
+
+        .btn-cancel {
+            background: var(--ink-soft);
+            color: #fff;
+        }
+
+        .file-info {
+            padding: 12px;
+            background: #f0f8f7;
+            border: 1px solid #c8e6e1;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            color: #2d5a54;
+        }
+
+        @media (max-width: 600px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page">
+        <div class="top">
+            <a href="/policies/manage" class="btn btn-back">Back to Manage</a>
+        </div>
+
+        <h1 class="title">Edit Policy Document</h1>
+        <p class="subtitle">Update policy metadata. The PDF file cannot be changed from this page.</p>
+
+        <section class="card">
+            <form method="post" action="/policies/manage/{{ document.id }}/edit">
+                <div class="form-grid">
+                    <div class="field full">
+                        <label for="title">Policy Title</label>
+                        <input id="title" name="title" value="{{ document.title }}" required />
+                    </div>
+
+                    <div class="field">
+                        <label for="category">Category</label>
+                        <input id="category" name="category" value="{{ document.category or 'General' }}" />
+                    </div>
+
+                    <div class="field">
+                        <label for="subcategory">Subcategory</label>
+                        <input id="subcategory" name="subcategory" value="{{ document.subcategory or '' }}"
+                            placeholder="e.g., Leave Forms" />
+                    </div>
+
+                    <div class="field">
+                        <label for="version">Version</label>
+                        <input id="version" name="version" value="{{ document.version or '1.0' }}" />
+                    </div>
+
+                    <div class="field full">
+                        <label for="description">Summary</label>
+                        <textarea id="description" name="description"
+                            placeholder="Briefly explain the policy.">{{ document.description or '' }}</textarea>
+                    </div>
+
+                    <div class="field full">
+                        <div class="file-info">
+                            <strong>Current PDF:</strong> {{ document.original_file_name }}<br>
+                            <small>File size: {{ (document.file_size_bytes / 1024 / 1024) | round(2) }} MB</small><br>
+                            <small>Uploaded: {{ document.created_at.strftime('%d %b %Y at %H:%M') if document.created_at
+                                else 'N/A' }}</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <a href="/policies/manage" class="btn btn-cancel">Cancel</a>
+                    <button type="submit" class="btn btn-save">Save Changes</button>
+                </div>
+            </form>
+        </section>
+    </div>
+</body>
+
+</html>
