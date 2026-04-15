@@ -1,5 +1,5 @@
-from models import User
-from database import SessionLocal
+from models import Base, User
+from database import SessionLocal, engine, ensure_local_sqlite_schema
 import os
 import sys
 from passlib.context import CryptContext
@@ -20,6 +20,9 @@ def get_password_hash(plain: str) -> str:
 
 
 def main():
+    Base.metadata.create_all(bind=engine)
+    ensure_local_sqlite_schema(Base)
+
     email = input("Admin email: ").strip().lower()
     password = input("Admin password: ").strip()
     name = input("Name (optional): ").strip() or None

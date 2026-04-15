@@ -27,11 +27,12 @@ from auth import get_current_user, require_admin
 
 # ---- Your models & DB ----
 from models import VodacomSubscription, Device, User, PendingUser, DeviceEditRequest, ContractEditRequest, SessionFlag, PolicyDocument, PolicyDocumentUserAccess
-from database import SessionLocal, engine, Base
+from database import SessionLocal, engine, Base, ensure_local_sqlite_schema
 
 
 # Create all tables (only needed once)
 Base.metadata.create_all(bind=engine)
+ensure_local_sqlite_schema(Base)
 router = APIRouter()
 # ---- App setup ----
 app = FastAPI()

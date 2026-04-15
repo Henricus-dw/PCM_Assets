@@ -1,6 +1,6 @@
 # create_user.py
 from getpass import getpass
-from database import SessionLocal, engine
+from database import SessionLocal, engine, ensure_local_sqlite_schema
 from models import Base, User
 from passlib.context import CryptContext
 
@@ -9,6 +9,7 @@ db = SessionLocal()
 
 # ensure tables exist
 Base.metadata.create_all(bind=engine)
+ensure_local_sqlite_schema(Base)
 
 email = input("Email: ").strip().lower()
 password = getpass("Password: ")
