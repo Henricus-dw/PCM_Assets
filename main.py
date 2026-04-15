@@ -237,11 +237,12 @@ def policies_page(request: Request, db: Session = Depends(get_db)):
         d for d in docs if _document_is_visible_to_user(d, current_user, db)
     ]
 
-    categories = sorted({(d.category or "General") for d in visible_docs})
+    categories = sorted({(d.category or "General").lower()
+                        for d in visible_docs})
 
     subcategories_by_category = {}
     for doc in visible_docs:
-        cat = doc.category or "General"
+        cat = (doc.category or "General").lower()
         if cat not in subcategories_by_category:
             subcategories_by_category[cat] = set()
         if doc.subcategory:
