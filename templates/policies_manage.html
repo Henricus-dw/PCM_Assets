@@ -275,6 +275,11 @@
                         </div>
 
                         <div class="field">
+                            <label for="subcategory">Subcategory</label>
+                            <input id="subcategory" name="subcategory" placeholder="e.g., Leave Forms" />
+                        </div>
+
+                        <div class="field">
                             <label for="version">Version</label>
                             <input id="version" name="version" value="1.0" />
                         </div>
@@ -336,7 +341,8 @@
                             {% endif %}
                         </div>
                         <div class="row-meta">
-                            {{ d.category or 'General' }} | v{{ d.version or '1.0' }} | {{ d.original_file_name }}
+                            {{ d.category or 'General' }}{% if d.subcategory %} / {{ d.subcategory }}{% endif %} | v{{
+                            d.version or '1.0' }} | {{ d.original_file_name }}
                         </div>
 
                         {% if d.is_active %}

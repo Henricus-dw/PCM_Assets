@@ -209,6 +209,7 @@ class PolicyDocument(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     title = Column(String(255), nullable=False)
     category = Column(String(100), nullable=True)
+    subcategory = Column(String(100), nullable=True)
     description = Column(Text, nullable=True)
     visibility_scope = Column(String(30), nullable=False,
                               server_default=text("'all'"))

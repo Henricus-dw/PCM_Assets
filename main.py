@@ -348,6 +348,7 @@ async def upload_policy_document(
     request: Request,
     title: str = Form(...),
     category: str = Form("General"),
+    subcategory: str = Form(""),
     description: str = Form(""),
     version: str = Form("1.0"),
     visibility_scope: str = Form("all"),
@@ -385,6 +386,7 @@ async def upload_policy_document(
     doc = PolicyDocument(
         title=title.strip(),
         category=(category or "General").strip(),
+        subcategory=(subcategory or "").strip(),
         description=(description or "").strip(),
         visibility_scope=normalized_scope,
         file_path=stored_path,

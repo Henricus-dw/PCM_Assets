@@ -274,7 +274,8 @@
             {% for doc in documents %}
             <article class="card" data-category="{{ (doc.category or 'General')|lower }}">
                 <div class="meta">
-                    <span class="badge">{{ doc.category or 'General' }}</span>
+                    <span class="badge">{{ doc.category or 'General' }}{% if doc.subcategory %} / {{ doc.subcategory
+                        }}{% endif %}</span>
                     <span class="badge">v{{ doc.version or '1.0' }}</span>
                     <span class="badge">{{ doc.created_at.strftime('%d %b %Y') if doc.created_at else '' }}</span>
                 </div>
