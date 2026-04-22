@@ -3,204 +3,311 @@
 
 <head>
     <meta charset="utf-8" />
-    <title>Employees</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Employees | PCM Tracer</title>
     <link rel="icon" href="/static/pcm-lockup-goldc-final.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="/static/styles.css?v={{ time }}">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="/static/ui/main.css?v={{ time }}">
+    <link rel="stylesheet" href="/static/ui/pages/time-employees.css?v={{ time }}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 
-<body class="home-dashboard">
-    <div class="sidebar">
-        <div class="nav-top">
-            <a href="/time-attendance"
-                class="{{ 'active' if section == 'time-attendance' else '' }}"><span>Employees</span></a>
-            <a href="/time-attendance-dashboard"
-                class="{{ 'active' if section == 'time-attendance-dashboard' else '' }}"><span>Time
-                    and Attendance</span></a>
-            <a href="/hours-accumulated"
-                class="{{ 'active' if section == 'accumulated-hours' else '' }}"><span>Accumulated Hours</span></a>
-        </div>
-        <div class="sidebar-mid">
-            <a href="/" class="sidebar-return" title="Return">↺ Return</a>
-        </div>
-        <div class="nav-bottom">
-            {% if request.session.get('is_admin') %}
-            <a href="/admin?module=biometric"
-                class="{{ 'active' if section == 'admin' else '' }}"><span>Admin</span></a>
-            {% endif %}
+<body class="dashboard-page app-with-sidebar time-employees">
+    {% set admin_href = '/admin?module=biometric' %}
+    {% set settings_href = '/settings?module=biometric' %}
 
-            <a href="/settings?module=biometric"
-                class="{{ 'active' if section == 'settings' else '' }}"><span>Settings</span></a>
-            <a href="/logout" id="logoutLink" class="{{ 'active' if section == 'logout' else '' }}">
-                <span>Log Out</span>
-            </a>
-        </div>
-        <button id="sidebarHandle" class="sidebar-handle" aria-label="Collapse sidebar" aria-pressed="false"
-            title="Collapse sidebar"> <span class="handle-icon" aria-hidden="true">⟨</span> </button>
-    </div>
-
-    <div class="content4">
-        <div class="contentInner4">
-            <div class="dash-grid employees-grid">
-                <section class="card card--tall employees-card">
-                    <header class="card-head">
-                        <h2>Employees</h2>
-                        <div style="display:flex; gap:10px; align-items:center;">
-                            <button id="export-btn" class="export-button" type="button" aria-label="Export Excel">
-                                <img src="/static/excel-document.svg" alt="Excel" class="excel-icon">
-                            </button>
-                            <button id="export-pdf-btn" type="button" aria-label="Export PDF">
-                                <img src="/static/download.svg" alt="PDF Icon" class="pdf-icon">
-                            </button>
-                            <button class="btn-add" style="background:#4b5e70;" onclick="openEmployeeModal()">Add
-                                Employee</button>
-                        </div>
-                    </header>
-                    <div class="table-wrap">
-                        <table class="small-table employees-table" id="employeeTable">
-                            <colgroup>
-                                <col class="col-pin" />
-                                <col class="col-name" />
-                                <col class="col-emp" />
-                                <col class="col-company" />
-                                <col class="col-site" />
-                                <col class="col-division" />
-                                <col class="col-status" />
-                            </colgroup>
-                            <thead>
-                                <tr>
-                                    <th data-col="pin">
-                                        <div class="header-label">PIN</div>
-                                        <input type="text" class="header-filter" data-col="pin" style="display:none;" />
-                                        <button class="filter-toggle" data-col="pin" aria-label="Filter">⌕</button>
-                                    </th>
-                                    <th data-col="name">
-                                        <div class="header-label">Name &amp; Surname</div>
-                                        <input type="text" class="header-filter" data-col="name"
-                                            style="display:none;" />
-                                        <button class="filter-toggle" data-col="name" aria-label="Filter">⌕</button>
-                                    </th>
-                                    <th data-col="employee_id">
-                                        <div class="header-label">Employee Nr</div>
-                                        <input type="text" class="header-filter" data-col="employee_id"
-                                            style="display:none;" />
-                                        <button class="filter-toggle" data-col="employee_id"
-                                            aria-label="Filter">⌕</button>
-                                    </th>
-                                    <th data-col="company">
-                                        <div class="header-label">Company</div>
-                                        <input type="text" class="header-filter" data-col="company"
-                                            style="display:none;" />
-                                        <button class="filter-toggle" data-col="company" aria-label="Filter">⌕</button>
-                                    </th>
-                                    <th data-col="site">
-                                        <div class="header-label">Site</div>
-                                        <input type="text" class="header-filter" data-col="site"
-                                            style="display:none;" />
-                                        <button class="filter-toggle" data-col="site" aria-label="Filter">⌕</button>
-                                    </th>
-                                    <th data-col="division">
-                                        <div class="header-label">Division</div>
-                                        <input type="text" class="header-filter" data-col="division"
-                                            style="display:none;" />
-                                        <button class="filter-toggle" data-col="division" aria-label="Filter">⌕</button>
-                                    </th>
-                                    <th data-col="status">
-                                        <div class="header-label">Status</div>
-                                        <input type="text" class="header-filter" data-col="status"
-                                            style="display:none;" />
-                                        <button class="filter-toggle" data-col="status" aria-label="Filter">⌕</button>
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody id="employeeBody">
-                                <tr>
-                                    <td colspan="7" class="muted">Loading employees...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <!-- Right panel: Selected employee -->
-                <section class="card card--tall employee-detail-card" id="employeeDetail">
-                    <header class="card-head">
-                        <div style="display:flex; align-items:center; gap:10px;">
-                            <h2 style="margin:0;">Employee Details</h2>
-                            <button id="editEmployeeBtn" class="btn-add" style="background:#4b5e70; display:none;"
-                                onclick="openEditEmployeeModal()">Edit Employee Details</button>
-                        </div>
-                        <span class="pill" id="detailStatus">-</span>
-                    </header>
-                    <div class="employee-detail-body">
-                        <div class="muted" id="detailName">Select an employee</div>
-                        <div class="employee-detail-block">
-                            <strong>Today Session</strong>
-                            <div id="detailSession" class="muted">-</div>
-                        </div>
-                        <div class="employee-detail-block employee-detail-block--events">
-                            <strong>Recent Events</strong>
-                            <div id="detailEvents" class="muted">-</div>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="card card--tall employee-calendar-card" id="employeeCalendarCard">
-                    <header class="card-head">
-                        <div class="calendar-head-left" style="display:flex; align-items:center; gap:10px;">
-                            <h2 style="margin:0;">Attendance Calendar</h2>
-                            <span class="muted" id="calendarEmployeeLabel">Select an employee</span>
-                        </div>
-                        <div class="calendar-nav-controls" style="display:flex; align-items:center; gap:8px;">
-                            <button id="calendar-export-pdf-btn" class="export-pdf-btn" type="button"
-                                aria-label="Export calendar PDF" title="Export calendar PDF">
-                                <img src="/static/download.svg" alt="PDF Icon" class="pdf-icon" />
-                            </button>
-                            <button id="calendarPrevBtn" class="calendar-nav-btn" type="button"
-                                aria-label="Previous month">‹</button>
-                            <div id="calendarMonthLabel" class="calendar-month-label">-</div>
-                            <button id="calendarNextBtn" class="calendar-nav-btn" type="button"
-                                aria-label="Next month">›</button>
-                        </div>
-                    </header>
-                    <div class="calendar-body" id="employeeCalendarBody">
-                        <div class="muted">Select an employee to view monthly attendance.</div>
-                    </div>
-                </section>
+    <div class="dashboard-main">
+        <aside class="sidebar">
+            <div class="sidebar-top">
+                <div class="sidebar-brand">
+                    <span class="sidebar-brand-title">Asset Management</span>
+                    <span class="sidebar-brand-sub">Enterprise Portal</span>
+                </div>
+                <nav class="nav-top">
+                    <a href="/time-attendance" class="{{ 'active' if section == 'time-attendance' else '' }}">
+                        <span class="material-symbols-outlined">groups</span>
+                        <span>Employees</span>
+                    </a>
+                    <a href="/time-attendance-dashboard"
+                        class="{{ 'active' if section == 'time-attendance-dashboard' else '' }}">
+                        <span class="material-symbols-outlined">calendar_month</span>
+                        <span>Attendance Dashboard</span>
+                    </a>
+                    <a href="/hours-accumulated" class="{{ 'active' if section == 'accumulated-hours' else '' }}">
+                        <span class="material-symbols-outlined">timer</span>
+                        <span>Accumulated Hours</span>
+                    </a>
+                </nav>
             </div>
-        </div>
+            <div class="sidebar-mid">
+                <a href="/" class="sidebar-return" title="Return">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                    <span>Return</span>
+                </a>
+            </div>
+            <div class="nav-bottom">
+                {% if request.session.get('is_admin') %}
+                <a href="{{ admin_href }}" class="{{ 'active' if section == 'admin' else '' }}">
+                    <span class="material-symbols-outlined">admin_panel_settings</span>
+                    <span>Admin</span>
+                </a>
+                {% endif %}
+                <a href="{{ settings_href }}" class="{{ 'active' if section == 'settings' else '' }}">
+                    <span class="material-symbols-outlined">settings</span>
+                    <span>Settings</span>
+                </a>
+                <a href="/logout" id="logoutLink" class="{{ 'active' if section == 'logout' else '' }}">
+                    <span class="material-symbols-outlined">logout</span>
+                    <span>Log Out</span>
+                </a>
+            </div>
+            <button id="sidebarHandle" class="sidebar-handle" aria-label="Collapse sidebar" aria-pressed="false"
+                title="Collapse sidebar">
+                <span class="handle-icon" aria-hidden="true">⟨</span>
+            </button>
+        </aside>
+
+        <main class="dashboard-content">
+            <div class="employees-shell">
+                <div class="employees-layout-grid">
+                    <section class="employees-main-col">
+                        <div class="employees-page-header">
+                            <h2 class="employees-title">Employees</h2>
+                            <div class="dashboard-vitals employees-vitals">
+                                <div class="vitals-metrics">
+                                    <div class="vitals-metric-group">
+                                        <div class="vitals-metric-label">Active Employees</div>
+                                        <div class="vitals-metric-value"><span id="employeesCountLabel">0</span> <span
+                                                class="vitals-metric-subtext">Live</span></div>
+                                    </div>
+                                    <div class="vitals-divider"></div>
+                                    <div class="vitals-actions employees-vitals-actions">
+                                        <button class="vitals-action-btn" id="export-excel-btn" type="button"
+                                            aria-label="Export Excel">
+                                            <span class="material-symbols-outlined">file_download</span>
+                                            Excel
+                                        </button>
+                                        <button class="vitals-action-btn" id="export-pdf-btn" type="button"
+                                            aria-label="Export PDF">
+                                            <span class="material-symbols-outlined">picture_as_pdf</span>
+                                            PDF
+                                        </button>
+                                        <button class="vitals-action-btn" type="button" onclick="openEmployeeModal()"
+                                            aria-label="Add employee">
+                                            <span class="material-symbols-outlined">person_add</span>
+                                            Add Employee
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <section class="employees-board">
+                            <div class="employees-table-toolbar">
+                                <div class="employees-table-filters">
+                                    <button id="employeesFilterToolbarBtn" type="button"
+                                        class="employees-table-filter-btn" aria-label="Search filters">
+                                        <span class="material-symbols-outlined">search</span>
+                                    </button>
+                                    <span class="employees-table-filter-label">ACTIVE FILTERS:</span>
+                                    <span id="employeesActiveFiltersHost" class="employees-table-active-badges"></span>
+                                </div>
+                            </div>
+                            <div class="table-wrap no-scrollbar">
+                                <table class="small-table employees-table spreadsheet-table" id="employeeTable">
+                                    <colgroup>
+                                        <col class="col-pin" />
+                                        <col class="col-employee-id" />
+                                        <col class="col-name" />
+                                        <col class="col-surname" />
+                                        <col class="col-company" />
+                                        <col class="col-site" />
+                                        <col class="col-division" />
+                                        <col class="col-status" />
+                                    </colgroup>
+                                    <thead>
+                                        <tr>
+                                            <th data-col="pin">
+                                                <div class="header-label">PIN</div>
+                                                <input type="text" class="header-filter is-hidden" data-col="pin"
+                                                     />
+                                                <button class="filter-toggle" data-col="pin" aria-label="Filter"><span
+                                                        class="material-symbols-outlined">search</span></button>
+                                            </th>
+                                            <th data-col="employee_id">
+                                                <div class="header-label">Employee ID</div>
+                                                <input type="text" class="header-filter is-hidden" data-col="employee_id"
+                                                     />
+                                                <button class="filter-toggle" data-col="employee_id"
+                                                    aria-label="Filter"><span
+                                                        class="material-symbols-outlined">search</span></button>
+                                            </th>
+                                            <th data-col="name">
+                                                <div class="header-label">Name</div>
+                                                <input type="text" class="header-filter is-hidden" data-col="name"
+                                                     />
+                                                <button class="filter-toggle" data-col="name" aria-label="Filter"><span
+                                                        class="material-symbols-outlined">search</span></button>
+                                            </th>
+                                            <th data-col="surname">
+                                                <div class="header-label">Surname</div>
+                                                <input type="text" class="header-filter is-hidden" data-col="surname"
+                                                     />
+                                                <button class="filter-toggle" data-col="surname"
+                                                    aria-label="Filter"><span
+                                                        class="material-symbols-outlined">search</span></button>
+                                            </th>
+                                            <th data-col="company">
+                                                <div class="header-label">Company</div>
+                                                <input type="text" class="header-filter is-hidden" data-col="company"
+                                                     />
+                                                <button class="filter-toggle" data-col="company"
+                                                    aria-label="Filter"><span
+                                                        class="material-symbols-outlined">search</span></button>
+                                            </th>
+                                            <th data-col="site">
+                                                <div class="header-label">Site</div>
+                                                <input type="text" class="header-filter is-hidden" data-col="site"
+                                                     />
+                                                <button class="filter-toggle" data-col="site" aria-label="Filter"><span
+                                                        class="material-symbols-outlined">search</span></button>
+                                            </th>
+                                            <th data-col="division">
+                                                <div class="header-label">Division</div>
+                                                <input type="text" class="header-filter is-hidden" data-col="division"
+                                                     />
+                                                <button class="filter-toggle" data-col="division"
+                                                    aria-label="Filter"><span
+                                                        class="material-symbols-outlined">search</span></button>
+                                            </th>
+                                            <th data-col="status">
+                                                <div class="header-label">Status</div>
+                                                <input type="text" class="header-filter is-hidden" data-col="status"
+                                                     />
+                                                <button class="filter-toggle" data-col="status"
+                                                    aria-label="Filter"><span
+                                                        class="material-symbols-outlined">search</span></button>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="employeeBody">
+                                        <tr>
+                                            <td colspan="8" class="muted">Loading employees...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+
+                        <section class="stats-grid">
+                            <article class="stats-card">
+                                <span class="stats-label">Attendance Rate</span>
+                                <div class="stats-value-row">
+                                    <strong>94.2%</strong>
+                                    <span class="stats-up">+1.2%</span>
+                                </div>
+                                <div class="stats-bar"><span></span></div>
+                            </article>
+                            <article class="stats-card">
+                                <span class="stats-label">Active Shifts</span>
+                                <div class="stats-value-row">
+                                    <strong>112</strong>
+                                    <span>of 248</span>
+                                </div>
+                            </article>
+                            <article class="stats-card">
+                                <span class="stats-label">Overtime Hours</span>
+                                <div class="stats-value-row">
+                                    <strong>42.5h</strong>
+                                    <span class="stats-high">High</span>
+                                </div>
+                            </article>
+                        </section>
+                    </section>
+
+                    <aside class="employees-side-rail">
+                        <section class="employee-detail-card" id="employeeDetail">
+                            <header class="employee-detail-head">
+                                <h4>Employee Details</h4>
+                                <button id="editEmployeeBtn" class="icon-btn is-hidden"
+                                    onclick="openEditEmployeeModal()" type="button" aria-label="Edit employee">
+                                    <span class="material-symbols-outlined">edit_square</span>
+                                </button>
+                            </header>
+                            <div class="employee-profile-panel">
+                                <div class="employee-profile-avatar" id="detailAvatar">--</div>
+                                <h3 id="detailName">Select an employee</h3>
+                                <p id="detailEmail">employee@example.com</p>
+                            </div>
+                            <div class="employee-facts">
+                                <div><span>Division</span><strong id="detailDivision">--</strong></div>
+                                <div><span>Line Manager</span><strong id="detailManager">--</strong></div>
+                                <div><span>Join Date</span><strong id="detailJoinDate">--</strong></div>
+                                <div><span>Work Arrangement</span><strong id="detailArrangement">--</strong></div>
+                            </div>
+                            <div id="detailRole" class="sr-only">-</div>
+                            <div id="detailStatusLabel" class="sr-only">-</div>
+                            <div id="detailCheckIn" class="sr-only">-</div>
+                            <div id="detailWorkTime" class="sr-only">-</div>
+                            <div id="detailSession" class="sr-only">-</div>
+                            <div id="detailEvents" class="sr-only">-</div>
+                            <span class="pill" id="detailStatus" hidden>-</span>
+                        </section>
+
+                        <section class="employee-calendar-card" id="employeeCalendarCard">
+                            <header class="employee-calendar-head">
+                                <h4>Attendance Calendar</h4>
+                                <div class="calendar-nav-controls">
+                                    <span id="calendarMonthLabel" class="calendar-month-label">-</span>
+                                    <button id="calendarPrevBtn" class="calendar-nav-btn" type="button"
+                                        aria-label="Previous month">‹</button>
+                                    <button id="calendarNextBtn" class="calendar-nav-btn" type="button"
+                                        aria-label="Next month">›</button>
+                                    <button id="calendar-export-pdf-btn" class="export-pdf-btn" type="button"
+                                        aria-label="Export calendar PDF" title="Export calendar PDF">
+                                        <span class="material-symbols-outlined">download</span>
+                                    </button>
+                                </div>
+                            </header>
+                            <span class="muted" id="calendarEmployeeLabel">Select an employee</span>
+                            <div class="calendar-body" id="employeeCalendarBody">
+                                <div class="muted">Select an employee to view monthly attendance.</div>
+                            </div>
+                        </section>
+                    </aside>
+                </div>
+            </div>
+        </main>
     </div>
 
-    <div id="employeeModal" style="display: none;">
-        <div
-            style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center;">
-            <div
-                style="background: white; border-radius: 12px; padding: 30px; max-width: 500px; width: 90%; box-shadow: 0 20px 50px rgba(0,0,0,0.2);">
-                <h2 id="employeeModalTitle" style="margin-top: 0;">Add Employee</h2>
+    <div id="employeeModal" class="is-hidden">
+        <div class="emp-modal-overlay">
+            <div class="emp-modal-panel">
+                <h2 id="employeeModalTitle">Add Employee</h2>
                 <form id="employeeForm">
-                    <div style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Employee ID</label>
-                        <input type="text" id="empId" placeholder="e.g. pcm123" required
-                            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;">
+                    <div class="emp-modal-field">
+                        <label>Employee ID</label>
+                        <input type="text" id="empId" placeholder="e.g. pcm123" required />
                     </div>
-                    <div style="display: flex; gap: 10px;">
-                        <div style="flex: 1;">
-                            <label style="display: block; margin-bottom: 5px; font-weight: 600;">Name</label>
-                            <input type="text" id="empName" placeholder="First name" required
-                                style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;">
+                    <div class="emp-modal-row">
+                        <div class="emp-modal-field">
+                            <label>Name</label>
+                            <input type="text" id="empName" placeholder="First name" required />
                         </div>
-                        <div style="flex: 1;">
-                            <label style="display: block; margin-bottom: 5px; font-weight: 600;">Surname</label>
-                            <input type="text" id="empSurname" placeholder="Surname" required
-                                style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;">
+                        <div class="emp-modal-field">
+                            <label>Surname</label>
+                            <input type="text" id="empSurname" placeholder="Surname" required />
                         </div>
                     </div>
-                    <div style="margin-top: 15px;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Company</label>
-                        <select id="empCompany" required
-                            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;">
+                    <div class="emp-modal-field">
+                        <label>Company</label>
+                        <select id="empCompany" required>
                             <option>Risk</option>
                             <option>International</option>
                             <option>PCM</option>
@@ -208,10 +315,9 @@
                             <option>PAC/PAS</option>
                         </select>
                     </div>
-                    <div style="margin-top: 15px;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Site</label>
-                        <select id="empSite" required
-                            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;">
+                    <div class="emp-modal-field">
+                        <label>Site</label>
+                        <select id="empSite" required>
                             <option>SG Bloem</option>
                             <option>SG PE</option>
                             <option>SG Durban</option>
@@ -229,10 +335,9 @@
                             <option>Bollore</option>
                         </select>
                     </div>
-                    <div style="margin-top: 15px;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Division</label>
-                        <select id="empDivision" required
-                            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;">
+                    <div class="emp-modal-field">
+                        <label>Division</label>
+                        <select id="empDivision" required>
                             <option>WH</option>
                             <option>WAA</option>
                             <option>VA</option>
@@ -240,608 +345,43 @@
                             <option>All the above</option>
                         </select>
                     </div>
-                    <div style="margin-top: 15px;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Lunch hour</label>
-                        <select id="empLunchHour"
-                            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;">
+                    <div class="emp-modal-field">
+                        <label>Lunch hour</label>
+                        <select id="empLunchHour">
                             <option value="false" selected>do nothing</option>
                             <option value="true">deduct 1 hour</option>
                         </select>
                     </div>
-                    <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                    <div class="emp-modal-actions">
                         <button id="employeeDeleteBtn" type="button" onclick="deleteEmployeeFromModal()"
-                            style="display:none; padding: 10px 20px; background: #b91c1c; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; margin-right: auto;">Delete</button>
+                            class="emp-modal-btn emp-modal-btn--delete is-hidden">Delete</button>
                         <button type="button" onclick="closeEmployeeModal()"
-                            style="padding: 10px 20px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; background: white;">Cancel</button>
+                            class="emp-modal-btn emp-modal-btn--cancel">Cancel</button>
                         <button id="employeeSubmitBtn" type="submit"
-                            style="padding: 10px 20px; background: #4b5e70; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Add</button>
+                            class="emp-modal-btn emp-modal-btn--submit">Add</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <style>
-        .btn-add {
-            background: #2563eb;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: background 0.2s;
-        }
-
-        .btn-add:hover {
-            background: #1e40af;
-        }
-
-        .device-status {
-            padding: 20px;
-            background: #f9fafb;
-            border-radius: 8px;
-            border: 1px solid #e5e7eb;
-        }
-
-        .status-pill {
-            padding: 4px 10px;
-            border-radius: 999px;
-            font-weight: 600;
-            font-size: 0.8rem;
-        }
-
-        .status-in {
-            background: #dcfce7;
-            color: #166534;
-        }
-
-        .status-out {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        .employees-table tbody tr.employee-row {
-            cursor: pointer;
-        }
-
-        .employees-table tbody tr.employee-row.selected {
-            background-color: #e7e7e7bf;
-        }
-
-        .card-head .export-button,
-        .card-head #export-pdf-btn,
-        .card-head .export-pdf-btn {
-            top: 0;
-        }
-
-        .calendar-nav-controls .export-pdf-btn {
-            top: 6px;
-        }
-
-        .header-filter {
-            width: 100%;
-            box-sizing: border-box;
-            height: 26px;
-            padding: 4px 6px;
-            border: 1px solid #d1d5db;
-            border-radius: 4px;
-            font-size: 0.78rem;
-            margin-top: 4px;
-        }
-
-        #employeeTable thead th[data-col] {
-            position: relative;
-            vertical-align: top;
-        }
-
-        #employeeTable thead th[data-col] .header-label {
-            display: block;
-        }
-
-        .filter-toggle {
-            margin-top: 0;
-            border: 1px solid rgba(148, 163, 184, 0.45);
-            background: rgba(248, 250, 252, 0.92);
-            border-radius: 3px;
-            font-size: 10px;
-            color: #6b7280;
-            cursor: pointer;
-            width: 14px;
-            height: 14px;
-            line-height: 12px;
-            padding: 0;
-            opacity: 0.9;
-        }
-
-        #employeeTable thead th[data-col] .filter-toggle {
-            position: absolute;
-            top: 50%;
-            right: 3px;
-            transform: translateY(-50%);
-        }
-
-        .filter-toggle:hover {
-            color: #111827;
-            border-color: #cbd5e1;
-        }
-
-        .home-dashboard .employees-grid .employee-calendar-card {
-            grid-row: 2;
-            grid-column: 2;
-            min-height: 0;
-            display: flex;
-            flex-direction: column;
-            overflow: visible;
-        }
-
-        .employee-detail-body {
-            padding: 16px;
-        }
-
-        .employee-detail-block {
-            margin-top: 10px;
-        }
-
-        .employee-detail-block--events {
-            margin-top: 16px;
-        }
-
-        #detailSession,
-        #detailEvents {
-            margin-top: 6px;
-        }
-
-        .calendar-head-left {
-            min-width: 0;
-        }
-
-        #calendarEmployeeLabel {
-            display: inline-block;
-            max-width: 180px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .calendar-nav-controls {
-            display: inline-flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 8px;
-        }
-
-        .calendar-nav-btn {
-            border: 1px solid #d1d5db;
-            background: #f8fafc;
-            border-radius: 6px;
-            width: 24px;
-            height: 24px;
-            cursor: pointer;
-            color: #374151;
-            font-size: 13px;
-            line-height: 1;
-            padding: 0;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            top: 6px;
-        }
-
-        .calendar-nav-btn:hover {
-            background: #eef2f7;
-        }
-
-        .calendar-month-label {
-            min-width: 104px;
-            text-align: center;
-            font-weight: 600;
-            color: #111827;
-            font-size: 0.9rem;
-            line-height: 1.2;
-        }
-
-        .calendar-body {
-            padding: 8px 10px;
-            flex: 1;
-            min-height: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            overflow: visible;
-        }
-
-        .calendar-weekdays,
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, minmax(0, 1fr));
-            gap: 4px;
-        }
-
-        .calendar-grid {
-            flex: 1;
-            min-height: 0;
-            grid-template-rows: repeat(6, minmax(0, 1fr));
-            overflow: visible;
-        }
-
-        .calendar-weekdays div {
-            font-size: 0.66rem;
-            color: #6b7280;
-            text-align: center;
-            font-weight: 600;
-        }
-
-        .calendar-day {
-            border: 1px solid #e5e7eb;
-            border-radius: 6px;
-            min-height: 0;
-            padding: 3px;
-            background: #fff;
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-            overflow: hidden;
-            position: relative;
-            transition: transform 140ms ease, box-shadow 140ms ease;
-        }
-
-        .calendar-day.empty {
-            background: #f8fafc;
-            border-style: dashed;
-            border-color: #eef2f7;
-        }
-
-        .calendar-day-num {
-            font-size: 0.66rem;
-            font-weight: 700;
-            color: #374151;
-        }
-
-        .calendar-time {
-            font-size: 0.6rem;
-            color: #166534;
-            background: #dcfce7;
-            border-radius: 999px;
-            padding: 1px 4px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .calendar-time--extra {
-            display: none;
-        }
-
-        .calendar-day.has-more {
-            border-color: #cbd5e1;
-        }
-
-        .calendar-overflow-indicator {
-            position: absolute;
-            top: 2px;
-            right: 4px;
-            font-size: 0.62rem;
-            color: #64748b;
-            font-weight: 700;
-            pointer-events: none;
-        }
-
-        .calendar-day.has-more:hover {
-            overflow: visible;
-            z-index: 30;
-            transform: scale(1.42);
-            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.2);
-            background: #ffffff;
-        }
-
-        .calendar-day.has-more:hover .calendar-time--extra {
-            display: block;
-        }
-
-        .calendar-day.has-more:hover .calendar-time {
-            text-overflow: clip;
-        }
-
-        .calendar-day.has-more:hover .calendar-more,
-        .calendar-day.has-more:hover .calendar-overflow-indicator {
-            display: none;
-        }
-
-        .calendar-more {
-            font-size: 0.58rem;
-            color: #6b7280;
-        }
-
-        .calendar-export-surface {
-            position: fixed;
-            left: -10000px;
-            top: 0;
-            width: 760px;
-            background: #ffffff;
-            padding: 0;
-            box-sizing: border-box;
-            z-index: -1;
-        }
-
-        .calendar-export-surface .card {
-            box-shadow: none;
-        }
-
-        .calendar-export-mode .card-head {
-            min-height: 46px;
-        }
-
-        .calendar-export-mode .calendar-nav-btn,
-        .calendar-export-mode .export-pdf-btn {
-            top: 0;
-        }
-
-        .calendar-export-mode .calendar-grid {
-            grid-template-rows: repeat(6, minmax(84px, 1fr));
-        }
-
-        .calendar-export-mode .calendar-day {
-            padding: 6px;
-            gap: 3px;
-            overflow: visible;
-            transform: none !important;
-            box-shadow: none !important;
-        }
-
-        .calendar-export-mode .calendar-time {
-            display: block !important;
-            font-size: 0.66rem;
-            white-space: nowrap;
-            text-overflow: clip;
-        }
-
-        .calendar-export-mode .calendar-overflow-indicator,
-        .calendar-export-mode .calendar-more {
-            display: none !important;
-        }
-
-        @media (max-width: 1600px),
-        (max-height: 900px) {
-            .home-dashboard .content4 {
-                font-size: 0.95rem;
-            }
-
-            .employees-card .card-head h2,
-            .employee-detail-card .card-head h2,
-            .employee-calendar-card .card-head h2 {
-                font-size: 1.22rem;
-            }
-
-            .btn-add,
-            #employeeDetail,
-            #employeeCalendarCard {
-                font-size: 0.92rem;
-            }
-
-            #employeeTable {
-                font-size: 0.88rem;
-            }
-
-            #employeeTable thead th {
-                font-size: 0.82rem;
-            }
-
-            #employeeTable tbody td {
-                font-size: 0.88rem;
-            }
-
-            .status-pill {
-                font-size: 0.74rem;
-            }
-        }
-
-        @media (max-width: 1366px),
-        (max-height: 820px) {
-            .home-dashboard .content4 {
-                font-size: 0.9rem;
-            }
-
-            .employees-card .card-head h2,
-            .employee-detail-card .card-head h2,
-            .employee-calendar-card .card-head h2 {
-                font-size: 1.08rem;
-            }
-
-            .btn-add,
-            #employeeDetail,
-            #employeeCalendarCard {
-                font-size: 0.86rem;
-            }
-
-            #employeeTable {
-                font-size: 0.8rem;
-            }
-
-            #employeeTable thead th {
-                font-size: 0.76rem;
-            }
-
-            #employeeTable tbody td {
-                font-size: 0.8rem;
-            }
-
-            .status-pill {
-                font-size: 0.68rem;
-            }
-
-            .employee-detail-body {
-                padding: 12px 14px;
-            }
-
-            .employee-detail-block {
-                margin-top: 8px;
-            }
-
-            .employee-detail-block--events {
-                margin-top: 12px;
-            }
-
-            #detailName {
-                font-size: 0.93rem;
-            }
-
-            #employeeDetail strong {
-                font-size: 0.96rem;
-            }
-
-            #detailSession,
-            #detailEvents {
-                margin-top: 4px;
-                font-size: 0.84rem;
-                line-height: 1.28;
-            }
-
-            .calendar-head-left {
-                gap: 6px !important;
-            }
-
-            #calendarEmployeeLabel {
-                max-width: 120px;
-                font-size: 0.86rem;
-            }
-
-            .calendar-nav-controls {
-                gap: 5px;
-            }
-
-            .calendar-nav-btn {
-                width: 22px;
-                height: 22px;
-                font-size: 12px;
-            }
-
-            .calendar-month-label {
-                min-width: 92px;
-                font-size: 0.84rem;
-            }
-
-            .calendar-body {
-                padding: 6px 8px;
-                gap: 4px;
-            }
-
-            .calendar-weekdays,
-            .calendar-grid {
-                gap: 3px;
-            }
-
-            .calendar-weekdays div {
-                font-size: 0.6rem;
-            }
-
-            .calendar-day {
-                padding: 2px;
-                gap: 1px;
-            }
-
-            .calendar-day-num {
-                font-size: 0.62rem;
-            }
-
-            .calendar-time {
-                font-size: 0.54rem;
-                padding: 1px 3px;
-            }
-
-            .calendar-more {
-                font-size: 0.54rem;
-            }
-
-            .calendar-day.has-more:hover {
-                transform: scale(1.34);
-            }
-        }
-
-        @media (max-width: 1700px),
-        (max-height: 930px) {
-            .home-dashboard .employees-grid .card-head h2 {
-                font-size: 1.02rem !important;
-            }
-
-            .home-dashboard .employees-grid .btn-add,
-            .home-dashboard .employees-grid .muted,
-            .home-dashboard .employees-grid #employeeDetail,
-            .home-dashboard .employees-grid #employeeCalendarCard {
-                font-size: 0.82rem !important;
-            }
-
-            .home-dashboard .employees-grid #employeeTable thead th {
-                font-size: 0.7rem !important;
-                padding: 6px 7px !important;
-            }
-
-            .home-dashboard .employees-grid #employeeTable tbody td {
-                font-size: 0.78rem !important;
-                padding: 6px 7px !important;
-            }
-
-            .home-dashboard .employees-grid .status-pill {
-                font-size: 0.64rem !important;
-                padding: 3px 8px !important;
-            }
-
-            .home-dashboard .employees-grid #detailName,
-            .home-dashboard .employees-grid #detailSession,
-            .home-dashboard .employees-grid #detailEvents,
-            .home-dashboard .employees-grid #calendarEmployeeLabel,
-            .home-dashboard .employees-grid .calendar-month-label {
-                font-size: 0.78rem !important;
-            }
-        }
-
-        @media (max-width: 1440px),
-        (max-height: 820px) {
-            .home-dashboard .employees-grid .card-head h2 {
-                font-size: 0.96rem !important;
-            }
-
-            .home-dashboard .employees-grid .btn-add,
-            .home-dashboard .employees-grid .muted,
-            .home-dashboard .employees-grid #employeeDetail,
-            .home-dashboard .employees-grid #employeeCalendarCard {
-                font-size: 0.76rem !important;
-            }
-
-            .home-dashboard .employees-grid #employeeTable thead th {
-                font-size: 0.66rem !important;
-                padding: 5px 6px !important;
-            }
-
-            .home-dashboard .employees-grid #employeeTable tbody td {
-                font-size: 0.72rem !important;
-                padding: 5px 6px !important;
-            }
-
-            .home-dashboard .employees-grid .status-pill {
-                font-size: 0.6rem !important;
-            }
-
-            .home-dashboard .employees-grid #detailName,
-            .home-dashboard .employees-grid #detailSession,
-            .home-dashboard .employees-grid #detailEvents,
-            .home-dashboard .employees-grid #calendarEmployeeLabel,
-            .home-dashboard .employees-grid .calendar-month-label {
-                font-size: 0.72rem !important;
-            }
-        }
-    </style>
-
+    <div id="employeeFilterPopover" class="employee-filter-popover is-hidden">
+        <input id="employeeFilterPopoverInput" type="text" placeholder="Filter column" />
+        <button id="employeeFilterPopoverClear" type="button" title="Clear">
+            <span class="material-symbols-outlined">close</span>
+        </button>
+    </div>
+
+    <script src="/static/ui/components/sidebar.js"></script>
     <script>
         let employeeFormMode = 'add';
         let editingPin = null;
         let editingEmployeeId = null;
         const employeeColumnFilters = {
             pin: '',
-            name: '',
             employee_id: '',
+            name: '',
+            surname: '',
             company: '',
             site: '',
             division: '',
@@ -1088,8 +628,9 @@
 
         function getEmployeeColumnValue(e, col) {
             if (col === 'pin') return String(e.PIN ?? '').toLowerCase();
-            if (col === 'name') return `${String(e.Name_ ?? '')} ${String(e.Surname_ ?? '')}`.toLowerCase();
             if (col === 'employee_id') return String(e.Employee_id ?? '').toLowerCase();
+            if (col === 'name') return String(e.Name_ ?? '').toLowerCase();
+            if (col === 'surname') return String(e.Surname_ ?? '').toLowerCase();
             if (col === 'company') return String(e.Company ?? '').toLowerCase();
             if (col === 'site') return String(e.Site ?? '').toLowerCase();
             if (col === 'division') return String(e.Division ?? '').toLowerCase();
@@ -1225,24 +766,28 @@
         function renderEmployees(rows) {
             const tbody = document.getElementById('employeeBody');
             if (!rows.length) {
-                tbody.innerHTML = '<tr><td colspan="7" class="muted">No employees found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" class="muted">No employees found</td></tr>';
                 return;
             }
             tbody.innerHTML = rows.map(e => {
                 const statusClass = e.current_status === 'IN' ? 'status-in' : 'status-out';
+                const statusLabel = e.current_status === 'IN' ? 'ACTIVE' : 'LEAVE';
                 const pinSafe = String(e.PIN ?? '');
                 const nameSafe = String(e.Name_ ?? '').replace(/'/g, "&#39;");
                 const surnameSafe = String(e.Surname_ ?? '').replace(/'/g, "&#39;");
                 const statusSafe = String(e.current_status ?? '').replace(/'/g, "&#39;");
+                const roleSafe = String(e.Division ?? '').replace(/'/g, "&#39;");
+                const rowClass = String(selectedPin) === pinSafe ? ' selected' : '';
                 return `
-                <tr class="employee-row" data-pin="${pinSafe}" onclick="selectEmployeeRow(this); viewEmployee('${pinSafe}', '${nameSafe}', '${surnameSafe}', '${statusSafe}')">
-                    <td>${e.PIN ?? ''}</td>
-                    <td class="cell-truncate">${(e.Name_ || '')} ${(e.Surname_ || '')}</td>
+                <tr class="employee-row${rowClass}" data-pin="${pinSafe}" onclick="selectEmployeeRow(this); viewEmployee('${pinSafe}', '${nameSafe}', '${surnameSafe}', '${statusSafe}', '${roleSafe}')">
+                    <td class="cell-truncate">${String(e.PIN ?? '').padStart(5, '0')}</td>
                     <td class="cell-truncate">${e.Employee_id || ''}</td>
+                    <td class="cell-truncate">${e.Name_ || ''}</td>
+                    <td class="cell-truncate">${e.Surname_ || ''}</td>
                     <td class="cell-truncate">${e.Company || ''}</td>
                     <td class="cell-truncate">${e.Site || ''}</td>
                     <td class="cell-truncate">${e.Division || ''}</td>
-                    <td><span class="status-pill ${statusClass}">${e.current_status}</span></td>
+                    <td><span class="status-pill ${statusClass}">${statusLabel}</span></td>
                 </tr>
             `;
             }).join('');
@@ -1270,43 +815,124 @@
                 return matchesColumns;
             });
             renderEmployees(filtered);
+            updateEmployeeActiveFilters();
+        }
+
+        function updateEmployeeActiveFilters() {
+            const host = document.getElementById('employeesActiveFiltersHost');
+            if (!host) return;
+
+            const labels = {};
+            document.querySelectorAll('#employeeTable thead th[data-col]').forEach((th) => {
+                const key = th.dataset.col;
+                const label = th.querySelector('.header-label')?.textContent?.trim() || key;
+                labels[key] = label;
+            });
+
+            host.innerHTML = '';
+            const activeEntries = Object.entries(employeeColumnFilters).filter(([, value]) => Boolean(value));
+            if (!activeEntries.length) {
+                const empty = document.createElement('span');
+                empty.className = 'employees-table-filter-badge employees-table-filter-badge--empty';
+                empty.textContent = 'None';
+                host.appendChild(empty);
+                return;
+            }
+
+            activeEntries.forEach(([col, value]) => {
+                const badge = document.createElement('span');
+                badge.className = 'employees-table-filter-badge';
+                badge.textContent = `${labels[col] || col}: ${value}`;
+
+                const close = document.createElement('span');
+                close.className = 'material-symbols-outlined';
+                close.textContent = 'close';
+                close.title = 'Clear';
+                close.addEventListener('click', () => {
+                    employeeColumnFilters[col] = '';
+                    applyEmployeeFilter();
+                });
+
+                badge.appendChild(close);
+                host.appendChild(badge);
+            });
         }
 
         function bindEmployeeColumnFilters() {
+            const popover = document.getElementById('employeeFilterPopover');
+            const popoverInput = document.getElementById('employeeFilterPopoverInput');
+            const popoverClear = document.getElementById('employeeFilterPopoverClear');
+            if (!popover || !popoverInput) return;
+
+            let activeFilterCol = null;
+
+            function closeFilterPopover() {
+                popover.style.display = 'none';
+                activeFilterCol = null;
+            }
+
+            function openFilterPopover(col, anchor) {
+                activeFilterCol = col;
+                popoverInput.value = employeeColumnFilters[col] || '';
+
+                const rect = anchor.getBoundingClientRect();
+                popover.style.display = 'inline-flex';
+                popover.style.left = `${Math.max(8, rect.left - 50)}px`;
+                popover.style.top = `${Math.min(window.innerHeight - 50, rect.bottom + 8)}px`;
+                popoverInput.focus();
+            }
+
             document.querySelectorAll('#employeeTable .filter-toggle').forEach((btn) => {
                 const col = btn.dataset.col;
                 const th = btn.closest('th');
                 const input = th?.querySelector('.header-filter');
-                if (!input) return;
+                if (input) input.style.display = 'none';
+                const label = th?.querySelector('.header-label')?.textContent?.trim() || col;
 
-                btn.addEventListener('click', () => {
-                    btn.style.display = 'none';
-                    input.style.display = 'inline-block';
-                    input.focus();
-                });
+                btn.innerHTML = '<span class="material-symbols-outlined">search</span>';
+                btn.setAttribute('aria-label', `Search ${label}`);
 
-                input.addEventListener('input', () => {
-                    employeeColumnFilters[col] = input.value.trim().toLowerCase();
-                    applyEmployeeFilter();
-                });
-
-                input.addEventListener('blur', () => {
-                    if (!input.value.trim()) {
-                        input.style.display = 'none';
-                        btn.style.display = 'inline-block';
-                    }
-                });
-
-                input.addEventListener('keydown', (e) => {
-                    if (e.key === 'Escape') {
-                        input.value = '';
-                        employeeColumnFilters[col] = '';
-                        applyEmployeeFilter();
-                        input.style.display = 'none';
-                        btn.style.display = 'inline-block';
-                    }
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openFilterPopover(col, btn);
                 });
             });
+
+            document.getElementById('employeesFilterToolbarBtn')?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const first = document.querySelector('#employeeTable .filter-toggle');
+                if (first instanceof HTMLElement) {
+                    first.click();
+                }
+            });
+
+            popoverInput.addEventListener('input', () => {
+                if (!activeFilterCol) return;
+                employeeColumnFilters[activeFilterCol] = popoverInput.value.trim().toLowerCase();
+                applyEmployeeFilter();
+            });
+
+            popoverInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closeFilterPopover();
+                }
+            });
+
+            popoverClear?.addEventListener('click', () => {
+                if (!activeFilterCol) return;
+                employeeColumnFilters[activeFilterCol] = '';
+                popoverInput.value = '';
+                applyEmployeeFilter();
+            });
+
+            document.addEventListener('click', (e) => {
+                if (popover.style.display === 'none') return;
+                if (!popover.contains(e.target)) {
+                    closeFilterPopover();
+                }
+            });
+
+            updateEmployeeActiveFilters();
         }
 
         async function fetchEmployees() {
@@ -1314,6 +940,14 @@
             if (!res.ok) return;
             const data = await res.json();
             allEmployees = data.rows || [];
+            const countLabel = document.getElementById('employeesCountLabel');
+            const countFooter = document.getElementById('employeesCountFooter');
+            if (countLabel) {
+                countLabel.innerText = `(${allEmployees.length})`;
+            }
+            if (countFooter) {
+                countFooter.innerText = String(allEmployees.length);
+            }
             applyEmployeeFilter();
 
             if (selectedPin) {
@@ -1328,8 +962,28 @@
             }
         }
 
-        async function viewEmployee(pin, name, surname, status) {
-            document.getElementById('detailName').innerText = `${name} ${surname} (PIN ${pin})`;
+        async function viewEmployee(pin, name, surname, status, role) {
+            const detailName = document.getElementById('detailName');
+            const detailRole = document.getElementById('detailRole');
+            const detailAvatar = document.getElementById('detailAvatar');
+            const detailEmail = document.getElementById('detailEmail');
+            const detailDivision = document.getElementById('detailDivision');
+            const detailManager = document.getElementById('detailManager');
+            const detailJoinDate = document.getElementById('detailJoinDate');
+            const detailArrangement = document.getElementById('detailArrangement');
+            const detailStatusLabel = document.getElementById('detailStatusLabel');
+            if (detailName) detailName.innerText = `${name} ${surname}`.trim() || `PIN ${pin}`;
+            if (detailRole) detailRole.innerText = role || `PIN ${pin}`;
+            if (detailAvatar) {
+                const initials = `${String(name || '').trim().charAt(0)}${String(surname || '').trim().charAt(0)}`.toUpperCase();
+                detailAvatar.innerText = initials || '--';
+            }
+            if (detailEmail) detailEmail.innerText = `${String(name || '').trim().toLowerCase()}.${String(surname || '').trim().toLowerCase()}@pcmtracer.local`;
+            if (detailDivision) detailDivision.innerText = role || '--';
+            if (detailManager) detailManager.innerText = 'System Admin';
+            if (detailJoinDate) detailJoinDate.innerText = '--';
+            if (detailArrangement) detailArrangement.innerText = status === 'IN' ? 'ACTIVE' : 'LEAVE';
+            if (detailStatusLabel) detailStatusLabel.innerText = status === 'IN' ? 'Active' : 'Offline';
             document.getElementById('detailStatus').innerText = status || '-';
             await loadEmployeeCalendar(pin, `${name} ${surname}`.trim() || `PIN ${pin}`);
 
@@ -1337,11 +991,12 @@
             if (eventsRes.ok) {
                 const events = await eventsRes.json();
                 if (!events.length) {
-                    document.getElementById('detailEvents').innerText = 'No events yet';
+                    document.getElementById('detailEvents').innerText = '-';
                 } else {
                     document.getElementById('detailEvents').innerHTML = events.map(e => {
-                        const action = e.status === 0 ? 'check in' : e.status === 1 ? 'check out' : 'unknown';
-                        return `<div>${formatTime(e.timestamp)} — ${action}</div>`;
+                        const action = e.status === 0 ? 'Checked in' : e.status === 1 ? 'Checked out' : 'Event';
+                        const t = formatClockTime(e.timestamp) || '--';
+                        return `<div><span>${action}</span><span>${t}</span></div>`;
                     }).join('');
                 }
             }
@@ -1352,10 +1007,18 @@
                 const sessions = await sessionRes.json();
                 if (!sessions.length) {
                     document.getElementById('detailSession').innerText = 'No session today';
+                    const detailCheckIn = document.getElementById('detailCheckIn');
+                    const detailWorkTime = document.getElementById('detailWorkTime');
+                    if (detailCheckIn) detailCheckIn.innerText = '--';
+                    if (detailWorkTime) detailWorkTime.innerText = '--';
                 } else {
                     const s = sessions[0];
                     const duration = s.duration_minutes ? `${s.duration_minutes} mins` : '-';
                     document.getElementById('detailSession').innerText = `Check-in: ${formatTime(s.check_in)} | Check-out: ${formatTime(s.check_out)} | ${duration}`;
+                    const detailCheckIn = document.getElementById('detailCheckIn');
+                    const detailWorkTime = document.getElementById('detailWorkTime');
+                    if (detailCheckIn) detailCheckIn.innerText = formatClockTime(s.check_in) || '--';
+                    if (detailWorkTime) detailWorkTime.innerText = duration;
                 }
             }
         }
@@ -1391,6 +1054,26 @@
             editingEmployeeId = null;
             updateEditButtonVisibility();
             document.getElementById('detailName').innerText = 'Select an employee';
+            const detailRole = document.getElementById('detailRole');
+            const detailAvatar = document.getElementById('detailAvatar');
+            const detailEmail = document.getElementById('detailEmail');
+            const detailDivision = document.getElementById('detailDivision');
+            const detailManager = document.getElementById('detailManager');
+            const detailJoinDate = document.getElementById('detailJoinDate');
+            const detailArrangement = document.getElementById('detailArrangement');
+            const detailCheckIn = document.getElementById('detailCheckIn');
+            const detailWorkTime = document.getElementById('detailWorkTime');
+            const detailStatusLabel = document.getElementById('detailStatusLabel');
+            if (detailRole) detailRole.innerText = 'No role selected';
+            if (detailAvatar) detailAvatar.innerText = '--';
+            if (detailEmail) detailEmail.innerText = 'employee@example.com';
+            if (detailDivision) detailDivision.innerText = '--';
+            if (detailManager) detailManager.innerText = '--';
+            if (detailJoinDate) detailJoinDate.innerText = '--';
+            if (detailArrangement) detailArrangement.innerText = '--';
+            if (detailCheckIn) detailCheckIn.innerText = '--';
+            if (detailWorkTime) detailWorkTime.innerText = '--';
+            if (detailStatusLabel) detailStatusLabel.innerText = '--';
             document.getElementById('detailStatus').innerText = '-';
             document.getElementById('detailSession').innerText = '-';
             document.getElementById('detailEvents').innerText = '-';
@@ -1419,7 +1102,7 @@
                 if (selectedPin) {
                     const selected = allEmployees.find(emp => String(emp.PIN) === String(selectedPin));
                     if (selected) {
-                        viewEmployee(String(selected.PIN), selected.Name_ || '', selected.Surname_ || '', selected.current_status || '-');
+                        viewEmployee(String(selected.PIN), selected.Name_ || '', selected.Surname_ || '', selected.current_status || '-', selected.Division || '');
                     }
                 }
             } else {
@@ -1432,16 +1115,13 @@
             fetchEmployees();
             bindEmployeeColumnFilters();
             setInterval(fetchEmployees, 5000);
-            document.getElementById('export-btn')?.addEventListener('click', exportEmployeesCsv);
+            document.getElementById('export-excel-btn')?.addEventListener('click', exportEmployeesCsv);
             document.getElementById('export-pdf-btn')?.addEventListener('click', exportEmployeesPdf);
             document.getElementById('calendar-export-pdf-btn')?.addEventListener('click', exportCalendarPdf);
             document.getElementById('calendarPrevBtn')?.addEventListener('click', () => shiftCalendarMonth(-1));
             document.getElementById('calendarNextBtn')?.addEventListener('click', () => shiftCalendarMonth(1));
             resetEmployeeCalendarCard();
             updateEditButtonVisibility();
-            const handle = document.getElementById("sidebarHandle");
-            function toggleSidebar() { document.body.classList.toggle("sidebar-collapsed"); handle?.setAttribute("aria-pressed", String(document.body.classList.contains("sidebar-collapsed"))); }
-            handle?.addEventListener("click", toggleSidebar);
             window.addEventListener('resize', updateEmployeeRowTruncation);
         });
     </script>

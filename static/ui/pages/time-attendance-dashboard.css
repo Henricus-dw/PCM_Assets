@@ -1,0 +1,621 @@
+﻿body.time-attendance-dashboard {
+    background: #ffffff;
+    color: #1a1c1c;
+    font-family: 'Inter', sans-serif;
+}
+
+body.time-attendance-dashboard .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    vertical-align: middle;
+}
+
+body.time-attendance-dashboard .dashboard-content {
+    background: #ffffff;
+    min-height: 100vh;
+    padding: 0;
+}
+
+body.time-attendance-dashboard .ta-shell {
+    padding: 1.15rem 1.7rem;
+    min-height: calc(100vh - 2.3rem);
+    box-sizing: border-box;
+    display: flex;
+}
+
+body.time-attendance-dashboard .ta-layout-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(19rem, 0.9fr);
+    gap: 1.3rem;
+    min-height: 100%;
+    width: 100%;
+    align-items: stretch;
+}
+
+body.time-attendance-dashboard .ta-main-col,
+body.time-attendance-dashboard .ta-side-rail {
+    min-width: 0;
+    min-height: 0;
+}
+
+body.time-attendance-dashboard .ta-main-col {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    min-height: 0;
+}
+
+body.time-attendance-dashboard .ta-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.9rem;
+    margin-bottom: 0.75rem;
+}
+
+body.time-attendance-dashboard .ta-title {
+    margin: 0;
+    font-family: 'Manrope', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #406262;
+}
+
+body.time-attendance-dashboard .ta-vitals {
+    margin: 0;
+    gap: 0;
+    flex: 0 0 auto;
+}
+
+body.time-attendance-dashboard .ta-vitals .vitals-metrics {
+    width: auto;
+    justify-content: flex-start;
+    padding: 0.55rem 1rem;
+}
+
+body.time-attendance-dashboard .ta-vitals-actions {
+    flex-wrap: wrap;
+}
+
+body.time-attendance-dashboard .ta-input {
+    border: none;
+    border-radius: 0.125rem;
+    background: #e8e8e7;
+    color: #406262;
+    font-size: 0.74rem;
+    font-weight: 700;
+    padding: 0.36rem 0.5rem;
+    height: 1.9rem;
+    outline: none;
+}
+
+body.time-attendance-dashboard .ta-input::-webkit-calendar-picker-indicator {
+    opacity: 0.72;
+    cursor: pointer;
+}
+
+body.time-attendance-dashboard .ta-date-input {
+    width: 8.8rem;
+}
+
+body.time-attendance-dashboard .ta-date-range {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.72rem;
+    color: #5f5e5e;
+}
+
+body.time-attendance-dashboard .ta-board,
+body.time-attendance-dashboard .ta-card {
+    background: #f9f9f8;
+    border-radius: 0.125rem;
+    border: 1px solid rgba(193, 200, 199, 0.25);
+}
+
+body.time-attendance-dashboard .ta-table-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 0.875rem;
+    border-bottom: 1px solid rgba(193, 200, 199, 0.35);
+    background: #f4f4f3;
+}
+
+body.time-attendance-dashboard .ta-table-filters {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 1.75rem;
+    flex-wrap: wrap;
+}
+
+body.time-attendance-dashboard .ta-table-filter-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #717878;
+}
+
+body.time-attendance-dashboard .ta-table-active-badges {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+body.time-attendance-dashboard .ta-table-filter-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #002020;
+    border: none;
+    background: #c5eae9;
+    border-radius: 0.125rem;
+    padding: 0.375rem 0.75rem;
+    line-height: 1;
+}
+
+body.time-attendance-dashboard .ta-table-filter-badge--empty {
+    color: #355454;
+    background: #d7efee;
+}
+
+body.time-attendance-dashboard .ta-table-filter-badge .material-symbols-outlined {
+    font-size: 0.625rem;
+    cursor: pointer;
+}
+
+body.time-attendance-dashboard .ta-table-filter-btn {
+    width: 1.3rem;
+    height: 1.3rem;
+    border: none;
+    border-radius: 0.125rem;
+    background: transparent;
+    color: #5f5e5e;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 120ms ease, color 120ms ease;
+}
+
+body.time-attendance-dashboard .ta-table-filter-btn:hover {
+    background: #d9dfde;
+    color: #244545;
+}
+
+body.time-attendance-dashboard .ta-table-filter-btn .material-symbols-outlined {
+    font-size: 0.95rem;
+}
+
+body.time-attendance-dashboard .ta-board {
+    min-height: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+body.time-attendance-dashboard .table-wrap {
+    max-height: none;
+    overflow: auto;
+    flex: 1;
+    min-height: 16rem;
+}
+
+body.time-attendance-dashboard .no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+body.time-attendance-dashboard .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+body.time-attendance-dashboard #sessionsTable {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+body.time-attendance-dashboard .time-attendance-table col.col-name {
+    width: 10.8rem;
+}
+
+body.time-attendance-dashboard .time-attendance-table col.col-company,
+body.time-attendance-dashboard .time-attendance-table col.col-site,
+body.time-attendance-dashboard .time-attendance-table col.col-division {
+    width: 7.2rem;
+}
+
+body.time-attendance-dashboard .time-attendance-table col.col-check-in,
+body.time-attendance-dashboard .time-attendance-table col.col-check-out {
+    width: 8.7rem;
+}
+
+body.time-attendance-dashboard .time-attendance-table col.col-duration {
+    width: 7rem;
+}
+
+body.time-attendance-dashboard #sessionsTable thead th {
+    background: #f4f4f3;
+    border-bottom: 1px solid rgba(193, 200, 199, 0.3);
+    color: #667070;
+    font-size: 0.64rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.8rem 0.65rem;
+    text-align: left;
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    border-right: 1px solid rgba(193, 200, 199, 0.25);
+}
+
+body.time-attendance-dashboard #sessionsTable thead th:last-child {
+    border-right: 0;
+}
+
+body.time-attendance-dashboard #sessionsTable thead th[data-col] {
+    position: sticky;
+}
+
+body.time-attendance-dashboard .header-label {
+    display: block;
+    padding-right: 1.2rem;
+    min-height: 1.3rem;
+    line-height: 1.3rem;
+}
+
+body.time-attendance-dashboard .header-filter {
+    width: calc(100% - 0.9rem);
+    margin-top: 0.15rem;
+    border: 1px solid #c1c8c7;
+    border-radius: 0.125rem;
+    font-size: 0.62rem;
+    padding: 0.1rem 0.15rem;
+    box-sizing: border-box;
+}
+
+body.time-attendance-dashboard .filter-toggle {
+    position: absolute;
+    right: 0.3rem;
+    top: calc(0.8rem + 0.65rem);
+    transform: translateY(-50%);
+    width: 1.3rem;
+    height: 1.3rem;
+    border: 0;
+    border-radius: 0.125rem;
+    background: transparent;
+    color: #5f5e5e;
+    font-size: 0.5rem;
+    line-height: 1;
+    padding: 0;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 120ms ease, color 120ms ease;
+}
+
+body.time-attendance-dashboard .filter-toggle:hover {
+    background: #d9dfde;
+    color: #244545;
+}
+
+body.time-attendance-dashboard .filter-toggle .material-symbols-outlined {
+    font-size: 0.95rem;
+}
+
+body.time-attendance-dashboard #sessionsTable tbody tr {
+    border-bottom: 1px solid rgba(193, 200, 199, 0.2);
+    cursor: pointer;
+}
+
+body.time-attendance-dashboard #sessionsTable tbody tr:hover,
+body.time-attendance-dashboard #sessionsTable tbody tr.row-expanded {
+    background: #eef1f1;
+}
+
+body.time-attendance-dashboard #sessionsTable tbody td {
+    padding: 0.74rem 0.65rem;
+    font-size: 0.78rem;
+    color: #1a1c1c;
+    vertical-align: middle;
+    border-right: 1px solid rgba(193, 200, 199, 0.2);
+}
+
+body.time-attendance-dashboard #sessionsTable tbody td:last-child {
+    border-right: 0;
+}
+
+body.time-attendance-dashboard .ta-side-rail {
+    display: block;
+    gap: 0.72rem;
+    min-height: auto;
+    height: auto;
+}
+
+body.time-attendance-dashboard .ta-flags-card {
+    min-height: 20rem;
+    max-height: 28rem;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+body.time-attendance-dashboard .ta-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.8rem 0.85rem;
+    border-bottom: 1px solid rgba(193, 200, 199, 0.22);
+}
+
+body.time-attendance-dashboard .ta-card-head h4 {
+    margin: 0;
+    font-family: 'Manrope', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+body.time-attendance-dashboard .ta-card {
+    background: #f4f4f3;
+    border-radius: 0.125rem;
+    padding: 0.85rem;
+    border: 1px solid rgba(193, 200, 199, 0.18);
+}
+
+body.time-attendance-dashboard .ta-card-head {
+    margin-bottom: 0.6rem;
+    padding: 0;
+    border-bottom: 0;
+}
+
+body.time-attendance-dashboard .ta-flags-body {
+    padding: 0;
+}
+
+body.time-attendance-dashboard .ta-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.35rem;
+    padding: 0.14rem 0.4rem;
+    border-radius: 999px;
+    background: rgba(64, 98, 98, 0.12);
+    color: #406262;
+    font-size: 0.66rem;
+    font-weight: 700;
+}
+
+body.time-attendance-dashboard .ta-flags-body {
+    flex: 0 1 auto;
+    min-height: 10rem;
+    max-height: 22rem;
+    overflow: auto;
+    padding: 0;
+}
+
+body.time-attendance-dashboard .ta-flags-body .muted {
+    margin: 0;
+    border: 1px dashed rgba(193, 200, 199, 0.5);
+    border-radius: 0.125rem;
+    background: rgba(249, 249, 248, 0.85);
+    color: #656464;
+    font-size: 0.78rem;
+    padding: 0.8rem;
+}
+
+body.time-attendance-dashboard .flags-list {
+    display: grid;
+    gap: 0.5rem;
+}
+
+body.time-attendance-dashboard .flag-row {
+    border: 1px solid #e5e7eb;
+    border-radius: 0.125rem;
+    padding: 0.5rem 0.62rem;
+    background: #fff;
+}
+
+body.time-attendance-dashboard .flag-row .top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.25rem;
+}
+
+body.time-attendance-dashboard .flag-row .reason {
+    font-size: 0.76rem;
+    color: #6b7280;
+    line-height: 1.3;
+}
+
+body.time-attendance-dashboard .flag-type-pill {
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 0.12rem 0.5rem;
+    border-radius: 999px;
+    background: #fee2e2;
+    color: #991b1b;
+    white-space: nowrap;
+}
+
+body.time-attendance-dashboard .flag-meta {
+    font-size: 0.72rem;
+    color: #6b7280;
+    margin-top: 0.2rem;
+}
+
+body.time-attendance-dashboard .flag-actions {
+    margin-top: 0.45rem;
+    display: flex;
+    justify-content: flex-end;
+}
+
+body.time-attendance-dashboard .btn-remediate {
+    border: none;
+    background: #4b5e70;
+    color: #fff;
+    border-radius: 0.125rem;
+    padding: 0.35rem 0.55rem;
+    font-weight: 700;
+    font-size: 0.74rem;
+    cursor: pointer;
+}
+
+body.time-attendance-dashboard .btn-remediate:hover {
+    background: #37495d;
+}
+
+body.time-attendance-dashboard .flag-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1200;
+}
+
+body.time-attendance-dashboard .flag-modal.open {
+    display: flex;
+}
+
+body.time-attendance-dashboard .flag-modal-card {
+    background: #fff;
+    border-radius: 0.125rem;
+    width: min(32.5rem, 92vw);
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.2);
+    padding: 1rem;
+}
+
+body.time-attendance-dashboard .flag-modal-card h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1rem;
+    color: #111827;
+}
+
+body.time-attendance-dashboard .flag-preview-box {
+    border: 1px solid #e5e7eb;
+    background: #f8fafc;
+    border-radius: 0.125rem;
+    padding: 0.62rem;
+    font-size: 0.82rem;
+    color: #374151;
+    line-height: 1.35;
+    margin-bottom: 0.75rem;
+}
+
+body.time-attendance-dashboard .ta-error {
+    color: #b91c1c;
+    margin-bottom: 0.5rem;
+}
+
+body.time-attendance-dashboard .flag-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 0.7rem;
+}
+
+body.time-attendance-dashboard .btn-secondary {
+    border: 1px solid #d1d5db;
+    background: #fff;
+    color: #111827;
+    border-radius: 0.125rem;
+    padding: 0.35rem 0.75rem;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+body.time-attendance-dashboard .btn-secondary:hover {
+    background: #f8fafc;
+}
+
+body.time-attendance-dashboard .btn-danger {
+    border: none;
+    background: #8b0000;
+    color: #fff;
+    border-radius: 0.125rem;
+    padding: 0.35rem 0.75rem;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+body.time-attendance-dashboard .btn-danger:hover {
+    background: #6e0000;
+}
+
+@media (max-width: 1280px) {
+    body.time-attendance-dashboard .ta-layout-grid {
+        grid-template-columns: 1fr;
+    }
+
+    body.time-attendance-dashboard .ta-side-rail {
+        display: block;
+        height: auto;
+    }
+
+    body.time-attendance-dashboard .ta-flags-card {
+        height: auto;
+        max-height: none;
+    }
+
+    body.time-attendance-dashboard .ta-flags-body {
+        max-height: 18rem;
+    }
+}
+
+@media (max-width: 980px) {
+    body.time-attendance-dashboard .ta-shell {
+        padding: 1rem;
+        min-height: auto;
+        display: block;
+    }
+
+    body.time-attendance-dashboard .ta-page-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    body.time-attendance-dashboard .ta-vitals .vitals-metrics {
+        width: 100%;
+        padding: 0.75rem 1rem;
+    }
+
+    body.time-attendance-dashboard .ta-vitals .vitals-divider {
+        display: none;
+    }
+
+    body.time-attendance-dashboard .ta-vitals-actions {
+        width: 100%;
+        margin-left: 0;
+    }
+}
+
+body.time-attendance-dashboard .ta-card-head h4,
+body.time-attendance-dashboard .ta-card {
+    color: #1a1c1c;
+}
+
+body.time-attendance-dashboard .preview-spacer {
+    margin-top: 0.375rem;
+}
+
+body.time-attendance-dashboard .preview-note {
+    margin-top: 0.5rem;
+    font-weight: 600;
+    color: #374151;
+}
+

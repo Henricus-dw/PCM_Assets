@@ -1,1127 +1,767 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-    <link rel="stylesheet" href="/static/styles.css?v={{ time }}">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The Archive | Vodacom Contracts Dashboard</title>
     <link rel="icon" href="/static/pcm-lockup-goldc-final.svg" type="image/svg+xml" />
-
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="/static/ui/main.css?v={{ time }}">
+    <link rel="stylesheet" href="/static/ui/pages/dashboard-vodacom.css?v={{ time }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 </head>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
+<body class="dashboard-page dashboard-vodacom app-with-sidebar">
+    <div class="dashboard-main">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-top">
+                <div class="sidebar-brand">
+                    <span class="sidebar-brand-title">Asset Management</span>
+                    <span class="sidebar-brand-sub">Enterprise Portal</span>
+                </div>
+                <nav class="nav-top">
+                    <a href="/dashboard" class="{{ 'active' if section == 'home' else '' }}">
+                        <span class="material-symbols-outlined">home</span>
+                        <span>Home</span>
+                    </a>
+                    <a href="/form" class="{{ 'active' if section == 'form' else '' }}">
+                        <span class="material-symbols-outlined">edit_document</span>
+                        <span>Capturing Form</span>
+                    </a>
+                    <a href="/dashboard/vodacom" class="{{ 'active' if section == 'vodacom' else '' }}">
+                        <span class="material-symbols-outlined">dashboard</span>
+                        <span>Vodacom Dashboard</span>
+                    </a>
+                    <a href="/dashboard/devices" class="{{ 'active' if section == 'devices' else '' }}">
+                        <span class="material-symbols-outlined">devices</span>
+                        <span>Devices Dashboard</span>
+                    </a>
+                </nav>
+            </div>
+            <div class="sidebar-mid">
+                <a href="/" class="sidebar-return" title="Return">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                    <span>Return</span>
+                </a>
+            </div>
+            <div class="nav-bottom">
+                {% if request.session.get('is_admin') %}
+                <a href="/admin" class="{{ 'active' if section == 'admin' else '' }}">
+                    <span class="material-symbols-outlined">admin_panel_settings</span>
+                    <span>Admin</span>
+                </a>
+                {% endif %}
+                <a href="/settings" class="{{ 'active' if section == 'settings' else '' }}">
+                    <span class="material-symbols-outlined">settings</span>
+                    <span>Settings</span>
+                </a>
+                <a href="/logout" id="logoutLink" class="{{ 'active' if section == 'logout' else '' }}">
+                    <span class="material-symbols-outlined">logout</span>
+                    <span>Log Out</span>
+                </a>
+            </div>
+            <button id="sidebarHandle" class="sidebar-handle" aria-label="Collapse sidebar" aria-pressed="false"
+                title="Collapse sidebar">
+                <span class="handle-icon">⟨</span>
+            </button>
+        </aside>
 
-<body>
-    <!-- Sidebar navigation -->
-    <div class="sidebar">
+        <!-- Main Dashboard Content -->
+        <main class="dashboard-content">
+            <!-- Scrollable Content -->
+            <div class="dashboard-content-scroll">
+                <div class="dashboard-vitals">
+                    {% set ns = namespace(total=0, renewals=0) %}
+                    {% for sub in records or [] %}
+                    {% set ns.total = ns.total + (sub.Monthly_Costs or 0) %}
+                    {% if sub.Termination_Date %}
+                    {% set days_to_expiry = (sub.Termination_Date - now()).days %}
+                    {% if days_to_expiry >= 0 and days_to_expiry < 30 %} {% set ns.renewals=ns.renewals + 1 %} {% endif
+                        %} {% endif %} {% endfor %} <div class="vitals-metrics">
+                        <div class="vitals-metric-group">
+                            <div class="vitals-metric-label">Portfolio Value</div>
+                            <div class="vitals-metric-value">R {{ "{:,.2f}".format(ns.total) }} <span
+                                    class="vitals-metric-subtext">Live</span>
+                            </div>
+                        </div>
+                        <div class="vitals-divider"></div>
+                        <div class="vitals-metric-group">
+                            <div class="vitals-metric-label">Renewal Alerts</div>
+                            <div class="vitals-metric-value">{{ ns.renewals }} <span class="vitals-metric-subtext">Next
+                                    30d</span>
+                            </div>
+                        </div>
+                        <div class="vitals-actions">
+                            <button class="vitals-action-btn" id="export-excel-btn">
+                                <span class="material-symbols-outlined">file_download</span>
+                                Excel
+                            </button>
+                            <button class="vitals-action-btn" id="export-pdf-btn">
+                                <span class="material-symbols-outlined">picture_as_pdf</span>
+                                PDF
+                            </button>
+                        </div>
+                </div>
+            </div>
 
-        <!-- Top navigation -->
-        <div class="nav-top">
-            <a href="/dashboard" class="{{ 'active' if section == 'home' else '' }}"><span>Home</span></a>
-            <a href="/form" class="{{ 'active' if section == 'form' else '' }}"><span>Capturing Form</span></a>
-            <a href="/dashboard/vodacom" class="{{ 'active' if section == 'vodacom' else '' }}"><span>Vodacom
-                    Dashboard</span></a>
-            <a href="/dashboard/devices" class="{{ 'active' if section == 'devices' else '' }}"><span>Devices
-                    Dashboard</span></a>
-        </div>
-        <div class="sidebar-mid">
-            <a href="/" class="sidebar-return" title="Return">↺ Return</a>
-        </div>
+            <!-- Data Table -->
+            <div class="dashboard-table-wrapper">
+                <div class="dashboard-table-container">
+                    <div class="dashboard-table-toolbar">
+                        <div class="dashboard-table-filters">
+                            <button id="sortMenuBtn" type="button" class="dashboard-table-filter-btn"
+                                aria-label="Sort by">
+                                <span class="material-symbols-outlined">filter_list</span>
+                            </button>
+                            <span class="dashboard-table-filter-label">ACTIVE FILTERS:</span>
+                            <span id="activeFiltersHost" class="dashboard-table-active-badges"></span>
+                        </div>
+                        <p class="dashboard-table-info">Showing 1-15 of 2,482 entries</p>
+                    </div>
 
-        <!-- Bottom navigation -->
-        <div class="nav-bottom">
-            {% if request.session.get('is_admin') %}
-            <a href="/admin" class="{{ 'active' if section == 'admin' else '' }}"><span>Admin</span></a>
-            {% endif %}
+                    <div class="dashboard-table-scroll">
+                        <table class="dashboard-table">
+                            <thead>
+                                <tr>
+                                    <th data-col="0">
+                                        <div class="dashboard-table-header-cell"><span>Contract ID</span></div>
+                                    </th>
+                                    <th data-col="1">
+                                        <div class="dashboard-table-header-cell"><span>Holder Name</span></div>
+                                    </th>
+                                    <th data-col="2">
+                                        <div class="dashboard-table-header-cell"><span>Company No.</span></div>
+                                    </th>
+                                    <th data-col="3">
+                                        <div class="dashboard-table-header-cell"><span>Inception</span></div>
+                                    </th>
+                                    <th data-col="4">
+                                        <div class="dashboard-table-header-cell"><span>Term. Date</span></div>
+                                    </th>
+                                    <th data-col="5">
+                                        <div class="dashboard-table-header-cell"><span>Monthly Cost</span></div>
+                                    </th>
+                                    <th data-col="6">
+                                        <div class="dashboard-table-header-cell"><span>VAT</span></div>
+                                    </th>
+                                    <th data-col="7">
+                                        <div class="dashboard-table-header-cell"><span>Monthly Cost (Excl.
+                                                VAT)</span></div>
+                                    </th>
+                                    <th data-col="8">
+                                        <div class="dashboard-table-header-cell"><span>Contract Type</span></div>
+                                    </th>
+                                    <th data-col="9">
+                                        <div class="dashboard-table-header-cell"><span>Contract Title</span></div>
+                                    </th>
+                                    <th data-col="10">
+                                        <div class="dashboard-table-header-cell"><span>Contract Term</span></div>
+                                    </th>
+                                    <th data-col="11">
+                                        <div class="dashboard-table-header-cell"><span>SIM Card Number</span></div>
+                                    </th>
+                                    <th data-col="12">
+                                        <div class="dashboard-table-header-cell"><span>Personnel Number</span></div>
+                                    </th>
+                                    <th data-col="13">
+                                        <div class="dashboard-table-header-cell"><span>Company</span></div>
+                                    </th>
+                                    <th data-col="14">
+                                        <div class="dashboard-table-header-cell"><span>Client Division</span></div>
+                                    </th>
+                                    <th data-col="15">
+                                        <div class="dashboard-table-header-cell"><span>Status</span></div>
+                                    </th>
+                                    <th data-col="16">
+                                        <div class="dashboard-table-header-cell"><span>Actions</span></div>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if records %}
+                                {% for sub in records %}
+                                <tr data-contract-id="{{ sub.id }}">
+                                    <td class="dashboard-table-cell-primary">{{ sub.contract_number or '' }}</td>
+                                    <td class="dashboard-table-cell-secondary">{{ sub.Name_ or '' }} {{ sub.Surname_
+                                        or '' }}</td>
+                                    <td class="dashboard-table-cell-muted">{{ sub.company_number or '' }}</td>
+                                    <td class="dashboard-table-cell-muted" data-sort-value="{{
+                                        sub.Inception_Date.strftime('%Y-%m-%d') if sub.Inception_Date else '' }}">{{
+                                        sub.Inception_Date.strftime('%d/%m/%Y') if sub.Inception_Date else '' }}</td>
+                                    <td class="dashboard-table-cell-highlight" data-sort-value="{{
+                                        sub.Termination_Date.strftime('%Y-%m-%d') if sub.Termination_Date else '' }}">
+                                        <div class="table-cell-flex">
+                                            <span class="dashboard-table-cell-primary">{{
+                                                sub.Termination_Date.strftime('%d/%m/%Y') if sub.Termination_Date
+                                                else '' }}</span>
+                                            {% if sub.Termination_Date %}
+                                            {% set days_to_expiry = (sub.Termination_Date - now()).days %}
+                                            {% if days_to_expiry < 30 %} <span
+                                                class="dashboard-table-badge dashboard-table-badge--expired">
+                                                EXPIRING</span>
+                                                {% endif %}
+                                                {% endif %}
+                                        </div>
+                                    </td>
+                                    <td class="dashboard-table-cell-highlight dashboard-table-cell-primary">R {{
+                                        "{:,.2f}".format(sub.Monthly_Costs or 0) }}</td>
+                                    <td>{{ sub.VAT if sub.VAT is not none else '' }}</td>
+                                    <td>{{ sub.Monthly_Cost_Excl_VAT if sub.Monthly_Cost_Excl_VAT is not none else
+                                        '' }}</td>
+                                    <td>{{ sub.Contract_Type or '' }}</td>
+                                    <td>{{ sub.contract_title or '' }}</td>
+                                    <td>{{ sub.Contract_Term or '' }}</td>
+                                    <td>{{ sub.Sim_Card_Number or '' }}</td>
+                                    <td>{{ sub.Personnel_nr or '' }}</td>
+                                    <td>{{ sub.Company or '' }}</td>
+                                    <td>{{ sub.Client_Division or '' }}</td>
+                                    <td><span class="dashboard-table-badge dashboard-table-badge--active">Active</span>
+                                    </td>
+                                    <td>
+                                        <div class="dashboard-table-actions">
+                                            {% if sub.devices and sub.devices | length > 0 %}
+                                            <button class="dashboard-table-button" data-view-devices="1"
+                                                data-contract-id="{{ sub.id }}">View Devices</button>
+                                            {% else %}
+                                            <button class="dashboard-table-button" disabled aria-disabled="true">View
+                                                Devices</button>
+                                            {% endif %}
+                                            <button class="dashboard-table-action-icon"><span
+                                                    class="material-symbols-outlined">more_vert</span></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                {% else %}
+                                <tr>
+                                    <td colspan="17" class="table-empty-cell">No records found.
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
 
-
-            <a href="/settings" class="{{ 'active' if section == 'settings' else '' }}"><span>Settings</span></a>
-            <a href="/logout" id="logoutLink" class="{{ 'active' if section == 'logout' else '' }}">
-                <span>Log Out</span>
-            </a>
-        </div>
-        <button id="sidebarHandle" class="sidebar-handle" aria-label="Collapse sidebar" aria-pressed="false"
-            title="Collapse sidebar"> <span class="handle-icon" aria-hidden="true">⟨</span> </button>
+                    <div class="dashboard-table-footer">
+                        <div class="dashboard-table-pagination">
+                            <span class="dashboard-table-pagination-info">Page 1 of 166</span>
+                            <div class="dashboard-table-pagination-controls">
+                                <button id="paginationPrevBtn" type="button"
+                                    class="dashboard-table-pagination-btn"><span
+                                        class="material-symbols-outlined">chevron_left</span></button>
+                                <button id="paginationNextBtn" type="button"
+                                    class="dashboard-table-pagination-btn"><span
+                                        class="material-symbols-outlined">chevron_right</span></button>
+                            </div>
+                        </div>
+                        <div class="dashboard-table-pagination-select">
+                            <span>Items per page:</span>
+                            <select id="itemsPerPageSelect">
+                                <option value="15" selected>15</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </div>
+    </main>
     </div>
 
-    <!-- Main content -->
-    <div class="content3">
-        <div class="boxTopHeader2">Vodacom Contracts Dashboard</div>
-
-    </div>
-    <div class="sort-overlay">
-        <label for="sortSelect">Sort by:</label>
-        <select id="sort-select">
-            <option value="">Latest Entry</option>
-            <option value="inception_date">Inception Date</option>
-            <option value="termination_date">Termination Date</option>
-            <option value="monthly_costs">Monthly Costs</option>
-        </select>
-    </div>
-    <div class="sort-overlay2"><label>Export:</label>
-        <button id="export-btn" class="export-button">
-            <img src="/static/excel-document.svg" alt="Excel" class="excel-icon">
-        </button>
-        <button id="export-pdf-btn">
-            <img src="/static/download.svg" alt="PDF Icon" class="pdf-icon">
-
-        </button>
-
-    </div>
-    <div class="content2">
-
-        <div class="contentInner2 ">
-
-            {% if records %}
-            <div class="table-mask"></div>
-            <table class="sticky">
-                <thead>
-
-                    <tr class="header-row">
-
-                    <tr class="header-row">
-                        <th data-col="0">
-                            <div class="header-label">Inception Date</div><br>
-                            <input type="text" class="header-filter" data-col="0" style="display:none;" />
-                            <button class="filter-toggle" data-col="0" aria-label="Search"> ⌕ </button>
-                        </th>
-                        <th data-col="1">
-                            <div class="header-label">Termination Date</div><br>
-                            <input type="text" class="header-filter" data-col="1" style="display:none;" />
-                            <button class="filter-toggle" data-col="1" aria-label="Search"> ⌕ </button>
-                        </th>
-                        <th data-col="3">
-                            <div class="header-label">Company Number</div><br>
-                            <input type="text" class="header-filter" data-col="2" style="display:none;" />
-                            <button class="filter-toggle" data-col="2" aria-label="Search"> ⌕ </button>
-                        </th>
-                        <th data-col="3">
-                            <div class="header-label">Contract Number</div><br>
-                            <input type="text" class="header-filter" data-col="3" style="display:none;" />
-                            <button class="filter-toggle" data-col="3" aria-label="Search"> ⌕ </button>
-                        </th>
-                        <th data-col="4">
-                            <div class="header-label">Devices</div><br>
-                            <input type="text" class="header-filter" data-col="4" style="display:none;" />
-                            <button class="filter-toggle" data-col="4" aria-label="Search"> ⌕ </button>
-                        </th>
-                        <th data-col="5">
-                            <div class="header-label">Name</div><br>
-                            <input type="text" class="header-filter" data-col="5" style="display:none;" />
-                            <button class="filter-toggle" data-col="5" aria-label="Search"> ⌕ </button>
-                        </th>
-                        <th data-col="6">
-                            <div class="header-label">Surname</div><br>
-                            <input type="text" class="header-filter" data-col="6" style="display:none;" />
-                            <button class="filter-toggle" data-col="6" aria-label="Search"> ⌕ </button>
-                        </th>
-                        <th data-col="7">
-                            <div class="header-label">Monthly Costs</div><br>
-                            <input type="text" class="header-filter" data-col="7" style="display:none;" />
-                            <button class="filter-toggle" data-col="7" aria-label="Search"> ⌕ </button>
-                        </th>
-                        <th data-col="8">
-                            <div class="header-label">VAT</div><br>
-                            <input type="text" class="header-filter" data-col="8" style="display:none;" />
-                            <button class="filter-toggle" data-col="8" aria-label="Search"> ⌕ </button>
-                        </th>
-                        <th data-col="9">
-                            <div class="header-label">Monthly Cost(Excl.VAT)</div><br>
-                            <input type="text" class="header-filter" data-col="9" style="display:none;" />
-                            <button class="filter-toggle" data-col="9" aria-label="Search"> ⌕ </button>
-                        </th>
-                        <th data-col="10">
-                            <div class="header-label">Contract Type</div><br>
-                            <input type="text" class="header-filter" data-col="10" style="display:none;" />
-                            <button class="filter-toggle" data-col="10" aria-label="Search"> ⌕ </button>
-                        </th>
-                        <th data-col="11">
-                            <div class="header-label">Contract Title</div><br>
-                            <input type="text" class="header-filter" data-col="11" style="display:none;" />
-                            <button class="filter-toggle" data-col="11" aria-label="Search"> ⌕ </button>
-                        </th>
-                        <th data-col="12">
-                            <div class="header-label">Contract Term</div><br>
-                            <input type="text" class="header-filter" data-col="12" style="display:none;" />
-                            <button class="filter-toggle" data-col="12" aria-label="Search"> ⌕ </button>
-                        </th>
-                        <th data-col="13">
-                            <div class="header-label">SIM Card Number</div><br>
-                            <input type="text" class="header-filter" data-col="13" style="display:none;" />
-                            <button class="filter-toggle" data-col="13" aria-label="Search"> ⌕ </button>
-                        </th>
-                        <th data-col="14">
-                            <div class="header-label">Personnel Number</div><br>
-                            <input type="text" class="header-filter" data-col="14" style="display:none;" />
-                            <button class="filter-toggle" data-col="14" aria-label="Search"> ⌕ </button>
-                        </th>
-                        <th data-col="15">
-                            <div class="header-label">Company</div><br>
-                            <input type="text" class="header-filter" data-col="15" style="display:none;" />
-                            <button class="filter-toggle" data-col="15" aria-label="Search"> ⌕ </button>
-                        </th>
-                        <th data-col="16">
-                            <div class="header-label">Client Division</div><br>
-                            <input type="text" class="header-filter" data-col="16" style="display:none;" />
-                            <button class="filter-toggle" data-col="16" aria-label="Search"> ⌕ </button>
-                        </th>
-                    </tr>
-
-
-
-                </thead>
-                <tbody>
-                    {% for sub in records %}
-                    <tr data-contract-id="{{ sub.id }}">
-                        <td>{{ sub.Inception_Date.strftime('%Y-%m-%d') if sub.Inception_Date else '' }}</td>
-                        <td>{{ sub.Termination_Date.strftime('%Y-%m-%d') if sub.Termination_Date else '' }}</td>
-                        <td>{{ sub.company_number or '' }}</td>
-                        <td>{{ sub.contract_number or '' }}</td>
-                        <td>
-                            {% if sub.devices and sub.devices | length > 0 %}
-                            <button class="view-contracts-btn" onclick="showDevicesModal('{{ sub.id }}')">View
-                                Devices</button>
-                            {% else %}
-                            No devices
-                            {% endif %}
-                        </td>
-                        <td>{{ sub.Name_ }}</td>
-                        <td>{{ sub.Surname_ }}</td>
-                        <td>{{ sub.Monthly_Costs }}</td>
-                        <td>{{ sub.VAT }}</td>
-                        <td>{{ sub.Monthly_Cost_Excl_VAT }}</td>
-                        <td>{{ sub.Contract_Type }}</td>
-                        <td>{{ sub.contract_title or '' }}</td>
-                        <td>{{ sub.Contract_Term }}</td>
-                        <td>{{ sub.Sim_Card_Number }}</td>
-                        <td>{{ sub.Personnel_nr }}</td>
-                        <td>{{ sub.Company }}</td>
-                        <td>{{ sub.Client_Division }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-
-            </table>
-            {% else %}
-            <p>No records found.</p>
-            {% endif %}
-        </div>
-    </div>
-    <div id="deviceModal" class="modal" style="display:none;">
+    <div id="deviceModal" class="modal is-hidden">
         <div class="modal-content">
             <span class="close" onclick="closeDevicesModal()">&times;</span>
             <h2>Linked Devices</h2>
-            <div id="deviceModalBody">
-                <!-- device list will go here -->
+            <div id="deviceModalBody" class="modal-body-text"></div>
+        </div>
+    </div>
+
+    <div id="filterPopover" class="dashboard-filter-popover">
+        <input id="filterPopoverInput" type="text" placeholder="Filter column" />
+        <button id="filterPopoverClear" type="button" title="Clear">
+            <span class="material-symbols-outlined">close</span>
+        </button>
+    </div>
+
+    <div id="sortMenuPopover" class="dashboard-filter-popover dashboard-filter-popover--sort">
+        <button type="button" data-sort="latest">Latest Entry</button>
+        <button type="button" data-sort="inception_date">Inception Date</button>
+        <button type="button" data-sort="termination_date">Termination Date</button>
+        <button type="button" data-sort="monthly_costs">Monthly Cost</button>
+    </div>
+
+    <div id="contractEditModal" class="dashboard-edit-modal">
+        <div class="dashboard-edit-modal__panel">
+            <h3 class="dashboard-edit-modal__title">Request Contract Edit</h3>
+            <div class="dashboard-edit-grid" id="contractEditGrid"></div>
+            <div class="dashboard-edit-actions">
+                <button type="button" class="vitals-action-btn" id="contractEditCancel">Cancel</button>
+                <button type="button" class="vitals-action-btn" id="contractEditSubmit">Submit Request</button>
             </div>
         </div>
     </div>
 
-    <div id="editRowModal" class="modal" style="display:none;">
-        <div class="modal-content" style="max-width:800px;">
-            <span class="close" onclick="closeEditRowModal()">&times;</span>
-            <h2>Edit Contract</h2>
-            <div id="editRowBody"></div>
-            <div id="editSubmitWrap" style="text-align:center; margin-top:16px; display:none;">
-                <button id="submitChangesBtn" class="confirm">Submit Changes</button>
-            </div>
-        </div>
-    </div>
-
-
-
-    <style>
-        .modal {
-            position: fixed;
-            z-index: 999;
-            padding-top: 100px;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.4);
-        }
-
-        .modal-content {
-            background-color: white;
-            padding: 20px;
-            margin: auto;
-            width: 60%;
-            border-radius: 6px;
-        }
-
-        .close {
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        #editRowModal {
-            padding: 24px 16px;
-            box-sizing: border-box;
-            overflow-y: auto;
-        }
-
-        #editRowModal .modal-content {
-            max-height: calc(100vh - 48px);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        #editRowBody {
-            overflow-y: auto;
-            padding-right: 8px;
-        }
-
-        #editSubmitWrap {
-            flex-shrink: 0;
-        }
-
-        .add-device-panel {
-            margin-top: 14px;
-            border: 1px solid #d9d9d9;
-            border-radius: 8px;
-            background: #faf7f2;
-            padding: 14px;
-        }
-
-        .add-device-panel h3 {
-            margin: 0 0 10px;
-            font-size: 16px;
-        }
-
-        .add-device-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(180px, 1fr));
-            gap: 10px 12px;
-        }
-
-        .add-device-grid label {
-            display: block;
-            font-size: 12px;
-            color: #4b4b4b;
-            margin-bottom: 3px;
-        }
-
-        .add-device-grid input,
-        .add-device-grid select {
-            width: 100%;
-            box-sizing: border-box;
-            padding: 7px 8px;
-            border: 1px solid #bdbdbd;
-            border-radius: 5px;
-            background: #fff;
-        }
-
-        .add-device-actions {
-            margin-top: 12px;
-            display: flex;
-            justify-content: flex-end;
-        }
-
-        @media (max-width: 900px) {
-            .add-device-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
-
-
+    <!-- Scripts -->
+    <script src="/static/ui/components/sidebar.js"></script>
     <script>
-        (() => {
-            // Namespace to avoid globals
-            const VodaDash = (window.VodaDash = window.VodaDash || {});
+        const now = new Date();
 
-            // -----------------------------
-            // Base refs & utilities
-            // -----------------------------
-            const table = document.querySelector("table.sticky");
-            const tbody = table?.tBodies?.[0];
-            const scroller = document.querySelector(".contentInner2") || window;
+        document.addEventListener("DOMContentLoaded", () => {
+            initDashboardTableInteractions();
+        });
 
-            if (!table || !tbody) return; // nothing to wire if table absent
+        function initDashboardTableInteractions() {
+            const table = document.querySelector(".dashboard-table");
+            if (!table) return;
 
-            const norm = (s) => (s ?? "").toString().trim().toLowerCase();
+            const tbody = table.querySelector("tbody");
+            if (!tbody) return;
 
-            const headerIndex = (() => {
-                const map = {};
-                table.querySelectorAll("thead th").forEach((th, i) => {
-                    const labelEl = th.querySelector(".header-label");
-                    const label = (labelEl ? labelEl.textContent : th.textContent).trim().toLowerCase();
-                    map[label] = i;
+            const rows = Array.from(tbody.querySelectorAll("tr[data-contract-id]"));
+            const headers = Array.from(table.querySelectorAll("thead th"));
+            const filters = {};
+
+            const activeFiltersHost = document.getElementById("activeFiltersHost");
+            const tableInfo = document.querySelector(".dashboard-table-info");
+            const paginationInfo = document.querySelector(".dashboard-table-pagination-info");
+            const paginationPrevBtn = document.getElementById("paginationPrevBtn");
+            const paginationNextBtn = document.getElementById("paginationNextBtn");
+            const itemsPerPageSelect = document.getElementById("itemsPerPageSelect");
+
+            const labels = headers.map((th, idx) => {
+                const labelEl = th.querySelector(".dashboard-table-header-cell span");
+                const label = (labelEl ? labelEl.textContent : th.textContent).trim();
+
+                const headerCell = th.querySelector(".dashboard-table-header-cell") || th;
+                const filterBtn = document.createElement("button");
+                filterBtn.type = "button";
+                filterBtn.className = "dashboard-table-filter-btn";
+                filterBtn.setAttribute("aria-label", "Search " + label);
+                filterBtn.innerHTML = '<span class="material-symbols-outlined">search</span>';
+
+                headerCell.appendChild(filterBtn);
+
+                filterBtn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    openFilterPopover(idx, filterBtn);
                 });
-                return map;
-            })();
+                return label;
+            });
 
-            // Single source of truth for editable fields and header mapping
-            const FIELD_KEYS = [
-                "Inception_Date", "Termination_Date", "company_number", "contract_number", "Name_", "Surname_",
-                "Monthly_Costs", "VAT", "Monthly_Cost_Excl_VAT",
-                "Contract_Type", "contract_title", "Contract_Term", "Sim_Card_Number",
-                "Personnel_nr", "Company", "Client_Division", "due_upgrade"
-            ];
-
-            const keyToHeader = {
-                Inception_Date: ["inception date"],
-                Termination_Date: ["termination date"],
-                company_number: ["company number"],
-                contract_number: ["contract number"],
-                Name_: ["name"],
-                Surname_: ["surname"],
-                Monthly_Costs: ["monthly costs", "monthly cost"],
-                VAT: ["vat"],
-                Monthly_Cost_Excl_VAT: ["monthly cost(excl.vat)", "monthly cost (excl.vat)"],
-                Contract_Type: ["contract type"],
-                contract_title: ["contract title"],
-                Contract_Term: ["contract term"],
-                Sim_Card_Number: ["sim card number", "sim"],
-                Personnel_nr: ["personnel nr", "personnel number", "personnel #"],
-                Company: ["company"],
-                Client_Division: ["client division"],
-                due_upgrade: ["due upgrade", "upgrade"]
+            const popover = document.getElementById("filterPopover");
+            const popoverInput = document.getElementById("filterPopoverInput");
+            const popoverClear = document.getElementById("filterPopoverClear");
+            const sortMenuBtn = document.getElementById("sortMenuBtn");
+            const sortMenuPopover = document.getElementById("sortMenuPopover");
+            let activeFilterCol = null;
+            let activeSort = "latest";
+            let currentPage = 1;
+            let itemsPerPage = Number(itemsPerPageSelect?.value || 15);
+            const sortLabels = {
+                latest: "Latest Entry",
+                inception_date: "Inception Date",
+                termination_date: "Termination Date",
+                monthly_costs: "Monthly Cost"
             };
 
-            const colIndexFor = (key) => {
-                const labels = keyToHeader[key] || [];
-                for (const l of labels) {
-                    const idx = headerIndex[norm(l)];
-                    if (idx != null) return idx;
+            function rowMatchesFilters(row) {
+                return Object.entries(filters).every(([colIndex, query]) => {
+                    if (!query) return true;
+                    const cell = row.cells[Number(colIndex)];
+                    const text = (cell ? cell.textContent : "").trim().toLowerCase();
+                    return text.includes(query);
+                });
+            }
+
+            function updatePaginationState(filteredRows) {
+                const totalFiltered = filteredRows.length;
+                const totalPages = Math.max(1, Math.ceil(totalFiltered / itemsPerPage));
+                currentPage = Math.min(currentPage, totalPages);
+
+                const startIndex = totalFiltered ? (currentPage - 1) * itemsPerPage : 0;
+                const endIndex = Math.min(startIndex + itemsPerPage, totalFiltered);
+
+                rows.forEach((row) => {
+                    row.style.display = "none";
+                });
+
+                filteredRows.slice(startIndex, endIndex).forEach((row) => {
+                    row.style.display = "";
+                });
+
+                if (tableInfo) {
+                    tableInfo.textContent = totalFiltered
+                        ? "Showing " + (startIndex + 1) + "-" + endIndex + " of " + totalFiltered + " entries"
+                        : "Showing 0 of 0 entries";
                 }
-                return null;
-            };
 
-            // Cache original order for "Latest Entry"
-            Array.from(tbody.rows).forEach((tr, i) => (tr.dataset.origIndex = String(i)));
+                if (paginationInfo) paginationInfo.textContent = "Page " + currentPage + " of " + totalPages;
+                if (paginationPrevBtn) paginationPrevBtn.disabled = currentPage <= 1;
+                if (paginationNextBtn) paginationNextBtn.disabled = currentPage >= totalPages || totalFiltered === 0;
+            }
 
-            // Some tables include a "View Devices" button column (index 2); exclude from exports
-            const VIEW_DEVICES_COL_INDEX = 4;
+            function openFilterPopover(colIndex, anchor) {
+                if (!popover || !popoverInput) return;
+                activeFilterCol = colIndex;
+                popoverInput.value = filters[colIndex] || "";
 
-            // -----------------------------
-            // Header filters
-            // -----------------------------
-            (function bindHeaderFilters() {
-                const toggles = document.querySelectorAll(".filter-toggle");
-                if (!toggles.length) return;
+                const rect = anchor.getBoundingClientRect();
+                popover.style.display = "inline-flex";
+                popover.style.left = Math.max(8, rect.left - 40) + "px";
+                popover.style.top = Math.min(window.innerHeight - 46, rect.bottom + 6) + "px";
+                popoverInput.focus();
+            }
 
-                const filters = {};
-                const applyFilters = () => {
-                    Array.from(tbody.rows).forEach((row) => {
-                        let visible = true;
-                        for (const col in filters) {
-                            const val = filters[col];
-                            if (!val) continue;
-                            const cellText = (row.cells[col]?.textContent || "").toLowerCase().trim();
-                            if (!cellText.includes(val)) {
-                                visible = false;
-                                break;
-                            }
-                        }
-                        row.style.display = visible ? "" : "none";
-                    });
-                };
+            function closeFilterPopover() {
+                if (popover) popover.style.display = "none";
+                activeFilterCol = null;
+            }
 
-                document.querySelectorAll(".filter-toggle").forEach((btn) => {
-                    const col = btn.dataset.col;
-                    const th = btn.closest("th");
-                    const input = th?.querySelector(".header-filter");
-                    if (!input) return;
+            function openSortMenu(anchor) {
+                if (!sortMenuPopover) return;
+                const rect = anchor.getBoundingClientRect();
+                sortMenuPopover.style.display = "inline-flex";
+                sortMenuPopover.style.flexDirection = "column";
+                sortMenuPopover.style.left = Math.max(8, rect.left - 10) + "px";
+                sortMenuPopover.style.top = Math.min(window.innerHeight - 160, rect.bottom + 6) + "px";
+            }
 
-                    btn.addEventListener("click", () => {
-                        btn.style.display = "none";
-                        input.style.display = "inline-block";
-                        input.focus();
-                    });
+            function closeSortMenu() {
+                if (sortMenuPopover) sortMenuPopover.style.display = "none";
+            }
 
-                    input.addEventListener("input", () => {
-                        filters[col] = input.value.toLowerCase().trim();
+            popoverInput?.addEventListener("input", () => {
+                if (activeFilterCol == null) return;
+                filters[activeFilterCol] = popoverInput.value.trim().toLowerCase();
+                currentPage = 1;
+                applyFilters();
+            });
+
+            popoverInput?.addEventListener("keydown", (e) => {
+                if (e.key === "Escape") closeFilterPopover();
+            });
+
+            popoverClear?.addEventListener("click", () => {
+                if (activeFilterCol == null || !popoverInput) return;
+                popoverInput.value = "";
+                filters[activeFilterCol] = "";
+                currentPage = 1;
+                applyFilters();
+            });
+
+            document.addEventListener("click", (e) => {
+                if (!popover || popover.style.display === "none") return;
+                if (!popover.contains(e.target)) closeFilterPopover();
+            });
+
+            sortMenuBtn?.addEventListener("click", (e) => {
+                e.stopPropagation();
+                openSortMenu(sortMenuBtn);
+            });
+
+            document.addEventListener("click", (e) => {
+                if (!sortMenuPopover || sortMenuPopover.style.display === "none") return;
+                if (sortMenuPopover.contains(e.target) || e.target === sortMenuBtn || sortMenuBtn?.contains(e.target)) return;
+                closeSortMenu();
+            });
+
+            function applyFilters() {
+                const filteredRows = rows.filter((row) => rowMatchesFilters(row));
+                updateActiveFilters();
+                updatePaginationState(filteredRows);
+            }
+
+            function updateActiveFilters() {
+                if (!activeFiltersHost) return;
+                activeFiltersHost.innerHTML = "";
+
+                const sortBadge = document.createElement("span");
+                sortBadge.className = "dashboard-table-filter-badge";
+                sortBadge.textContent = "SORT BY: " + (sortLabels[activeSort] || "Latest Entry");
+                activeFiltersHost.appendChild(sortBadge);
+
+                const activeEntries = Object.entries(filters).filter(([, value]) => value);
+                if (!activeEntries.length) return;
+
+                activeEntries.forEach(([colIndex, value]) => {
+                    const badge = document.createElement("span");
+                    badge.className = "dashboard-table-filter-badge";
+
+                    const close = document.createElement("span");
+                    close.className = "material-symbols-outlined";
+                    close.textContent = "close";
+                    close.title = "Clear";
+                    close.addEventListener("click", () => {
+                        filters[colIndex] = "";
+                        if (activeFilterCol === Number(colIndex) && popoverInput) popoverInput.value = "";
+                        currentPage = 1;
                         applyFilters();
                     });
 
-                    input.addEventListener("blur", () => {
-                        if (!input.value.trim()) {
-                            input.style.display = "none";
-                            btn.style.display = "inline-block";
-                        }
-                    });
-
-                    input.addEventListener("keydown", (e) => {
-                        if (e.key === "Escape") {
-                            input.value = "";
-                            filters[col] = "";
-                            input.style.display = "none";
-                            btn.style.display = "inline-block";
-                            applyFilters();
-                        }
-                    });
+                    badge.textContent = labels[Number(colIndex)] + ": " + value;
+                    badge.appendChild(close);
+                    activeFiltersHost.appendChild(badge);
                 });
-            })();
+            }
 
-            // -----------------------------
-            // Sorting (dropdown #sort-select)
-            // -----------------------------
-            (function bindSort() {
-                const sortSelect = document.getElementById("sort-select");
-                if (!sortSelect) return;
+            const excelBtn = document.getElementById("export-excel-btn");
+            excelBtn?.addEventListener("click", () => {
+                const visibleRows = rows.filter((r) => r.style.display !== "none");
+                const headerCells = Array.from(table.querySelectorAll("thead th"));
+                const csvHeaders = headerCells.map((th) => '"' + th.textContent.trim().replace(/"/g, '""') + '"').join(",");
+                const csvBody = visibleRows.map((row) => {
+                    return Array.from(row.cells).map((cell) => '"' + cell.textContent.trim().replace(/"/g, '""') + '"').join(",");
+                }).join("\n");
 
-                const map = {
-                    inception_date: ["inception date"],
-                    termination_date: ["termination date"],
-                    monthly_costs: ["monthly costs", "monthly cost", "monthly cost(excl.vat)"]
+                const csv = csvHeaders + "\n" + csvBody;
+                const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = "vodacom_dashboard_export.csv";
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                URL.revokeObjectURL(link.href);
+            });
+
+            document.querySelectorAll(".dashboard-table-action-icon").forEach((btn) => {
+                btn.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    const row = btn.closest("tr[data-contract-id]");
+                    const contractId = row?.getAttribute("data-contract-id");
+                    if (contractId) openContractEditModal(contractId, row);
+                });
+            });
+
+            document.querySelectorAll(".dashboard-table-button[data-view-devices='1']").forEach((btn) => {
+                btn.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    const contractId = btn.getAttribute("data-contract-id");
+                    if (contractId) showDevicesModal(contractId);
+                });
+            });
+
+            paginationPrevBtn?.addEventListener("click", () => {
+                if (currentPage <= 1) return;
+                currentPage -= 1;
+                applyFilters();
+            });
+
+            paginationNextBtn?.addEventListener("click", () => {
+                currentPage += 1;
+                applyFilters();
+            });
+
+            itemsPerPageSelect?.addEventListener("change", () => {
+                itemsPerPage = Number(itemsPerPageSelect.value || 15);
+                currentPage = 1;
+                applyFilters();
+            });
+
+            function applySort(key) {
+                const compare = (a, b) => {
+                    if (key === "latest") {
+                        const idA = Number(a.getAttribute("data-contract-id") || 0);
+                        const idB = Number(b.getAttribute("data-contract-id") || 0);
+                        return idB - idA;
+                    }
+
+                    const cellIndex = key === "inception_date" ? 3 : key === "termination_date" ? 4 : 5;
+                    const cellA = a.cells[cellIndex];
+                    const cellB = b.cells[cellIndex];
+                    const textA = (cellA?.textContent || "").trim();
+                    const textB = (cellB?.textContent || "").trim();
+
+                    if (key === "monthly_costs") {
+                        const numA = Number(textA.replace(/[^\d.-]/g, "")) || 0;
+                        const numB = Number(textB.replace(/[^\d.-]/g, "")) || 0;
+                        return numB - numA;
+                    }
+
+                    const sortA = cellA?.getAttribute("data-sort-value") || textA;
+                    const sortB = cellB?.getAttribute("data-sort-value") || textB;
+                    const dateA = Date.parse(sortA || "") || 0;
+                    const dateB = Date.parse(sortB || "") || 0;
+                    return dateA - dateB;
                 };
 
-                function resolveColumn(labels) {
-                    for (const l of labels) {
-                        const idx = headerIndex[norm(l)];
-                        if (idx != null) return idx;
-                    }
-                    return null;
-                }
+                rows.sort(compare).forEach((row) => tbody.appendChild(row));
+                applyFilters();
+            }
 
-                function sortRows(byKey) {
-                    const rows = Array.from(tbody.rows);
-
-                    if (!byKey) {
-                        rows.sort((a, b) => +a.dataset.origIndex - +b.dataset.origIndex);
-                        rows.forEach((r) => tbody.appendChild(r));
-                        return;
-                    }
-
-                    const labels = map[byKey] || [];
-                    const colIndex = resolveColumn(labels);
-                    if (colIndex == null) return;
-
-                    const isDate = byKey === "inception_date" || byKey === "termination_date";
-
-                    rows.sort((a, b) => {
-                        const A = (a.cells[colIndex]?.textContent || "").trim();
-                        const B = (b.cells[colIndex]?.textContent || "").trim();
-
-                        if (isDate) {
-                            const dA = new Date(A);
-                            const dB = new Date(B);
-                            return dA - dB;
-                        }
-
-                        const nA = parseFloat(A.replace(/[^\d.-]/g, ""));
-                        const nB = parseFloat(B.replace(/[^\d.-]/g, ""));
-                        if (!isNaN(nA) && !isNaN(nB)) return nA - nB;
-
-                        return A.localeCompare(B, undefined, { numeric: true, sensitivity: "base" });
-                    });
-
-                    rows.forEach((r) => tbody.appendChild(r));
-                }
-
-                sortSelect.addEventListener("change", (e) => sortRows(e.target.value));
-            })();
-
-            // -----------------------------
-            // CSV export (supports new #export-csv-btn and legacy #export-btn)
-            // -----------------------------
-            (function bindCsvExports() {
-                const btnAll = document.getElementById("export-csv-btn"); // exports all rows
-                const btnVisible = document.getElementById("export-btn"); // exports visible rows (after filters)
-
-                const buildCsv = (respectFilter) => {
-                    // headers
-                    const headers = Array.from(table.querySelectorAll("thead th"))
-                        .map((th) => {
-                            const label = th.querySelector(".header-label");
-                            return (label ? label.textContent : th.textContent).trim();
-                        })
-                        .filter((_, i) => i !== VIEW_DEVICES_COL_INDEX)
-                        .map((t) => `"${t.replace(/"/g, '""')}"`)
-                        .join(",");
-
-                    // rows
-                    const rowSelector = respectFilter
-                        ? Array.from(tbody.querySelectorAll("tr")).filter((tr) => tr.style.display !== "none")
-                        : Array.from(tbody.querySelectorAll("tr"));
-
-                    const body = rowSelector
-                        .map((tr) => {
-                            const cols = Array.from(tr.querySelectorAll("td"))
-                                .filter((_, i) => i !== VIEW_DEVICES_COL_INDEX)
-                                .map((td) => `"${(td.textContent || "").trim().replace(/"/g, '""')}"`)
-                                .join(",");
-                            return cols;
-                        })
-                        .join("\n");
-
-                    return headers + "\n" + body;
-                };
-
-                function download(filename, text, mime = "text/plain;charset=utf-8;") {
-                    const blob = new Blob([text], { type: mime });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement("a");
-                    a.href = url;
-                    a.download = filename;
-                    document.body.appendChild(a);
-                    a.click();
-                    a.remove();
-                    URL.revokeObjectURL(url);
-                }
-
-                if (btnAll) {
-                    btnAll.addEventListener("click", () => {
-                        download("vodacom_dashboard_export.csv", buildCsv(false), "text/csv;charset=utf-8;");
-                    });
-                }
-                if (btnVisible) {
-                    btnVisible.addEventListener("click", () => {
-                        download("vodacom_dashboard_export.csv", buildCsv(true), "text/csv;charset=utf-8;");
-                    });
-                }
-            })();
-
-            // -----------------------------
-            // PDF export (#export-pdf-btn) using jsPDF + autoTable
-            // -----------------------------
-            (function bindPdfExport() {
-                const btn = document.getElementById("export-pdf-btn");
-                if (!btn) return;
-
+            sortMenuPopover?.querySelectorAll("button[data-sort]").forEach((btn) => {
                 btn.addEventListener("click", () => {
-                    const jspdfNS = window.jspdf;
-                    const jsPDF = jspdfNS && jspdfNS.jsPDF;
-                    if (!jsPDF || typeof jsPDF !== "function") {
-                        alert("PDF library not loaded. Check jsPDF script tag.");
-                        return;
-                    }
-                    if (!("autoTable" in (jsPDF.API || {}))) {
-                        alert("autoTable plugin not loaded. Check the autoTable script tag.");
-                        return;
-                    }
+                    activeSort = btn.getAttribute("data-sort") || "latest";
+                    applySort(activeSort);
+                    closeSortMenu();
+                });
+            });
 
-                    const headers = Array.from(table.querySelectorAll("thead th"))
-                        .map((th) => {
-                            const label = th.querySelector(".header-label");
-                            return (label ? label.textContent : th.textContent).trim();
-                        })
-                        .filter((_, i) => i !== VIEW_DEVICES_COL_INDEX);
+            applySort(activeSort);
+            applyFilters();
+        }
 
-                    const body = [];
-                    table.querySelectorAll("tbody tr").forEach((tr) => {
-                        const row = Array.from(tr.querySelectorAll("td"))
-                            .filter((_, i) => i !== VIEW_DEVICES_COL_INDEX)
-                            .map((td) => td.textContent.trim());
-                        body.push(row);
+        async function showDevicesModal(contractId) {
+            const modal = document.getElementById("deviceModal");
+            const body = document.getElementById("deviceModalBody");
+            if (!modal || !body) return;
+
+            body.innerHTML = "<p style='margin:0; color:#1a1c1c;'>Loading devices...</p>";
+            modal.style.display = "flex";
+            modal.classList.add("is-open");
+
+            try {
+                const res = await fetch("/contracts/" + contractId + "/devices", { credentials: "same-origin" });
+                const raw = await res.text();
+                let devices = [];
+
+                try {
+                    devices = JSON.parse(raw);
+                } catch (_jsonErr) {
+                    throw new Error("Invalid device response");
+                }
+
+                if (!res.ok) {
+                    throw new Error("Unable to load linked devices");
+                }
+
+                if (!Array.isArray(devices) || devices.length === 0) {
+                    body.innerHTML = "<p style='margin:0; color:#1a1c1c;'>No devices linked to this contract.</p>";
+                    return;
+                }
+
+                body.innerHTML = devices.map((d) => {
+                    const owner = ((d.Name_ || "") + " " + (d.Surname_ || "")).trim() || "Unknown owner";
+                    const model = d.device_model || d.Device_Name || d.Device_Description || "Unknown device";
+                    const serial = d.Serial_Number || "No serial";
+                    const company = d.Company || "";
+                    const personnel = d.Personnel_nr || "";
+
+                    return "<div style='padding:0.55rem 0; border-bottom:1px solid #e5e7e7; color:#1a1c1c;'>"
+                        + "<div style='font-weight:700; color:#1a1c1c;'>" + owner + "</div>"
+                        + "<div style='color:#414848;'>" + model + " | " + serial + "</div>"
+                        + "<div style='color:#5f5e5e; font-size:0.78rem;'>" + company + (personnel ? " | " + personnel : "") + "</div>"
+                        + "</div>";
+                }).join("");
+            } catch (_err) {
+                body.innerHTML = "<p style='margin:0; color:#1a1c1c;'>Failed to load devices for contract " + contractId + ".</p>";
+            }
+        }
+
+        function openContractEditModal(contractId, row) {
+            const modal = document.getElementById("contractEditModal");
+            const grid = document.getElementById("contractEditGrid");
+            const submitBtn = document.getElementById("contractEditSubmit");
+            if (!modal || !grid || !submitBtn || !row) return;
+
+            const fields = [
+                ["company_number", 2, "Company Number"],
+                ["contract_number", 0, "Contract Number"],
+                ["Name_", 1, "Name"],
+                ["Surname_", 1, "Surname"],
+                ["Monthly_Costs", 5, "Monthly Costs"],
+                ["VAT", 6, "VAT"],
+                ["Monthly_Cost_Excl_VAT", 7, "Monthly Cost Excl VAT"],
+                ["Contract_Type", 8, "Contract Type"],
+                ["contract_title", 9, "Contract Title"],
+                ["Contract_Term", 10, "Contract Term"],
+                ["Sim_Card_Number", 11, "SIM Card Number"],
+                ["Personnel_nr", 12, "Personnel Number"],
+                ["Company", 13, "Company"],
+                ["Client_Division", 14, "Client Division"]
+            ];
+
+            grid.innerHTML = "";
+            const payload = {};
+
+            const holderText = (row.cells[1]?.textContent || "").trim();
+            const holderParts = holderText.split(/\s+/).filter(Boolean);
+            const holderName = holderParts.length ? holderParts[0] : "";
+            const holderSurname = holderParts.length > 1 ? holderParts.slice(1).join(" ") : "";
+
+            fields.forEach(([key, col, label]) => {
+                const wrap = document.createElement("div");
+                let current = (row.cells[col]?.textContent || "").trim();
+                if (key === "Name_") current = holderName;
+                if (key === "Surname_") current = holderSurname;
+                wrap.innerHTML = "<label>" + label + "<input data-key='" + key + "' value='" + current.replace(/'/g, "&#39;") + "'></label>";
+                grid.appendChild(wrap);
+            });
+
+            submitBtn.onclick = async () => {
+                grid.querySelectorAll("input[data-key]").forEach((el) => {
+                    const key = el.getAttribute("data-key");
+                    payload[key] = el.value;
+                });
+
+                submitBtn.disabled = true;
+                try {
+                    const res = await fetch("/api/contracts/" + contractId + "/edit-requests", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
                     });
+                    const out = await res.json();
+                    if (!res.ok || !out.created) throw new Error(out.detail || out.message || "Failed");
+                    modal.style.display = "none";
+                    alert("Edit request submitted for approval.");
+                } catch (err) {
+                    alert((err && err.message) ? err.message : "Failed to submit edit request.");
+                } finally {
+                    submitBtn.disabled = false;
+                }
+            };
 
-                    const doc = new jsPDF("landscape");
-                    doc.text("Vodacom Dashboard Export", 14, 15);
-                    doc.autoTable({
-                        head: [headers],
-                        body,
-                        startY: 20,
-                        styles: { fontSize: 8, cellPadding: 2 }
-                    });
-                    doc.save("vodacom_dashboard_export.pdf");
+            document.getElementById("contractEditCancel").onclick = () => {
+                modal.style.display = "none";
+            };
+
+            modal.style.display = "flex";
+        }
+
+        function closeDevicesModal() {
+            const modal = document.getElementById("deviceModal");
+            if (!modal) return;
+            modal.style.display = "none";
+            modal.classList.remove("is-open");
+        }
+
+        document.getElementById("export-pdf-btn")?.addEventListener("click", function () {
+            const jsPDF = window.jspdf && window.jspdf.jsPDF;
+            if (!jsPDF) return;
+
+            const table = document.querySelector(".dashboard-table");
+            if (!table) return;
+
+            const headers = Array.from(table.querySelectorAll("thead th")).map(th => th.textContent.trim().split('\n')[0]);
+            const body = [];
+            table.querySelectorAll("tbody tr").forEach(tr => {
+                const row = Array.from(tr.querySelectorAll("td")).map(td => td.textContent.trim());
+                body.push(row);
+            });
+
+            const doc = new jsPDF("landscape");
+            doc.text("Vodacom Dashboard Export", 14, 15);
+            if (typeof doc.autoTable === "function") {
+                doc.autoTable({
+                    head: [headers],
+                    body,
+                    startY: 20,
+                    styles: { fontSize: 8, cellPadding: 2 }
                 });
-            })();
+            }
+            doc.save("vodacom_dashboard_export.pdf");
+        });
 
-            // -----------------------------
-            // Floating "three dots" rail + Edit modal (queue request)
-            // -----------------------------
-            (function bindRowEditUI() {
-                const modal = document.getElementById("editRowModal");
-                const modalBody = document.getElementById("editRowBody");
-                const submitWrap = document.getElementById("editSubmitWrap");
-                const submitBtn = document.getElementById("submitChangesBtn");
-                if (!modal || !modalBody || !submitWrap || !submitBtn) return;
-
-                // Floating rail
-                const rail = document.createElement("div");
-                rail.className = "editbtn-rail";
-                Object.assign(rail.style, {
-                    position: "fixed",
-                    width: "30px",
-                    height: "0px",
-                    left: "-9999px",
-                    top: "-9999px",
-                    pointerEvents: "none",
-                    zIndex: "999999"
-                });
-
-                const editBtn = document.createElement("button");
-                editBtn.type = "button";
-                editBtn.className = "editbtn";
-                editBtn.innerHTML = `
-      <div class="editbtn__dots">
-        <span class="editbtn__dot"></span>
-        <span class="editbtn__dot"></span>
-        <span class="editbtn__dot"></span>
-      </div>`;
-                Object.assign(editBtn.style, {
-                    position: "absolute",
-                    left: "0",
-                    top: "0",
-                    width: "30px",
-                    height: "0px",
-                    display: "none",
-                    pointerEvents: "auto"
-                });
-
-                rail.appendChild(editBtn);
-                document.body.appendChild(rail);
-
-                let hideTimer = null;
-                let activeRow = null;
-                let currentContractId = null;
-                let pending = {};
-
-                function positionRail() {
-                    const clipR = scroller === window
-                        ? document.documentElement.getBoundingClientRect()
-                        : scroller.getBoundingClientRect();
-                    rail.style.left = clipR.left - 30 + "px";
-                    rail.style.top = clipR.top + "px";
-                    rail.style.height = clipR.height + "px";
-                }
-
-                function positionBtnForRow(row) {
-                    const rowR = row.getBoundingClientRect();
-                    const clipR = scroller === window
-                        ? document.documentElement.getBoundingClientRect()
-                        : scroller.getBoundingClientRect();
-                    editBtn.style.top = rowR.top - clipR.top + "px";
-                    editBtn.style.height = rowR.height + "px";
-                }
-
-                function showForRow(row) {
-                    clearTimeout(hideTimer);
-                    activeRow = row;
-                    currentContractId = row.getAttribute("data-contract-id") || null;
-                    positionRail();
-                    positionBtnForRow(row);
-                    editBtn.style.display = "flex";
-                    editBtn.classList.remove("editbtn--visible");
-                    requestAnimationFrame(() => editBtn.classList.add("editbtn--visible"));
-                }
-
-                function hideIfAllowed() {
-                    if (!activeRow) return;
-                    const overRow = activeRow.matches(":hover");
-                    const overBtn = editBtn.matches(":hover");
-                    if (!overRow && !overBtn) {
-                        editBtn.style.display = "none";
-                        editBtn.classList.remove("editbtn--visible");
-                    }
-                }
-
-                function relayout() {
-                    if (activeRow) {
-                        positionRail();
-                        positionBtnForRow(activeRow);
-                    } else {
-                        positionRail();
-                    }
-                }
-
-                Array.from(tbody.rows).forEach((row) => {
-                    row.addEventListener("pointerenter", () => showForRow(row));
-                    row.addEventListener("pointerleave", (e) => {
-                        if (e.relatedTarget && (e.relatedTarget === editBtn || editBtn.contains(e.relatedTarget))) return;
-                        clearTimeout(hideTimer);
-                        hideTimer = setTimeout(hideIfAllowed, 140);
-                    });
-                });
-
-                editBtn.addEventListener("pointerenter", () => clearTimeout(hideTimer));
-                editBtn.addEventListener("pointerleave", (e) => {
-                    if (activeRow && e.relatedTarget && (e.relatedTarget === activeRow || activeRow.contains(e.relatedTarget))) return;
-                    clearTimeout(hideTimer);
-                    hideTimer = setTimeout(hideIfAllowed, 100);
-                });
-
-                (scroller === window ? window : scroller).addEventListener("scroll", relayout, { passive: true });
-                window.addEventListener("resize", relayout);
-                relayout();
-
-                // Modal controls
-                function openModal() { modal.style.display = "block"; }
-                function closeModal() { modal.style.display = "none"; }
-                window.closeEditRowModal = closeModal; // keep existing API
-
-                function snapshotRecord(tr) {
-                    const rec = {};
-                    FIELD_KEYS.forEach((key) => {
-                        const ci = colIndexFor(key);
-                        if (ci != null && tr.cells[ci]) rec[key] = tr.cells[ci].textContent.trim();
-                    });
-                    return rec;
-                }
-
-                function buildEditGrid(record, devicesText) {
-                    const tableEl = document.createElement("table");
-                    tableEl.className = "editgrid";
-                    tableEl.innerHTML = `
-        <thead>
-          <tr>
-            <th>Field</th>
-            <th>Current Value</th>
-            <th></th>
-            <th>New Value</th>
-          </tr>
-        </thead>
-        <tbody></tbody>`;
-                    const tBody = tableEl.querySelector("tbody");
-
-                    FIELD_KEYS.forEach((key) => {
-                        const label = key.replace(/_/g, " ");
-                        const cur = (record[key] ?? "").toString();
-                        const isNumber = ["Monthly_Costs", "VAT", "Monthly_Cost_Excl_VAT"].includes(key);
-                        const typeAttr = /date/i.test(key) ? 'type="date"' : (isNumber ? 'type="number" step="0.01"' : 'type="text"');
-
-                        const rowEl = document.createElement("tr");
-                        rowEl.innerHTML = `
-          <td class="field-col">${label}</td>
-          <td class="value-col"><div class="pill">${cur}</div></td>
-          <td class="edit-col">
-            <button type="button" class="confirm edit-row-btn" data-key="${key}">Edit</button>
-          </td>
-          <td class="new-col">
-            <div class="pill edit-input-wrap" data-key="${key}" style="display:none;">
-              <input ${typeAttr} class="edit-input" value="">
-            </div>
-          </td>`;
-                        tBody.appendChild(rowEl);
-                    });
-
-                    const deviceRow = document.createElement("tr");
-                    deviceRow.innerHTML = `
-                    <td class="field-col">Devices</td>
-                    <td class="value-col"><div class="pill">${(devicesText || "Linked to this contract")}</div></td>
-                    <td class="edit-col">
-                        <button type="button" class="confirm add-device-btn">Add Device</button>
-                    </td>
-                    <td class="new-col"><div class="pill">Create and link a new device</div></td>`;
-                    tBody.appendChild(deviceRow);
-
-                    return tableEl;
-                }
-
-                function buildDeviceAddPanel(record) {
-                    const panel = document.createElement("div");
-                    panel.className = "add-device-panel";
-                    panel.style.display = "none";
-                    panel.innerHTML = `
-                <h3>Add Linked Device</h3>
-                <form class="add-device-form">
-                    <div class="add-device-grid">
-                        <div>
-                            <label>Name of Device Owner</label>
-                            <input type="text" name="Name_" required>
-                        </div>
-                        <div>
-                            <label>Surname of Device Owner</label>
-                            <input type="text" name="Surname_" required>
-                        </div>
-                        <div>
-                            <label>Personnel Number</label>
-                            <input type="text" name="Personnel_nr" required>
-                        </div>
-                        <div>
-                            <label>Company</label>
-                            <select name="Company" required>
-                                <option>PCM</option>
-                                <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
-                                <option>PAS/PAC</option>
-                                <option>INT</option>
-                                <option>PSSS</option>
-                                <option>POLYGRAPH</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label>Client Division</label>
-                            <input type="text" name="Client_Division" required>
-                        </div>
-                        <div>
-                            <label>Device Name</label>
-                            <input type="text" name="Device_Name">
-                        </div>
-                        <div>
-                            <label>Device Make</label>
-                            <input type="text" name="device_make">
-                        </div>
-                        <div>
-                            <label>Device Model</label>
-                            <input type="text" name="device_model">
-                        </div>
-                        <div>
-                            <label>Serial Number</label>
-                            <input type="text" name="Serial_Number">
-                        </div>
-                        <div>
-                            <label>Device Description</label>
-                            <select name="Device_Description" required>
-                                <option>Laptop</option>
-                                <option>Tablet</option>
-                                <option>Cell-Phone</option>
-                                <option>Monitor-Screen</option>
-                                <option>Desktop</option>
-                                <option>Other</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label>Insurance</label>
-                            <select name="insurance" required>
-                                <option value="Yes">Yes</option>
-                                <option value="No">No</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="add-device-actions">
-                        <button type="submit" class="confirm add-device-submit">Add Linked Device</button>
-                    </div>
-                </form>`;
-
-                    const form = panel.querySelector(".add-device-form");
-                    form.querySelector('[name="Name_"]').value = (record.Name_ || "").toString();
-                    form.querySelector('[name="Surname_"]').value = (record.Surname_ || "").toString();
-                    form.querySelector('[name="Personnel_nr"]').value = (record.Personnel_nr || "").toString();
-                    form.querySelector('[name="Company"]').value = (record.Company || "PCM").toString();
-                    form.querySelector('[name="Client_Division"]').value = (record.Client_Division || "").toString();
-
-                    form.addEventListener("submit", async (e) => {
-                        e.preventDefault();
-                        if (!currentContractId) {
-                            alert("No contract ID.");
-                            return;
-                        }
-
-                        const submitDeviceBtn = form.querySelector(".add-device-submit");
-                        const payload = Object.fromEntries(new FormData(form).entries());
-                        submitDeviceBtn.disabled = true;
-                        try {
-                            const resp = await fetch(`/api/contracts/${currentContractId}/devices`, {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify(payload)
-                            });
-                            const data = await resp.json().catch(() => ({}));
-                            if (!resp.ok || !data.created) {
-                                throw new Error(data.detail || "Failed to add linked device.");
-                            }
-                            alert("Linked device added successfully.");
-                            window.location.reload();
-                        } catch (err) {
-                            alert(err?.message || "Failed to add linked device.");
-                        } finally {
-                            submitDeviceBtn.disabled = false;
-                        }
-                    });
-
-                    return panel;
-                }
-
-                function openEditModalFromRow(tr) {
-                    currentContractId = tr.getAttribute("data-contract-id") || currentContractId;
-                    if (!currentContractId) return;
-
-                    const record = snapshotRecord(tr);
-                    const devicesCol = headerIndex[norm("devices")];
-                    const devicesText = devicesCol != null && tr.cells[devicesCol]
-                        ? tr.cells[devicesCol].textContent.trim()
-                        : "Linked to this contract";
-                    const grid = buildEditGrid(record, devicesText);
-                    const addDevicePanel = buildDeviceAddPanel(record);
-
-                    modalBody.innerHTML = "";
-                    modalBody.appendChild(grid);
-                    modalBody.appendChild(addDevicePanel);
-                    modalBody._currentRecord = record;
-                    submitWrap.style.display = "none";
-                    pending = {};
-                    openModal();
-
-                    if (!modalBody._delegationBound) {
-                        modalBody._delegationBound = true;
-                        modalBody.addEventListener("click", (e) => {
-                            const addBtn = e.target.closest(".add-device-btn");
-                            if (addBtn) {
-                                const panel = modalBody.querySelector(".add-device-panel");
-                                if (!panel) return;
-                                panel.style.display = panel.style.display === "none" ? "block" : "none";
-                                return;
-                            }
-
-                            const btn = e.target.closest(".edit-row-btn");
-                            if (!btn) return;
-                            const key = btn.dataset.key;
-                            const wrap = modalBody.querySelector(`.edit-input-wrap[data-key="${key}"]`);
-                            if (!wrap) return;
-
-                            const currentRecord = modalBody._currentRecord || {};
-
-                            wrap.style.display = "flex";
-                            const input = wrap.querySelector(".edit-input");
-                            input.value = (currentRecord[key] ?? "");
-                            input.focus();
-
-                            if (!input._bound) {
-                                input._bound = true;
-                                input.addEventListener("input", () => {
-                                    const before = (currentRecord[key] ?? "").toString();
-                                    const after = input.value;
-                                    if (after !== before) pending[key] = after;
-                                    else delete pending[key];
-                                    submitWrap.style.display = Object.keys(pending).length ? "block" : "none";
-                                });
-                            }
-                        });
-                    }
-                }
-
-                editBtn.addEventListener("click", () => {
-                    if (!activeRow) {
-                        alert("No active row found");
-                        return;
-                    }
-                    currentContractId = activeRow.getAttribute("data-contract-id");
-                    if (!currentContractId) {
-                        alert("No contract ID on this row");
-                        return;
-                    }
-                    openEditModalFromRow(activeRow);
-                });
-
-                submitBtn.addEventListener("click", async () => {
-                    if (!currentContractId) {
-                        alert("No contract ID.");
-                        closeModal();
-                        return;
-                    }
-                    if (!Object.keys(pending).length) {
-                        alert("No changes to submit.");
-                        closeModal();
-                        return;
-                    }
-
-                    submitBtn.disabled = true;
-                    try {
-                        const resp = await fetch(`/api/contracts/${currentContractId}/edit-requests`, {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify(pending)
-                        });
-                        if (!resp.ok) throw new Error("Failed to queue edit request");
-                        const res = await resp.json();
-                        if (res.created || res.queued) {
-                            alert("Edit request submitted for approval.");
-                            closeModal();
-                        } else {
-                            alert(res.message || "Could not queue request.");
-                        }
-                    } catch (err) {
-                        alert(err?.message || "Failed to queue edit request.");
-                    } finally {
-                        submitBtn.disabled = false;
-                    }
-                });
-
-                // Close on backdrop click
-                modal.addEventListener("click", (e) => {
-                    if (e.target === modal) closeModal();
-                });
-            })();
-
-            // -----------------------------
-            // Devices modal (global funcs for existing onclicks)
-            // -----------------------------
-            (function exposeDevicesModal() {
-                window.showDevicesModal = function showDevicesModal(contractId) {
-                    fetch(`/contracts/${contractId}/devices`)
-                        .then((r) => r.json())
-                        .then((data) => {
-                            const body = document.getElementById("deviceModalBody");
-                            if (!Array.isArray(data) || data.length === 0) {
-                                body.innerHTML = "<p>No devices found.</p>";
-                            } else {
-                                body.innerHTML = `
-              <table border="1" width="100%" cellpadding="5">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Surname</th>
-                    <th>Personnel #</th>
-                    <th>Company</th>
-                    <th>Client Division</th>
-                    <th>Device Name</th>
-                                        <th>Device Make</th>
-                                        <th>Device Model</th>
-                    <th>Serial Number</th>
-                    <th>Description</th>
-                    <th>Insurance</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${data.map(d => `
-                    <tr>
-                      <td>${d.Name_ ?? ""}</td>
-                      <td>${d.Surname_ ?? ""}</td>
-                      <td>${d.Personnel_nr ?? ""}</td>
-                      <td>${d.Company ?? ""}</td>
-                      <td>${d.Client_Division ?? ""}</td>
-                      <td>${d.Device_Name ?? ""}</td>
-                      <td>${d.device_make ?? ""}</td>
-                      <td>${d.device_model ?? ""}</td>
-                      <td>${d.Serial_Number ?? ""}</td>
-                      <td>${d.Device_Description ?? ""}</td>
-                      <td>${d.insurance ?? ""}</td>
-                    </tr>
-                  `).join("")}
-                </tbody>
-              </table>`;
-                            }
-                            document.getElementById("deviceModal").style.display = "block";
-                        })
-                        .catch(() => {
-                            document.getElementById("deviceModalBody").innerHTML = "<p>Failed to load devices.</p>";
-                            document.getElementById("deviceModal").style.display = "block";
-                        });
-                };
-
-                window.closeDevicesModal = function closeDevicesModal() {
-                    const modal = document.getElementById("deviceModal");
-                    if (modal) modal.style.display = "none";
-                };
-            })();
-
-            // -----------------------------
-            // Sidebar handle + scrim + link kick-back
-            // -----------------------------
-            (function bindSidebar() {
-                const handle = document.getElementById("sidebarHandle");
-                const collapseBtn = document.getElementById("sidebarCollapse");
-                const scrim = document.getElementById("sidebarScrim");
-
-                function toggleSidebar() {
-                    const collapsed = document.body.classList.toggle("sidebar-collapsed");
-                    handle?.setAttribute("aria-pressed", String(!collapsed ? true : false));
-                    handle?.setAttribute("aria-label", collapsed ? "Expand sidebar" : "Collapse sidebar");
-                    if (collapsed) document.body.classList.remove("sidebar-open");
-                }
-
-                handle?.addEventListener("click", toggleSidebar);
-                collapseBtn?.addEventListener("click", toggleSidebar);
-                scrim?.addEventListener("click", () => document.body.classList.remove("sidebar-open"));
-
-                const activeLinks = Array.from(document.querySelectorAll(".sidebar a.active")).filter(
-                    (a) => a.id !== "logoutLink"
-                );
-                activeLinks.forEach((a) => a.classList.add("just-activated"));
-                setTimeout(() => activeLinks.forEach((a) => a.classList.remove("just-activated")), 1050);
-            })();
-        })();
+        document.getElementById("deviceModal")?.addEventListener("click", function (e) {
+            if (e.target === this) closeDevicesModal();
+        });
     </script>
-
-
-
-
 </body>
-
 
 </html>

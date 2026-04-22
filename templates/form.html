@@ -2,1127 +2,1295 @@
 <html>
 
 <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vodacom Subscription Form</title>
     <link rel="icon" href="/static/pcm-lockup-goldc-final.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="/static/styles.css?v={{ time }}">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="/static/ui/main.css?v={{ time }}">
 </head>
 
-<body>
-    <!-- Sidebar navigation -->
+<body class="capture-form app-with-sidebar">
+    <aside class="sidebar">
+        <div class="sidebar-top">
+            <div class="sidebar-brand">
+                <span class="sidebar-brand-title">Asset Management</span>
+                <span class="sidebar-brand-sub">Enterprise Portal</span>
+            </div>
 
-    <div class="sidebar">
-
-        <!-- Top navigation -->
-        <div class="nav-top">
-            <a href="/dashboard" class="{{ 'active' if section == 'home' else '' }}"><span>Home</span></a>
-            <a href="/form" class="{{ 'active' if section == 'form' else '' }}"><span>Capturing Form</span></a>
-            <a href="/dashboard/vodacom" class="{{ 'active' if section == 'vodacom' else '' }}"><span>Vodacom
-                    Dashboard</span></a>
-            <a href="/dashboard/devices" class="{{ 'active' if section == 'devices' else '' }}"><span>Devices
-                    Dashboard</span></a>
+            <nav class="nav-top">
+                <a href="/dashboard" class="{{ 'active' if section == 'home' else '' }}">
+                    <span class="material-symbols-outlined" aria-hidden="true">home</span>
+                    <span>Home</span>
+                </a>
+                <a href="/form" class="{{ 'active' if section == 'form' else '' }}">
+                    <span class="material-symbols-outlined" aria-hidden="true">edit_document</span>
+                    <span>Capturing Form</span>
+                </a>
+                <a href="/dashboard/vodacom" class="{{ 'active' if section == 'vodacom' else '' }}">
+                    <span class="material-symbols-outlined" aria-hidden="true">dashboard</span>
+                    <span>Vodacom Dashboard</span>
+                </a>
+                <a href="/dashboard/devices" class="{{ 'active' if section == 'devices' else '' }}">
+                    <span class="material-symbols-outlined" aria-hidden="true">devices</span>
+                    <span>Devices Dashboard</span>
+                </a>
+            </nav>
         </div>
+
         <div class="sidebar-mid">
-            <a href="/" class="sidebar-return" title="Return">↺ Return</a>
+            <a href="/" class="sidebar-return" title="Return">
+                <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+                <span>Return</span>
+            </a>
         </div>
-
-        <!-- Bottom navigation -->
 
         <div class="nav-bottom">
             {% if request.session.get('is_admin') %}
-            <a href="/admin" class="{{ 'active' if section == 'admin' else '' }}"><span>Admin</span></a>
+            <a href="/admin" class="{{ 'active' if section == 'admin' else '' }}">
+                <span class="material-symbols-outlined" aria-hidden="true">admin_panel_settings</span>
+                <span>Admin</span>
+            </a>
             {% endif %}
 
-
-            <a href="/settings" class="{{ 'active' if section == 'settings' else '' }}"><span>Settings</span></a>
+            <a href="/settings" class="{{ 'active' if section == 'settings' else '' }}">
+                <span class="material-symbols-outlined" aria-hidden="true">settings</span>
+                <span>Settings</span>
+            </a>
             <a href="/logout" id="logoutLink" class="{{ 'active' if section == 'logout' else '' }}">
+                <span class="material-symbols-outlined" aria-hidden="true">logout</span>
                 <span>Log Out</span>
             </a>
         </div>
-        <button id="sidebarHandle" class="sidebar-handle" aria-label="Collapse sidebar" aria-pressed="false"
-            title="Collapse sidebar"> <span class="handle-icon" aria-hidden="true">⟨</span> </button>
-    </div>
-    <!-- Main content area with 3 columns -->
-    <div class="content">
-        <!-- Block 1: The form -->
-        <div id="formGroupWrapper">
-            <div class="contentInner" id="form1">
 
-                <div class="boxTopHeader">Vodacom Subscription Form
-                    <span id="linkPillContract" class="link-pill" aria-hidden="true">🔗 Linked</span>
+        <button id="sidebarHandle" class="sidebar-handle" aria-label="Collapse sidebar" aria-pressed="false"
+            title="Collapse sidebar"><span class="material-symbols-outlined"
+                aria-hidden="true">chevron_left</span></button>
+    </aside>
+
+    <main class="capture-main">
+        <header class="capture-topbar">
+            <div class="capture-topbar__titles">
+                <h1>Asset Capturing Terminal</h1>
+                <div class="archive-divider" aria-hidden="true"></div>
+                <h2>Institutional Device &amp; Subscription Management Interface</h2>
+            </div>
+            <div class="archive-tools">
+                <span class="material-symbols-outlined" aria-hidden="true">notifications</span>
+                <span class="material-symbols-outlined" aria-hidden="true">history</span>
+                <a class="capture-export" href="/dashboard/vodacom">Dashboard View</a>
+            </div>
+        </header>
+
+        <div class="content capture-content">
+            <!-- Block 1: The form -->
+            <div id="formGroupWrapper">
+                <div class="contentInner" id="form1">
+
+                    <div class="boxTopHeader">Vodacom Subscription Form
+                        <span id="linkPillContract" class="link-pill" aria-hidden="true">Linked</span>
+                    </div>
+
+
+                    {% if message %}
+                    <p class="form-success-msg">{{ message }}</p>
+                    {% endif %}
+
+                    <form id="vodacomForm" method="post" action="/submit">
+
+                        <div class="deviceCheckContainer">
+                            <label for="hasDevices">Does this contract have devices?</label>
+                            <input type="checkbox" id="hasDevices">
+
+                            <div id="deviceCountContainer" class="device-count-container is-hidden">
+                                <label class="device-count-label" for="deviceCount">How many devices?</label>
+                                <input type="number" id="deviceCount" min="1" max="10" value="1">
+                            </div>
+                        </div>
+                        <div class="vodacom-form-wrapper">
+                            <label for="company_number">Company Number:</label>
+                            <select id="company_number" name="company_number" required>
+                                <option value="" selected disabled>Select company number</option>
+                                <option value="B0360564-5">B0360564-5 RISK</option>
+                                <option value="C0002302-7">C0002302-7 PAS</option>
+                                <option value="B0405953-0">B0405953-0 PCM</option>
+                                <option value="B0405954-9">B0405954-9 PAC</option>
+                                <option value="B0405955-8">B0405955-8 LOG</option>
+                                <option value="B0406097-1">B0406097-1 PLISA</option>
+                            </select>
+
+                            <label for="contract_number">Contract Number:</label>
+                            <input type="text" id="contract_number" name="contract_number" required>
+
+                            <label>Name:</label>
+                            <input type="text" id="Name_" name="Name_" required>
+
+                            <label for="Surname_">Surname:</label>
+                            <input type="text" id="Surname_" name="Surname_" required>
+
+                            <label for="Personnel_nr">Personnel Number:</label>
+                            <input type="text" id="Personnel_nr" name="Personnel_nr" required>
+
+                            <label for="Company">Company:</label>
+                            <select id="Company" name="Company" required>
+                                <option>PCM</option>
+                                <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
+                                <option>PAS/PAC</option>
+                                <option>INT</option>
+                                <option>PSSS</option>
+                                <option>POLYGRAPH</option>
+                            </select>
+
+                            <label for="Client_Division">Client Division:</label>
+                            <select id="Client_Division" name="Client_Division" required>
+                                <option>300462 - Vector CCTV</option>
+                                <option>ACS Gauteng - PAC</option>
+                                <option>Airlink</option>
+                                <option>Atlantis - RISK</option>
+                                <option>Avroy Slain - RISK</option>
+                                <option>Bollore - RISK</option>
+                                <option>Canal - RISK</option>
+                                <option>Clearing Agent - PCM</option>
+                                <option>Cross Border Clearing - PISA</option>
+                                <option>Cross Border Clearing - SWIFT</option>
+                                <option>DHL - RISK</option>
+                                <option>Health and Safety (F2W)</option>
+                                <option>Hellman - RISK</option>
+                                <option>IATA/ICAO - PAS</option>
+                                <option>IT - PCM BUDGET</option>
+                                <option>Imperial Watchtower - RISK</option>
+                                <option>KWE - RISK</option>
+                                <option>Load Management - RISK</option>
+                                <option>MT Route</option>
+                                <option>Operational Management - PLN</option>
+                                <option>Operational Management - RISK</option>
+                                <option>Operations Namibia - RISK</option>
+                                <option>PCM - Health and Safety</option>
+                                <option>PCM - Main</option>
+                                <option>PCM - Pallet Sock Company</option>
+                                <option>PCM - Polygraph Services</option>
+                                <option>PCM-Sales</option>
+                                <option>SG Bloemfontein - RISK</option>
+                                <option>SG Cape Town - RISK</option>
+                                <option>SG Durban - RISK</option>
+                                <option>SG George - RISK</option>
+                                <option>SG Johannesburg - RISK</option>
+                                <option>SG Port Elizabeth - RISK</option>
+                                <option>Training - PAS</option>
+                                <option>Transport - PLISA</option>
+                                <option>Vector Bloemfontein - RISK</option>
+                                <option>Vector Linbro CCTV - RISK</option>
+                                <option>Vector Linbro VA - RISK</option>
+                                <option>Vector Linbro WH</option>
+                                <option>Vector Linbro Warehouse - RISK</option>
+                                <option>Vector Nelspruit - RISK</option>
+                                <option>Vector Polokwane - RISK</option>
+                                <option>Vector Windhoek - RISK</option>
+                                <option>Woolworths -RISK</option>
+                            </select>
+
+                            <label for="Contract_Type">Contract Type:</label>
+                            <select id="Contract_Type" name="Contract_Type" required>
+                                <option>AIRTIME</option>
+                                <option>DATA</option>
+                            </select>
+
+                            <label for="contract_title">Contract Title:</label>
+                            <input type="text" id="contract_title" name="contract_title">
+
+                            <label for="Monthly_Costs">Monthly Costs (Excl VAT):</label>
+                            <input type="text" id="Monthly_Costs" name="Monthly_Costs" required>
+
+                            <label for="VAT">VAT (15%):</label>
+                            <input type="text" id="VAT" name="VAT" readonly>
+
+                            <label for="Monthly_Cost_Excl_VAT">Monthly Cost (Inc VAT):</label>
+                            <input type="text" id="Monthly_Cost_Excl_VAT" name="Monthly_Cost_Excl_VAT" readonly>
+
+                            <label>Contract Term:</label>
+                            <div class="radioDiv">
+                                <label for="term12">12 Months</label>
+                                <input class="inputRadio" type="radio" id="term12" name="Contract_Term"
+                                    value="12 Months" required>
+                            </div>
+                            <div class="radioDiv">
+                                <label for="term24">24 Months</label>
+                                <input class="inputRadio" type="radio" id="term24" name="Contract_Term"
+                                    value="24 Months" required>
+                            </div>
+                            <div class="radioDiv">
+                                <label for="term36">36 Months</label>
+                                <input class="inputRadio" type="radio" id="term36" name="Contract_Term"
+                                    value="36 Months" required>
+                            </div>
+
+                            <label for="Sim_Card_Number">SIM Card Number:</label>
+                            <input type="text" id="Sim_Card_Number" name="Sim_Card_Number" required>
+
+                            <label for="Inception_Date">Inception Date:</label>
+                            <input type="date" id="Inception_Date" name="Inception_Date" required>
+
+                            <label for="Termination_Date">Termination Date: <small id="terminationAutoLink"
+                                    class="termination-auto-link"
+                                    title="Recalculate from Inception Date and Contract Term">Reset to
+                                    auto</small></label>
+                            <input type="date" id="Termination_Date" name="Termination_Date">
+                        </div>
+                        <button type="submit" id="vodacomSubmitBtn" class="formSubmitButton">Submit</button>
+                    </form>
                 </div>
 
 
-                {% if message %}
-                <p style="color: green;">{{ message }}</p>
-                {% endif %}
-
-                <form id="vodacomForm" method="post" action="/submit">
-
-                    <div class="deviceCheckContainer">
-                        <label for="hasDevices">Does this contract have devices?</label>
-                        <input type="checkbox" id="hasDevices">
-
-                        <div id="deviceCountContainer"
-                            style="display: none; margin-top: 8px; margin-right: 8px; font-size: 12px;">
-                            <label style="font-weight: normal;" for="deviceCount">How many devices?</label>
-                            <input type="number" id="deviceCount" min="1" max="10" value="1">
-                        </div>
+                <div class="contentInner" id="form2">
+                    <div class="boxTopHeader">Device Capturing Form
+                        <span id="linkPillDevices" class="link-pill" aria-hidden="true">Linked</span>
                     </div>
-                    <div class="vodacom-form-wrapper">
-                        <label for="company_number">Company Number:</label>
-                        <select id="company_number" name="company_number" required>
-                            <option value="" selected disabled>Select company number</option>
-                            <option value="B0360564-5">B0360564-5 RISK</option>
-                            <option value="C0002302-7">C0002302-7 PAS</option>
-                            <option value="B0405953-0">B0405953-0 PCM</option>
-                            <option value="B0405954-9">B0405954-9 PAC</option>
-                            <option value="B0405955-8">B0405955-8 LOG</option>
-                            <option value="B0406097-1">B0406097-1 PLISA</option>
-                        </select>
 
-                        <label for="contract_number">Contract Number:</label>
-                        <input type="text" id="contract_number" name="contract_number" required>
+                    {% if message %}
+                    <p class="form-success-msg">{{ message }}</p>
+                    {% endif %}
 
-                        <label>Name:</label>
-                        <input type="text" id="Name_" name="Name_" required>
+                    <form id="allDevicesForm" method="post" action="/submit_device">
 
-                        <label for="Surname_">Surname:</label>
-                        <input type="text" id="Surname_" name="Surname_" required>
-
-                        <label for="Personnel_nr">Personnel Number:</label>
-                        <input type="text" id="Personnel_nr" name="Personnel_nr" required>
-
-                        <label for="Company">Company:</label>
-                        <select id="Company" name="Company" required>
-                            <option>PCM</option>
-                            <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
-                            <option>PAS/PAC</option>
-                            <option>INT</option>
-                            <option>PSSS</option>
-                            <option>POLYGRAPH</option>
-                        </select>
-
-                        <label for="Client_Division">Client Division:</label>
-                        <select id="Client_Division" name="Client_Division" required>
-                            <option>300462 - Vector CCTV</option>
-                            <option>ACS Gauteng - PAC</option>
-                            <option>Airlink</option>
-                            <option>Atlantis - RISK</option>
-                            <option>Avroy Slain - RISK</option>
-                            <option>Bollore - RISK</option>
-                            <option>Canal - RISK</option>
-                            <option>Clearing Agent - PCM</option>
-                            <option>Cross Border Clearing - PISA</option>
-                            <option>Cross Border Clearing - SWIFT</option>
-                            <option>DHL - RISK</option>
-                            <option>Health and Safety (F2W)</option>
-                            <option>Hellman - RISK</option>
-                            <option>IATA/ICAO - PAS</option>
-                            <option>IT - PCM BUDGET</option>
-                            <option>Imperial Watchtower - RISK</option>
-                            <option>KWE - RISK</option>
-                            <option>Load Management - RISK</option>
-                            <option>MT Route</option>
-                            <option>Operational Management - PLN</option>
-                            <option>Operational Management - RISK</option>
-                            <option>Operations Namibia - RISK</option>
-                            <option>PCM - Health and Safety</option>
-                            <option>PCM - Main</option>
-                            <option>PCM - Pallet Sock Company</option>
-                            <option>PCM - Polygraph Services</option>
-                            <option>PCM-Sales</option>
-                            <option>SG Bloemfontein - RISK</option>
-                            <option>SG Cape Town - RISK</option>
-                            <option>SG Durban - RISK</option>
-                            <option>SG George - RISK</option>
-                            <option>SG Johannesburg - RISK</option>
-                            <option>SG Port Elizabeth - RISK</option>
-                            <option>Training - PAS</option>
-                            <option>Transport - PLISA</option>
-                            <option>Vector Bloemfontein - RISK</option>
-                            <option>Vector Linbro CCTV - RISK</option>
-                            <option>Vector Linbro VA - RISK</option>
-                            <option>Vector Linbro WH</option>
-                            <option>Vector Linbro Warehouse - RISK</option>
-                            <option>Vector Nelspruit - RISK</option>
-                            <option>Vector Polokwane - RISK</option>
-                            <option>Vector Windhoek - RISK</option>
-                            <option>Woolworths -RISK</option>
-                        </select>
-
-                        <label for="Contract_Type">Contract Type:</label>
-                        <select id="Contract_Type" name="Contract_Type" required>
-                            <option>AIRTIME</option>
-                            <option>DATA</option>
-                        </select>
-
-                        <label for="contract_title">Contract Title:</label>
-                        <input type="text" id="contract_title" name="contract_title">
-
-                        <label for="Monthly_Costs">Monthly Costs (Excl VAT):</label>
-                        <input type="text" id="Monthly_Costs" name="Monthly_Costs" required>
-
-                        <label for="VAT">VAT (15%):</label>
-                        <input type="text" id="VAT" name="VAT" readonly>
-
-                        <label for="Monthly_Cost_Excl_VAT">Monthly Cost (Inc VAT):</label>
-                        <input type="text" id="Monthly_Cost_Excl_VAT" name="Monthly_Cost_Excl_VAT" readonly>
-
-                        <label>Contract Term:</label>
-                        <div class="radioDiv">
-                            <label for="term12">12 Months</label>
-                            <input class="inputRadio" type="radio" id="term12" name="Contract_Term" value="12 Months"
-                                required>
+                        <div class="deviceCheckContainer">
+                            <label for="deviceIsVodacom">Is this device on a Vodacom contract?</label>
+                            <input type="checkbox" id="deviceIsVodacom" name="deviceIsVodacom">
                         </div>
-                        <div class="radioDiv">
-                            <label for="term24">24 Months</label>
-                            <input class="inputRadio" type="radio" id="term24" name="Contract_Term" value="24 Months"
-                                required>
-                        </div>
-                        <div class="radioDiv">
-                            <label for="term36">36 Months</label>
-                            <input class="inputRadio" type="radio" id="term36" name="Contract_Term" value="36 Months"
-                                required>
+                        <!-- Device Form 1 (original) -->
+                        <div class="device-form-wrapper" data-device-index="1">
+
+
+                            <label for="AName_1">Name of Device Owner:</label>
+                            <input type="text" id="AName_1" name="AName_1" required>
+                            <label for="ASurname_1">Surname Device Owner:</label>
+                            <input type="text" id="ASurname_1" name="ASurname_1" required>
+                            <label for="APersonnel_nr_1">Personnel Number Of Device Owner:</label>
+                            <input type="text" id="APersonnel_nr_1" name="APersonnel_nr_1" required>
+                            <label for="ACompany_1">Company:</label>
+                            <select id="ACompany_1" name="ACompany_1" required>
+                                <option>PCM</option>
+                                <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
+                                <option>PAS/PAC</option>
+                                <option>INT</option>
+                                <option>PSSS</option>
+                                <option>POLYGRAPH</option>
+                            </select>
+                            <label for="AClient_Division_1">Client Division:</label>
+                            <select id="AClient_Division_1" name="AClient_Division_1" required>
+                                <option>300462 - Vector CCTV</option>
+                                <option>ACS Gauteng - PAC</option>
+                                <option>Airlink</option>
+                                <option>Atlantis - RISK</option>
+                                <option>Avroy Slain - RISK</option>
+                                <option>Bollore - RISK</option>
+                                <option>Canal - RISK</option>
+                                <option>Clearing Agent - PCM</option>
+                                <option>Cross Border Clearing - PISA</option>
+                                <option>Cross Border Clearing - SWIFT</option>
+                                <option>DHL - RISK</option>
+                                <option>Health and Safety (F2W)</option>
+                                <option>Hellman - RISK</option>
+                                <option>IATA/ICAO - PAS</option>
+                                <option>IT - PCM BUDGET</option>
+                                <option>Imperial Watchtower - RISK</option>
+                                <option>KWE - RISK</option>
+                                <option>Load Management - RISK</option>
+                                <option>MT Route</option>
+                                <option>Operational Management - PLN</option>
+                                <option>Operational Management - RISK</option>
+                                <option>Operations Namibia - RISK</option>
+                                <option>PCM - Health and Safety</option>
+                                <option>PCM - Main</option>
+                                <option>PCM - Pallet Sock Company</option>
+                                <option>PCM - Polygraph Services</option>
+                                <option>PCM-Sales</option>
+                                <option>SG Bloemfontein - RISK</option>
+                                <option>SG Cape Town - RISK</option>
+                                <option>SG Durban - RISK</option>
+                                <option>SG George - RISK</option>
+                                <option>SG Johannesburg - RISK</option>
+                                <option>SG Port Elizabeth - RISK</option>
+                                <option>Training - PAS</option>
+                                <option>Transport - PLISA</option>
+                                <option>Vector Bloemfontein - RISK</option>
+                                <option>Vector Linbro CCTV - RISK</option>
+                                <option>Vector Linbro VA - RISK</option>
+                                <option>Vector Linbro WH</option>
+                                <option>Vector Linbro Warehouse - RISK</option>
+                                <option>Vector Nelspruit - RISK</option>
+                                <option>Vector Polokwane - RISK</option>
+                                <option>Vector Windhoek - RISK</option>
+                                <option>Woolworths -RISK</option>
+                            </select>
+                            <label for="Device_Name_1">Device Name:</label>
+                            <input type="text" id="Device_Name_1" name="Device_Name_1">
+                            <label for="device_make_1">Device Make:</label>
+                            <input type="text" id="device_make_1" name="device_make_1">
+                            <label for="device_model_1">Device Model:</label>
+                            <input type="text" id="device_model_1" name="device_model_1">
+                            <label for="Serial_Number_1">Serial Number:</label>
+                            <input type="text" id="Serial_Number_1" name="Serial_Number_1">
+                            <label for="Device_Description_1">Device Description:</label>
+                            <select id="Device_Description_1" name="Device_Description_1" required>
+                                <option>Laptop</option>
+                                <option>Tablet</option>
+                                <option>Cell-Phone</option>
+                                <option>Monitor-Screen</option>
+                                <option>Desktop</option>
+                                <option>Other</option>
+                            </select>
+                            <label>Does this device have insurance?:</label>
+                            <div class="radioDiv">
+                                <label for="insuranceYes_1">Yes</label>
+                                <input class="inputRadio" type="radio" id="insuranceYes_1" name="insurance_1"
+                                    value="Yes" required>
+                            </div>
+                            <div class="radioDiv">
+                                <label for="insuranceNo_1">No</label>
+                                <input class="inputRadio" type="radio" id="insuranceNo_1" name="insurance_1" value="No"
+                                    required>
+                            </div>
                         </div>
 
-                        <label for="Sim_Card_Number">SIM Card Number:</label>
-                        <input type="text" id="Sim_Card_Number" name="Sim_Card_Number" required>
+                        <!-- Device Forms 2 to 10 (hidden by default) -->
+                        <!-- For brevity, only device 2 shown, replicate similarly for devices 3 to 10 -->
+                        <div class="device-form-wrapper is-hidden" data-device-index="2" >
+                            <h3>Device 2</h3>
 
-                        <label for="Inception_Date">Inception Date:</label>
-                        <input type="date" id="Inception_Date" name="Inception_Date" required>
+                            <label for="AName_2">Name of Device Owner:</label>
+                            <input type="text" id="AName_2" name="AName_2" required>
+                            <label for="ASurname_2">Surname Device Owner:</label>
+                            <input type="text" id="ASurname_2" name="ASurname_2">
+                            <label for="APersonnel_nr_2">Personnel Number Of Device Owner:</label>
+                            <input type="text" id="APersonnel_nr_2" name="APersonnel_nr_2">
+                            <label for="ACompany_2">Company:</label>
+                            <select id="ACompany_2" name="ACompany_2">
+                                <option>PCM</option>
+                                <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
+                                <option>PAS/PAC</option>
+                                <option>INT</option>
+                                <option>PSSS</option>
+                                <option>POLYGRAPH</option>
+                            </select>
+                            <label for="AClient_Division_2">Client Division:</label>
+                            <select id="AClient_Division_2" name="AClient_Division_2">
+                                <option>300462 - Vector CCTV</option>
+                                <option>ACS Gauteng - PAC</option>
+                                <option>Airlink</option>
+                                <option>Atlantis - RISK</option>
+                                <option>Avroy Slain - RISK</option>
+                                <option>Bollore - RISK</option>
+                                <option>Canal - RISK</option>
+                                <option>Clearing Agent - PCM</option>
+                                <option>Cross Border Clearing - PISA</option>
+                                <option>Cross Border Clearing - SWIFT</option>
+                                <option>DHL - RISK</option>
+                                <option>Health and Safety (F2W)</option>
+                                <option>Hellman - RISK</option>
+                                <option>IATA/ICAO - PAS</option>
+                                <option>IT - PCM BUDGET</option>
+                                <option>Imperial Watchtower - RISK</option>
+                                <option>KWE - RISK</option>
+                                <option>Load Management - RISK</option>
+                                <option>MT Route</option>
+                                <option>Operational Management - PLN</option>
+                                <option>Operational Management - RISK</option>
+                                <option>Operations Namibia - RISK</option>
+                                <option>PCM - Health and Safety</option>
+                                <option>PCM - Main</option>
+                                <option>PCM - Pallet Sock Company</option>
+                                <option>PCM - Polygraph Services</option>
+                                <option>PCM-Sales</option>
+                                <option>SG Bloemfontein - RISK</option>
+                                <option>SG Cape Town - RISK</option>
+                                <option>SG Durban - RISK</option>
+                                <option>SG George - RISK</option>
+                                <option>SG Johannesburg - RISK</option>
+                                <option>SG Port Elizabeth - RISK</option>
+                                <option>Training - PAS</option>
+                                <option>Transport - PLISA</option>
+                                <option>Vector Bloemfontein - RISK</option>
+                                <option>Vector Linbro CCTV - RISK</option>
+                                <option>Vector Linbro VA - RISK</option>
+                                <option>Vector Linbro WH</option>
+                                <option>Vector Linbro Warehouse - RISK</option>
+                                <option>Vector Nelspruit - RISK</option>
+                                <option>Vector Polokwane - RISK</option>
+                                <option>Vector Windhoek - RISK</option>
+                                <option>Woolworths -RISK</option>
+                            </select>
+                            <label for="Device_Name_2">Device Name:</label>
+                            <input type="text" id="Device_Name_2" name="Device_Name_2">
+                            <label for="device_make_2">Device Make:</label>
+                            <input type="text" id="device_make_2" name="device_make_2">
+                            <label for="device_model_2">Device Model:</label>
+                            <input type="text" id="device_model_2" name="device_model_2">
+                            <label for="Serial_Number_2">Serial Number:</label>
+                            <input type="text" id="Serial_Number_2" name="Serial_Number_2">
+                            <label for="Device_Description_2">Device Description:</label>
+                            <select id="Device_Description_2" name="Device_Description_2">
+                                <option>Laptop</option>
+                                <option>Tablet</option>
+                                <option>Cell-Phone</option>
+                                <option>Monitor-Screen</option>
+                                <option>Desktop</option>
+                                <option>Other</option>
+                            </select>
+                            <label>Does this device have insurance?:</label>
+                            <div class="radioDiv">
+                                <label for="insuranceYes_2">Yes</label>
+                                <input class="inputRadio" type="radio" id="insuranceYes_2" name="insurance_2"
+                                    value="Yes" required>
+                            </div>
+                            <div class="radioDiv">
+                                <label for="insuranceNo_2">No</label>
+                                <input class="inputRadio" type="radio" id="insuranceNo_2" name="insurance_2" value="No"
+                                    required>
+                            </div>
+                        </div>
 
-                        <label for="Termination_Date">Termination Date: <small id="terminationAutoLink"
-                                style="font-weight:normal;font-size:0.8em;color:#1a73e8;cursor:pointer;text-decoration:underline;margin-left:6px;"
-                                title="Recalculate from Inception Date and Contract Term">Reset to auto</small></label>
-                        <input type="date" id="Termination_Date" name="Termination_Date">
-                    </div>
-                    <button type="submit" id="vodacomSubmitBtn" class="formSubmitButton">Submit</button>
-                </form>
+                        <div class="device-form-wrapper is-hidden" data-device-index="3" >
+                            <h3>Device 3</h3>
+
+                            <label for="AName_3">Name of Device Owner:</label>
+                            <input type="text" id="AName_3" name="AName_3" required>
+                            <label for="ASurname_3">Surname Device Owner:</label>
+                            <input type="text" id="ASurname_3" name="ASurname_3">
+                            <label for="APersonnel_nr_3">Personnel Number Of Device Owner:</label>
+                            <input type="text" id="APersonnel_nr_3" name="APersonnel_nr_3">
+                            <label for="ACompany_3">Company:</label>
+                            <select id="ACompany_3" name="ACompany_3">
+                                <option>PCM</option>
+                                <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
+                                <option>PAS/PAC</option>
+                                <option>INT</option>
+                                <option>PSSS</option>
+                                <option>POLYGRAPH</option>
+                            </select>
+                            <label for="AClient_Division_3">Client Division:</label>
+                            <select id="AClient_Division_3" name="AClient_Division_3">
+                                <option>300462 - Vector CCTV</option>
+                                <option>ACS Gauteng - PAC</option>
+                                <option>Airlink</option>
+                                <option>Atlantis - RISK</option>
+                                <option>Avroy Slain - RISK</option>
+                                <option>Bollore - RISK</option>
+                                <option>Canal - RISK</option>
+                                <option>Clearing Agent - PCM</option>
+                                <option>Cross Border Clearing - PISA</option>
+                                <option>Cross Border Clearing - SWIFT</option>
+                                <option>DHL - RISK</option>
+                                <option>Health and Safety (F2W)</option>
+                                <option>Hellman - RISK</option>
+                                <option>IATA/ICAO - PAS</option>
+                                <option>IT - PCM BUDGET</option>
+                                <option>Imperial Watchtower - RISK</option>
+                                <option>KWE - RISK</option>
+                                <option>Load Management - RISK</option>
+                                <option>MT Route</option>
+                                <option>Operational Management - PLN</option>
+                                <option>Operational Management - RISK</option>
+                                <option>Operations Namibia - RISK</option>
+                                <option>PCM - Health and Safety</option>
+                                <option>PCM - Main</option>
+                                <option>PCM - Pallet Sock Company</option>
+                                <option>PCM - Polygraph Services</option>
+                                <option>PCM-Sales</option>
+                                <option>SG Bloemfontein - RISK</option>
+                                <option>SG Cape Town - RISK</option>
+                                <option>SG Durban - RISK</option>
+                                <option>SG George - RISK</option>
+                                <option>SG Johannesburg - RISK</option>
+                                <option>SG Port Elizabeth - RISK</option>
+                                <option>Training - PAS</option>
+                                <option>Transport - PLISA</option>
+                                <option>Vector Bloemfontein - RISK</option>
+                                <option>Vector Linbro CCTV - RISK</option>
+                                <option>Vector Linbro VA - RISK</option>
+                                <option>Vector Linbro WH</option>
+                                <option>Vector Linbro Warehouse - RISK</option>
+                                <option>Vector Nelspruit - RISK</option>
+                                <option>Vector Polokwane - RISK</option>
+                                <option>Vector Windhoek - RISK</option>
+                                <option>Woolworths -RISK</option>
+                            </select>
+                            <label for="Device_Name_3">Device Name:</label>
+                            <input type="text" id="Device_Name_3" name="Device_Name_3">
+                            <label for="device_make_3">Device Make:</label>
+                            <input type="text" id="device_make_3" name="device_make_3">
+                            <label for="device_model_3">Device Model:</label>
+                            <input type="text" id="device_model_3" name="device_model_3">
+                            <label for="Serial_Number_3">Serial Number:</label>
+                            <input type="text" id="Serial_Number_3" name="Serial_Number_3">
+                            <label for="Device_Description_3">Device Description:</label>
+                            <select id="Device_Description_3" name="Device_Description_3">
+                                <option>Laptop</option>
+                                <option>Tablet</option>
+                                <option>Cell-Phone</option>
+                                <option>Monitor-Screen</option>
+                                <option>Desktop</option>
+                                <option>Other</option>
+                            </select>
+                            <label>Does this device have insurance?:</label>
+                            <div class="radioDiv">
+                                <label for="insuranceYes_3">Yes</label>
+                                <input class="inputRadio" type="radio" id="insuranceYes_3" name="insurance_3"
+                                    value="Yes" required>
+                            </div>
+                            <div class="radioDiv">
+                                <label for="insuranceNo_3">No</label>
+                                <input class="inputRadio" type="radio" id="insuranceNo_3" name="insurance_3" value="No"
+                                    required>
+                            </div>
+                        </div>
+
+                        <div class="device-form-wrapper is-hidden" data-device-index="4" >
+                            <h3>Device 4</h3>
+
+                            <label for="AName_4">Name of Device Owner:</label>
+                            <input type="text" id="AName_4" name="AName_4" required>
+                            <label for="ASurname_4">Surname Device Owner:</label>
+                            <input type="text" id="ASurname_4" name="ASurname_4">
+                            <label for="APersonnel_nr_4">Personnel Number Of Device Owner:</label>
+                            <input type="text" id="APersonnel_nr_4" name="APersonnel_nr_4">
+                            <label for="ACompany_4">Company:</label>
+                            <select id="ACompany_4" name="ACompany_4">
+                                <option>PCM</option>
+                                <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
+                                <option>PAS/PAC</option>
+                                <option>INT</option>
+                                <option>PSSS</option>
+                                <option>POLYGRAPH</option>
+                            </select>
+                            <label for="AClient_Division_4">Client Division:</label>
+                            <select id="AClient_Division_4" name="AClient_Division_4">
+                                <option>300462 - Vector CCTV</option>
+                                <option>ACS Gauteng - PAC</option>
+                                <option>Airlink</option>
+                                <option>Atlantis - RISK</option>
+                                <option>Avroy Slain - RISK</option>
+                                <option>Bollore - RISK</option>
+                                <option>Canal - RISK</option>
+                                <option>Clearing Agent - PCM</option>
+                                <option>Cross Border Clearing - PISA</option>
+                                <option>Cross Border Clearing - SWIFT</option>
+                                <option>DHL - RISK</option>
+                                <option>Health and Safety (F2W)</option>
+                                <option>Hellman - RISK</option>
+                                <option>IATA/ICAO - PAS</option>
+                                <option>IT - PCM BUDGET</option>
+                                <option>Imperial Watchtower - RISK</option>
+                                <option>KWE - RISK</option>
+                                <option>Load Management - RISK</option>
+                                <option>MT Route</option>
+                                <option>Operational Management - PLN</option>
+                                <option>Operational Management - RISK</option>
+                                <option>Operations Namibia - RISK</option>
+                                <option>PCM - Health and Safety</option>
+                                <option>PCM - Main</option>
+                                <option>PCM - Pallet Sock Company</option>
+                                <option>PCM - Polygraph Services</option>
+                                <option>PCM-Sales</option>
+                                <option>SG Bloemfontein - RISK</option>
+                                <option>SG Cape Town - RISK</option>
+                                <option>SG Durban - RISK</option>
+                                <option>SG George - RISK</option>
+                                <option>SG Johannesburg - RISK</option>
+                                <option>SG Port Elizabeth - RISK</option>
+                                <option>Training - PAS</option>
+                                <option>Transport - PLISA</option>
+                                <option>Vector Bloemfontein - RISK</option>
+                                <option>Vector Linbro CCTV - RISK</option>
+                                <option>Vector Linbro VA - RISK</option>
+                                <option>Vector Linbro WH</option>
+                                <option>Vector Linbro Warehouse - RISK</option>
+                                <option>Vector Nelspruit - RISK</option>
+                                <option>Vector Polokwane - RISK</option>
+                                <option>Vector Windhoek - RISK</option>
+                                <option>Woolworths -RISK</option>
+                            </select>
+                            <label for="Device_Name_4">Device Name:</label>
+                            <input type="text" id="Device_Name_4" name="Device_Name_4">
+                            <label for="device_make_4">Device Make:</label>
+                            <input type="text" id="device_make_4" name="device_make_4">
+                            <label for="device_model_4">Device Model:</label>
+                            <input type="text" id="device_model_4" name="device_model_4">
+                            <label for="Serial_Number_4">Serial Number:</label>
+                            <input type="text" id="Serial_Number_4" name="Serial_Number_4">
+                            <label for="Device_Description_4">Device Description:</label>
+                            <select id="Device_Description_4" name="Device_Description_4">
+                                <option>Laptop</option>
+                                <option>Tablet</option>
+                                <option>Cell-Phone</option>
+                                <option>Monitor-Screen</option>
+                                <option>Desktop</option>
+                                <option>Other</option>
+                            </select>
+                            <label>Does this device have insurance?:</label>
+                            <div class="radioDiv">
+                                <label for="insuranceYes_4">Yes</label>
+                                <input class="inputRadio" type="radio" id="insuranceYes_4" name="insurance_4"
+                                    value="Yes" required>
+                            </div>
+                            <div class="radioDiv">
+                                <label for="insuranceNo_4">No</label>
+                                <input class="inputRadio" type="radio" id="insuranceNo_4" name="insurance_4" value="No"
+                                    required>
+                            </div>
+                        </div>
+
+                        <div class="device-form-wrapper is-hidden" data-device-index="5" >
+                            <h3>Device 5</h3>
+
+                            <label for="AName_5">Name of Device Owner:</label>
+                            <input type="text" id="AName_5" name="AName_5" required>
+                            <label for="ASurname_5">Surname Device Owner:</label>
+                            <input type="text" id="ASurname_5" name="ASurname_5">
+                            <label for="APersonnel_nr_5">Personnel Number Of Device Owner:</label>
+                            <input type="text" id="APersonnel_nr_5" name="APersonnel_nr_5">
+                            <label for="ACompany_5">Company:</label>
+                            <select id="ACompany_5" name="ACompany_5">
+                                <option>PCM</option>
+                                <option>PRO
+                                <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
+                                <option>PAS/PAC</option>
+                                <option>INT</option>
+                                <option>PSSS</option>
+                                <option>POLYGRAPH</option>
+                            </select>
+                            <label for="AClient_Division_5">Client Division:</label>
+                            <select id="AClient_Division_5" name="AClient_Division_5">
+                                <option>300462 - Vector CCTV</option>
+                                <option>ACS Gauteng - PAC</option>
+                                <option>Airlink</option>
+                                <option>Atlantis - RISK</option>
+                                <option>Avroy Slain - RISK</option>
+                                <option>Bollore - RISK</option>
+                                <option>Canal - RISK</option>
+                                <option>Clearing Agent - PCM</option>
+                                <option>Cross Border Clearing - PISA</option>
+                                <option>Cross Border Clearing - SWIFT</option>
+                                <option>DHL - RISK</option>
+                                <option>Health and Safety (F2W)</option>
+                                <option>Hellman - RISK</option>
+                                <option>IATA/ICAO - PAS</option>
+                                <option>IT - PCM BUDGET</option>
+                                <option>Imperial Watchtower - RISK</option>
+                                <option>KWE - RISK</option>
+                                <option>Load Management - RISK</option>
+                                <option>MT Route</option>
+                                <option>Operational Management - PLN</option>
+                                <option>Operational Management - RISK</option>
+                                <option>Operations Namibia - RISK</option>
+                                <option>PCM - Health and Safety</option>
+                                <option>PCM - Main</option>
+                                <option>PCM - Pallet Sock Company</option>
+                                <option>PCM - Polygraph Services</option>
+                                <option>PCM-Sales</option>
+                                <option>SG Bloemfontein - RISK</option>
+                                <option>SG Cape Town - RISK</option>
+                                <option>SG Durban - RISK</option>
+                                <option>SG George - RISK</option>
+                                <option>SG Johannesburg - RISK</option>
+                                <option>SG Port Elizabeth - RISK</option>
+                                <option>Training - PAS</option>
+                                <option>Transport - PLISA</option>
+                                <option>Vector Bloemfontein - RISK</option>
+                                <option>Vector Linbro CCTV - RISK</option>
+                                <option>Vector Linbro VA - RISK</option>
+                                <option>Vector Linbro WH</option>
+                                <option>Vector Linbro Warehouse - RISK</option>
+                                <option>Vector Nelspruit - RISK</option>
+                                <option>Vector Polokwane - RISK</option>
+                                <option>Vector Windhoek - RISK</option>
+                                <option>Woolworths -RISK</option>
+                            </select>
+                            <label for="Device_Name_5">Device Name:</label>
+                            <input type="text" id="Device_Name_5" name="Device_Name_5">
+                            <label for="device_make_5">Device Make:</label>
+                            <input type="text" id="device_make_5" name="device_make_5">
+                            <label for="device_model_5">Device Model:</label>
+                            <input type="text" id="device_model_5" name="device_model_5">
+                            <label for="Serial_Number_5">Serial Number:</label>
+                            <input type="text" id="Serial_Number_5" name="Serial_Number_5">
+                            <label for="Device_Description_5">Device Description:</label>
+                            <select id="Device_Description_5" name="Device_Description_5">
+                                <option>Laptop</option>
+                                <option>Tablet</option>
+                                <option>Cell-Phone</option>
+                                <option>Monitor-Screen</option>
+                                <option>Desktop</option>
+                                <option>Other</option>
+                            </select>
+                            <label>Does this device have insurance?:</label>
+                            <div class="radioDiv">
+                                <label for="insuranceYes_5">Yes</label>
+                                <input class="inputRadio" type="radio" id="insuranceYes_5" name="insurance_5"
+                                    value="Yes" required>
+                            </div>
+                            <div class="radioDiv">
+                                <label for="insuranceNo_5">No</label>
+                                <input class="inputRadio" type="radio" id="insuranceNo_5" name="insurance_5" value="No"
+                                    required>
+                            </div>
+                        </div>
+
+                        <div class="device-form-wrapper is-hidden" data-device-index="6" >
+                            <h3>Device 6</h3>
+
+                            <label for="AName_6">Name of Device Owner:</label>
+                            <input type="text" id="AName_6" name="AName_6" required>
+                            <label for="ASurname_6">Surname Device Owner:</label>
+                            <input type="text" id="ASurname_6" name="ASurname_6" required>
+                            <label for="APersonnel_nr_6">Personnel Number Of Device Owner:</label>
+                            <input type="text" id="APersonnel_nr_6" name="APersonnel_nr_6" required>
+                            <label for="ACompany_6">Company:</label>
+                            <select id="ACompany_6" name="ACompany_6" required>
+                                <option>PCM</option>
+                                <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
+                                <option>PAS/PAC</option>
+                                <option>INT</option>
+                                <option>PSSS</option>
+                                <option>POLYGRAPH</option>
+                            </select>
+                            <label for="AClient_Division_6">Client Division:</label>
+                            <select id="AClient_Division_6" name="AClient_Division_6" required>
+                                <option>300462 - Vector CCTV</option>
+                                <option>ACS Gauteng - PAC</option>
+                                <option>Airlink</option>
+                                <option>Atlantis - RISK</option>
+                                <option>Avroy Slain - RISK</option>
+                                <option>Bollore - RISK</option>
+                                <option>Canal - RISK</option>
+                                <option>Clearing Agent - PCM</option>
+                                <option>Cross Border Clearing - PISA</option>
+                                <option>Cross Border Clearing - SWIFT</option>
+                                <option>DHL - RISK</option>
+                                <option>Health and Safety (F2W)</option>
+                                <option>Hellman - RISK</option>
+                                <option>IATA/ICAO - PAS</option>
+                                <option>IT - PCM BUDGET</option>
+                                <option>Imperial Watchtower - RISK</option>
+                                <option>KWE - RISK</option>
+                                <option>Load Management - RISK</option>
+                                <option>MT Route</option>
+                                <option>Operational Management - PLN</option>
+                                <option>Operational Management - RISK</option>
+                                <option>Operations Namibia - RISK</option>
+                                <option>PCM - Health and Safety</option>
+                                <option>PCM - Main</option>
+                                <option>PCM - Pallet Sock Company</option>
+                                <option>PCM - Polygraph Services</option>
+                                <option>PCM-Sales</option>
+                                <option>SG Bloemfontein - RISK</option>
+                                <option>SG Cape Town - RISK</option>
+                                <option>SG Durban - RISK</option>
+                                <option>SG George - RISK</option>
+                                <option>SG Johannesburg - RISK</option>
+                                <option>SG Port Elizabeth - RISK</option>
+                                <option>Training - PAS</option>
+                                <option>Transport - PLISA</option>
+                                <option>Vector Bloemfontein - RISK</option>
+                                <option>Vector Linbro CCTV - RISK</option>
+                                <option>Vector Linbro VA - RISK</option>
+                                <option>Vector Linbro WH</option>
+                                <option>Vector Linbro Warehouse - RISK</option>
+                                <option>Vector Nelspruit - RISK</option>
+                                <option>Vector Polokwane - RISK</option>
+                                <option>Vector Windhoek - RISK</option>
+                                <option>Woolworths -RISK</option>
+                            </select>
+                            <label for="Device_Name_6">Device Name:</label>
+                            <input type="text" id="Device_Name_6" name="Device_Name_6">
+                            <label for="device_make_6">Device Make:</label>
+                            <input type="text" id="device_make_6" name="device_make_6">
+                            <label for="device_model_6">Device Model:</label>
+                            <input type="text" id="device_model_6" name="device_model_6">
+                            <label for="Serial_Number_6">Serial Number:</label>
+                            <input type="text" id="Serial_Number_6" name="Serial_Number_6">
+                            <label for="Device_Description_6">Device Description:</label>
+                            <select id="Device_Description_6" name="Device_Description_6" required>
+                                <option>Laptop</option>
+                                <option>Tablet</option>
+                                <option>Cell-Phone</option>
+                                <option>Monitor-Screen</option>
+                                <option>Desktop</option>
+                                <option>Other</option>
+                            </select>
+                            <label>Does this device have insurance?:</label>
+                            <div class="radioDiv">
+                                <label for="insuranceYes_6">Yes</label>
+                                <input class="inputRadio" type="radio" id="insuranceYes_6" name="insurance_6"
+                                    value="Yes" required>
+                            </div>
+                            <div class="radioDiv">
+                                <label for="insuranceNo_6">No</label>
+                                <input class="inputRadio" type="radio" id="insuranceNo_6" name="insurance_6" value="No"
+                                    required>
+                            </div>
+                        </div>
+
+                        <div class="device-form-wrapper is-hidden" data-device-index="7" >
+                            <h3>Device 7</h3>
+
+                            <label for="AName_7">Name of Device Owner:</label>
+                            <input type="text" id="AName_7" name="AName_7" required>
+                            <label for="ASurname_7">Surname Device Owner:</label>
+                            <input type="text" id="ASurname_7" name="ASurname_7" required>
+                            <label for="APersonnel_nr_7">Personnel Number Of Device Owner:</label>
+                            <input type="text" id="APersonnel_nr_7" name="APersonnel_nr_7" required>
+                            <label for="ACompany_7">Company:</label>
+                            <select id="ACompany_7" name="ACompany_7" required>
+                                <option>PCM</option>
+                                <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
+                                <option>PAS/PAC</option>
+                                <option>INT</option>
+                                <option>PSSS</option>
+                                <option>POLYGRAPH</option>
+                            </select>
+                            <label for="AClient_Division_7">Client Division:</label>
+                            <select id="AClient_Division_7" name="AClient_Division_7" required>
+                                <option>300462 - Vector CCTV</option>
+                                <option>ACS Gauteng - PAC</option>
+                                <option>Airlink</option>
+                                <option>Atlantis - RISK</option>
+                                <option>Avroy Slain - RISK</option>
+                                <option>Bollore - RISK</option>
+                                <option>Canal - RISK</option>
+                                <option>Clearing Agent - PCM</option>
+                                <option>Cross Border Clearing - PISA</option>
+                                <option>Cross Border Clearing - SWIFT</option>
+                                <option>DHL - RISK</option>
+                                <option>Health and Safety (F2W)</option>
+                                <option>Hellman - RISK</option>
+                                <option>IATA/ICAO - PAS</option>
+                                <option>IT - PCM BUDGET</option>
+                                <option>Imperial Watchtower - RISK</option>
+                                <option>KWE - RISK</option>
+                                <option>Load Management - RISK</option>
+                                <option>MT Route</option>
+                                <option>Operational Management - PLN</option>
+                                <option>Operational Management - RISK</option>
+                                <option>Operations Namibia - RISK</option>
+                                <option>PCM - Health and Safety</option>
+                                <option>PCM - Main</option>
+                                <option>PCM - Pallet Sock Company</option>
+                                <option>PCM - Polygraph Services</option>
+                                <option>PCM-Sales</option>
+                                <option>SG Bloemfontein - RISK</option>
+                                <option>SG Cape Town - RISK</option>
+                                <option>SG Durban - RISK</option>
+                                <option>SG George - RISK</option>
+                                <option>SG Johannesburg - RISK</option>
+                                <option>SG Port Elizabeth - RISK</option>
+                                <option>Training - PAS</option>
+                                <option>Transport - PLISA</option>
+                                <option>Vector Bloemfontein - RISK</option>
+                                <option>Vector Linbro CCTV - RISK</option>
+                                <option>Vector Linbro VA - RISK</option>
+                                <option>Vector Linbro WH</option>
+                                <option>Vector Linbro Warehouse - RISK</option>
+                                <option>Vector Nelspruit - RISK</option>
+                                <option>Vector Polokwane - RISK</option>
+                                <option>Vector Windhoek - RISK</option>
+                                <option>Woolworths -RISK</option>
+                            </select>
+                            <label for="Device_Name_7">Device Name:</label>
+                            <input type="text" id="Device_Name_7" name="Device_Name_7">
+                            <label for="device_make_7">Device Make:</label>
+                            <input type="text" id="device_make_7" name="device_make_7">
+                            <label for="device_model_7">Device Model:</label>
+                            <input type="text" id="device_model_7" name="device_model_7">
+                            <label for="Serial_Number_7">Serial Number:</label>
+                            <input type="text" id="Serial_Number_7" name="Serial_Number_7">
+                            <label for="Device_Description_7">Device Description:</label>
+                            <select id="Device_Description_7" name="Device_Description_7" required>
+                                <option>Laptop</option>
+                                <option>Tablet</option>
+                                <option>Cell-Phone</option>
+                                <option>Monitor-Screen</option>
+                                <option>Desktop</option>
+                                <option>Other</option>
+                            </select>
+                            <label>Does this device have insurance?:</label>
+                            <div class="radioDiv">
+                                <label for="insuranceYes_7">Yes</label>
+                                <input class="inputRadio" type="radio" id="insuranceYes_7" name="insurance_7"
+                                    value="Yes" required>
+                            </div>
+                            <div class="radioDiv">
+                                <label for="insuranceNo_7">No</label>
+                                <input class="inputRadio" type="radio" id="insuranceNo_7" name="insurance_7" value="No"
+                                    required>
+                            </div>
+                        </div>
+
+                        <div class="device-form-wrapper is-hidden" data-device-index="8" >
+                            <h3>Device 8</h3>
+
+                            <label for="AName_8">Name of Device Owner:</label>
+                            <input type="text" id="AName_8" name="AName_8" required>
+                            <label for="ASurname_8">Surname Device Owner:</label>
+                            <input type="text" id="ASurname_8" name="ASurname_8" required>
+                            <label for="APersonnel_nr_8">Personnel Number Of Device Owner:</label>
+                            <input type="text" id="APersonnel_nr_8" name="APersonnel_nr_8" required>
+                            <label for="ACompany_8">Company:</label>
+                            <select id="ACompany_8" name="ACompany_8" required>
+                                <option>PCM</option>
+                                <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
+                                <option>PAS/PAC</option>
+                                <option>INT</option>
+                                <option>PSSS</option>
+                                <option>POLYGRAPH</option>
+                            </select>
+                            <label for="AClient_Division_8">Client Division:</label>
+                            <select id="AClient_Division_8" name="AClient_Division_8" required>
+                                <option>300462 - Vector CCTV</option>
+                                <option>ACS Gauteng - PAC</option>
+                                <option>Airlink</option>
+                                <option>Atlantis - RISK</option>
+                                <option>Avroy Slain - RISK</option>
+                                <option>Bollore - RISK</option>
+                                <option>Canal - RISK</option>
+                                <option>Clearing Agent - PCM</option>
+                                <option>Cross Border Clearing - PISA</option>
+                                <option>Cross Border Clearing - SWIFT</option>
+                                <option>DHL - RISK</option>
+                                <option>Health and Safety (F2W)</option>
+                                <option>Hellman - RISK</option>
+                                <option>IATA/ICAO - PAS</option>
+                                <option>IT - PCM BUDGET</option>
+                                <option>Imperial Watchtower - RISK</option>
+                                <option>KWE - RISK</option>
+                                <option>Load Management - RISK</option>
+                                <option>MT Route</option>
+                                <option>Operational Management - PLN</option>
+                                <option>Operational Management - RISK</option>
+                                <option>Operations Namibia - RISK</option>
+                                <option>PCM - Health and Safety</option>
+                                <option>PCM - Main</option>
+                                <option>PCM - Pallet Sock Company</option>
+                                <option>PCM - Polygraph Services</option>
+                                <option>PCM-Sales</option>
+                                <option>SG Bloemfontein - RISK</option>
+                                <option>SG Cape Town - RISK</option>
+                                <option>SG Durban - RISK</option>
+                                <option>SG George - RISK</option>
+                                <option>SG Johannesburg - RISK</option>
+                                <option>SG Port Elizabeth - RISK</option>
+                                <option>Training - PAS</option>
+                                <option>Transport - PLISA</option>
+                                <option>Vector Bloemfontein - RISK</option>
+                                <option>Vector Linbro CCTV - RISK</option>
+                                <option>Vector Linbro VA - RISK</option>
+                                <option>Vector Linbro WH</option>
+                                <option>Vector Linbro Warehouse - RISK</option>
+                                <option>Vector Nelspruit - RISK</option>
+                                <option>Vector Polokwane - RISK</option>
+                                <option>Vector Windhoek - RISK</option>
+                                <option>Woolworths -RISK</option>
+                            </select>
+                            <label for="Device_Name_8">Device Name:</label>
+                            <input type="text" id="Device_Name_8" name="Device_Name_8">
+                            <label for="device_make_8">Device Make:</label>
+                            <input type="text" id="device_make_8" name="device_make_8">
+                            <label for="device_model_8">Device Model:</label>
+                            <input type="text" id="device_model_8" name="device_model_8">
+                            <label for="Serial_Number_8">Serial Number:</label>
+                            <input type="text" id="Serial_Number_8" name="Serial_Number_8">
+                            <label for="Device_Description_8">Device Description:</label>
+                            <select id="Device_Description_8" name="Device_Description_8" required>
+                                <option>Laptop</option>
+                                <option>Tablet</option>
+                                <option>Cell-Phone</option>
+                                <option>Monitor-Screen</option>
+                                <option>Desktop</option>
+                                <option>Other</option>
+                            </select>
+                            <label>Does this device have insurance?:</label>
+                            <div class="radioDiv">
+                                <label for="insuranceYes_8">Yes</label>
+                                <input class="inputRadio" type="radio" id="insuranceYes_8" name="insurance_8"
+                                    value="Yes" required>
+                            </div>
+                            <div class="radioDiv">
+                                <label for="insuranceNo_8">No</label>
+                                <input class="inputRadio" type="radio" id="insuranceNo_8" name="insurance_8" value="No"
+                                    required>
+                            </div>
+                        </div>
+
+                        <div class="device-form-wrapper is-hidden" data-device-index="9" >
+                            <h3>Device 9</h3>
+
+                            <label for="AName_9">Name of Device Owner:</label>
+                            <input type="text" id="AName_9" name="AName_9" required>
+                            <label for="ASurname_9">Surname Device Owner:</label>
+                            <input type="text" id="ASurname_9" name="ASurname_9" required>
+                            <label for="APersonnel_nr_9">Personnel Number Of Device Owner:</label>
+                            <input type="text" id="APersonnel_nr_9" name="APersonnel_nr_9" required>
+                            <label for="ACompany_9">Company:</label>
+                            <select id="ACompany_9" name="ACompany_9" required>
+                                <option>PCM</option>
+                                <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
+                                <option>PAS/PAC</option>
+                                <option>INT</option>
+                                <option>PSSS</option>
+                                <option>POLYGRAPH</option>
+                            </select>
+                            <label for="AClient_Division_9">Client Division:</label>
+                            <select id="AClient_Division_9" name="AClient_Division_9" required>
+                                <option>300462 - Vector CCTV</option>
+                                <option>ACS Gauteng - PAC</option>
+                                <option>Airlink</option>
+                                <option>Atlantis - RISK</option>
+                                <option>Avroy Slain - RISK</option>
+                                <option>Bollore - RISK</option>
+                                <option>Canal - RISK</option>
+                                <option>Clearing Agent - PCM</option>
+                                <option>Cross Border Clearing - PISA</option>
+                                <option>Cross Border Clearing - SWIFT</option>
+                                <option>DHL - RISK</option>
+                                <option>Health and Safety (F2W)</option>
+                                <option>Hellman - RISK</option>
+                                <option>IATA/ICAO - PAS</option>
+                                <option>IT - PCM BUDGET</option>
+                                <option>Imperial Watchtower - RISK</option>
+                                <option>KWE - RISK</option>
+                                <option>Load Management - RISK</option>
+                                <option>MT Route</option>
+                                <option>Operational Management - PLN</option>
+                                <option>Operational Management - RISK</option>
+                                <option>Operations Namibia - RISK</option>
+                                <option>PCM - Health and Safety</option>
+                                <option>PCM - Main</option>
+                                <option>PCM - Pallet Sock Company</option>
+                                <option>PCM - Polygraph Services</option>
+                                <option>PCM-Sales</option>
+                                <option>SG Bloemfontein - RISK</option>
+                                <option>SG Cape Town - RISK</option>
+                                <option>SG Durban - RISK</option>
+                                <option>SG George - RISK</option>
+                                <option>SG Johannesburg - RISK</option>
+                                <option>SG Port Elizabeth - RISK</option>
+                                <option>Training - PAS</option>
+                                <option>Transport - PLISA</option>
+                                <option>Vector Bloemfontein - RISK</option>
+                                <option>Vector Linbro CCTV - RISK</option>
+                                <option>Vector Linbro VA - RISK</option>
+                                <option>Vector Linbro WH</option>
+                                <option>Vector Linbro Warehouse - RISK</option>
+                                <option>Vector Nelspruit - RISK</option>
+                                <option>Vector Polokwane - RISK</option>
+                                <option>Vector Windhoek - RISK</option>
+                                <option>Woolworths -RISK</option>
+                            </select>
+                            <label for="Device_Name_9">Device Name:</label>
+                            <input type="text" id="Device_Name_9" name="Device_Name_9">
+                            <label for="device_make_9">Device Make:</label>
+                            <input type="text" id="device_make_9" name="device_make_9">
+                            <label for="device_model_9">Device Model:</label>
+                            <input type="text" id="device_model_9" name="device_model_9">
+                            <label for="Serial_Number_9">Serial Number:</label>
+                            <input type="text" id="Serial_Number_9" name="Serial_Number_9">
+                            <label for="Device_Description_9">Device Description:</label>
+                            <select id="Device_Description_9" name="Device_Description_9" required>
+                                <option>Laptop</option>
+                                <option>Tablet</option>
+                                <option>Cell-Phone</option>
+                                <option>Monitor-Screen</option>
+                                <option>Desktop</option>
+                                <option>Other</option>
+                            </select>
+                            <label>Does this device have insurance?:</label>
+                            <div class="radioDiv">
+                                <label for="insuranceYes_9">Yes</label>
+                                <input class="inputRadio" type="radio" id="insuranceYes_9" name="insurance_9"
+                                    value="Yes" required>
+                            </div>
+                            <div class="radioDiv">
+                                <label for="insuranceNo_9">No</label>
+                                <input class="inputRadio" type="radio" id="insuranceNo_9" name="insurance_9" value="No"
+                                    required>
+                            </div>
+                        </div>
+
+                        <div class="device-form-wrapper is-hidden" data-device-index="10" >
+                            <h3>Device 10</h3>
+
+                            <label for="AName_10">Name of Device Owner:</label>
+                            <input type="text" id="AName_10" name="AName_10" required>
+                            <label for="ASurname_10">Surname Device Owner:</label>
+                            <input type="text" id="ASurname_10" name="ASurname_10" required>
+                            <label for="APersonnel_nr_10">Personnel Number Of Device Owner:</label>
+                            <input type="text" id="APersonnel_nr_10" name="APersonnel_nr_10" required>
+                            <label for="ACompany_10">Company:</label>
+                            <select id="ACompany_10" name="ACompany_10" required>
+                                <option>PCM</option>
+                                <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
+                                <option>PAS/PAC</option>
+                                <option>INT</option>
+                                <option>PSSS</option>
+                                <option>POLYGRAPH</option>
+                            </select>
+                            <label for="AClient_Division_10">Client Division:</label>
+                            <select id="AClient_Division_10" name="AClient_Division_10" required>
+                                <option>300462 - Vector CCTV</option>
+                                <option>ACS Gauteng - PAC</option>
+                                <option>Airlink</option>
+                                <option>Atlantis - RISK</option>
+                                <option>Avroy Slain - RISK</option>
+                                <option>Bollore - RISK</option>
+                                <option>Canal - RISK</option>
+                                <option>Clearing Agent - PCM</option>
+                                <option>Cross Border Clearing - PISA</option>
+                                <option>Cross Border Clearing - SWIFT</option>
+                                <option>DHL - RISK</option>
+                                <option>Health and Safety (F2W)</option>
+                                <option>Hellman - RISK</option>
+                                <option>IATA/ICAO - PAS</option>
+                                <option>IT - PCM BUDGET</option>
+                                <option>Imperial Watchtower - RISK</option>
+                                <option>KWE - RISK</option>
+                                <option>Load Management - RISK</option>
+                                <option>MT Route</option>
+                                <option>Operational Management - PLN</option>
+                                <option>Operational Management - RISK</option>
+                                <option>Operations Namibia - RISK</option>
+                                <option>PCM - Health and Safety</option>
+                                <option>PCM - Main</option>
+                                <option>PCM - Pallet Sock Company</option>
+                                <option>PCM - Polygraph Services</option>
+                                <option>PCM-Sales</option>
+                                <option>SG Bloemfontein - RISK</option>
+                                <option>SG Cape Town - RISK</option>
+                                <option>SG Durban - RISK</option>
+                                <option>SG George - RISK</option>
+                                <option>SG Johannesburg - RISK</option>
+                                <option>SG Port Elizabeth - RISK</option>
+                                <option>Training - PAS</option>
+                                <option>Transport - PLISA</option>
+                                <option>Vector Bloemfontein - RISK</option>
+                                <option>Vector Linbro CCTV - RISK</option>
+                                <option>Vector Linbro VA - RISK</option>
+                                <option>Vector Linbro WH</option>
+                                <option>Vector Linbro Warehouse - RISK</option>
+                                <option>Vector Nelspruit - RISK</option>
+                                <option>Vector Polokwane - RISK</option>
+                                <option>Vector Windhoek - RISK</option>
+                                <option>Woolworths -RISK</option>
+                            </select>
+                            <label for="Device_Name_10">Device Name:</label>
+                            <input type="text" id="Device_Name_10" name="Device_Name_10">
+                            <label for="device_make_10">Device Make:</label>
+                            <input type="text" id="device_make_10" name="device_make_10">
+                            <label for="device_model_10">Device Model:</label>
+                            <input type="text" id="device_model_10" name="device_model_10">
+                            <label for="Serial_Number_10">Serial Number:</label>
+                            <input type="text" id="Serial_Number_10" name="Serial_Number_10">
+                            <label for="Device_Description_10">Device Description:</label>
+                            <select id="Device_Description_10" name="Device_Description_10" required>
+                                <option>Laptop</option>
+                                <option>Tablet</option>
+                                <option>Cell-Phone</option>
+                                <option>Monitor-Screen</option>
+                                <option>Desktop</option>
+                                <option>Other</option>
+                            </select>
+                            <label>Does this device have insurance?:</label>
+                            <div class="radioDiv">
+                                <label for="insuranceYes_10">Yes</label>
+                                <input class="inputRadio" type="radio" id="insuranceYes_10" name="insurance_10"
+                                    value="Yes" required>
+                            </div>
+                            <div class="radioDiv">
+                                <label for="insuranceNo_10">No</label>
+                                <input class="inputRadio" type="radio" id="insuranceNo_10" name="insurance_10"
+                                    value="No" required>
+                            </div>
+                        </div>
+
+
+                        <button type="submit" id="deviceSubmitBtn" class="formSubmitButton">Submit</button>
+
+                        <button id="submitAllBtn" class="submitbothbutton" type="button">
+                            Submit Contract + Devices
+                        </button>
+
+                    </form>
+                </div>
+
+
+
+
+
             </div>
 
+            <div class="contentInner">
+                <div class="boxTopHeader">Transferral Form</div>
 
-            <div class="contentInner" id="form2">
-                <div class="boxTopHeader">Device Capturing Form
-                    <span id="linkPillDevices" class="link-pill" aria-hidden="true">🔗 Linked</span>
-                </div>
+
 
                 {% if message %}
-                <p style="color: green;">{{ message }}</p>
+                <p class="form-success-msg">{{ message }}</p>
                 {% endif %}
 
-                <form id="allDevicesForm" method="post" action="/submit_device">
-
-                    <div class="deviceCheckContainer">
-                        <label for="deviceIsVodacom">Is this device on a Vodacom contract?</label>
-                        <input type="checkbox" id="deviceIsVodacom" name="deviceIsVodacom">
+                <form id="TransferralForm" method="post" action="/submit_transfer">
+                    <div class="button-group">
+                        <button type="button" id="DeviceTransferBtn" class="transfer-btn selected">Device
+                            Transfer</button>
+                        <button type="button" id="ContractTransferBtn" class="transfer-btn">Contract Transfer</button>
                     </div>
-                    <!-- Device Form 1 (original) -->
-                    <div class="device-form-wrapper" data-device-index="1" style="background: #faf7f2;
-                
-                                        padding: 15px;
-                                        margin-bottom: 20px;
-                                        border: 1px solid #cccccc;">
-
-
-                        <label for="AName_1">Name of Device Owner:</label>
-                        <input type="text" id="AName_1" name="AName_1" required>
-                        <label for="ASurname_1">Surname Device Owner:</label>
-                        <input type="text" id="ASurname_1" name="ASurname_1" required>
-                        <label for="APersonnel_nr_1">Personnel Number Of Device Owner:</label>
-                        <input type="text" id="APersonnel_nr_1" name="APersonnel_nr_1" required>
-                        <label for="ACompany_1">Company:</label>
-                        <select id="ACompany_1" name="ACompany_1" required>
-                            <option>PCM</option>
-                            <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
-                            <option>PAS/PAC</option>
-                            <option>INT</option>
-                            <option>PSSS</option>
-                            <option>POLYGRAPH</option>
-                        </select>
-                        <label for="AClient_Division_1">Client Division:</label>
-                        <select id="AClient_Division_1" name="AClient_Division_1" required>
-                            <option>300462 - Vector CCTV</option>
-                            <option>ACS Gauteng - PAC</option>
-                            <option>Airlink</option>
-                            <option>Atlantis - RISK</option>
-                            <option>Avroy Slain - RISK</option>
-                            <option>Bollore - RISK</option>
-                            <option>Canal - RISK</option>
-                            <option>Clearing Agent - PCM</option>
-                            <option>Cross Border Clearing - PISA</option>
-                            <option>Cross Border Clearing - SWIFT</option>
-                            <option>DHL - RISK</option>
-                            <option>Health and Safety (F2W)</option>
-                            <option>Hellman - RISK</option>
-                            <option>IATA/ICAO - PAS</option>
-                            <option>IT - PCM BUDGET</option>
-                            <option>Imperial Watchtower - RISK</option>
-                            <option>KWE - RISK</option>
-                            <option>Load Management - RISK</option>
-                            <option>MT Route</option>
-                            <option>Operational Management - PLN</option>
-                            <option>Operational Management - RISK</option>
-                            <option>Operations Namibia - RISK</option>
-                            <option>PCM - Health and Safety</option>
-                            <option>PCM - Main</option>
-                            <option>PCM - Pallet Sock Company</option>
-                            <option>PCM - Polygraph Services</option>
-                            <option>PCM-Sales</option>
-                            <option>SG Bloemfontein - RISK</option>
-                            <option>SG Cape Town - RISK</option>
-                            <option>SG Durban - RISK</option>
-                            <option>SG George - RISK</option>
-                            <option>SG Johannesburg - RISK</option>
-                            <option>SG Port Elizabeth - RISK</option>
-                            <option>Training - PAS</option>
-                            <option>Transport - PLISA</option>
-                            <option>Vector Bloemfontein - RISK</option>
-                            <option>Vector Linbro CCTV - RISK</option>
-                            <option>Vector Linbro VA - RISK</option>
-                            <option>Vector Linbro WH</option>
-                            <option>Vector Linbro Warehouse - RISK</option>
-                            <option>Vector Nelspruit - RISK</option>
-                            <option>Vector Polokwane - RISK</option>
-                            <option>Vector Windhoek - RISK</option>
-                            <option>Woolworths -RISK</option>
-                        </select>
-                        <label for="Device_Name_1">Device Name:</label>
-                        <input type="text" id="Device_Name_1" name="Device_Name_1">
-                        <label for="device_make_1">Device Make:</label>
-                        <input type="text" id="device_make_1" name="device_make_1">
-                        <label for="device_model_1">Device Model:</label>
-                        <input type="text" id="device_model_1" name="device_model_1">
-                        <label for="Serial_Number_1">Serial Number:</label>
-                        <input type="text" id="Serial_Number_1" name="Serial_Number_1">
-                        <label for="Device_Description_1">Device Description:</label>
-                        <select id="Device_Description_1" name="Device_Description_1" required>
-                            <option>Laptop</option>
-                            <option>Tablet</option>
-                            <option>Cell-Phone</option>
-                            <option>Monitor-Screen</option>
-                            <option>Desktop</option>
-                            <option>Other</option>
-                        </select>
-                        <label>Does this device have insurance?:</label>
-                        <div class="radioDiv">
-                            <label for="insuranceYes_1">Yes</label>
-                            <input class="inputRadio" type="radio" id="insuranceYes_1" name="insurance_1" value="Yes"
-                                required>
+                    <div class="vodacom-form-wrapper">
+                        <div id="deviceBox" class="transfer-box">
+                            <input type="text" id="deviceSearchInput" placeholder="Search devices..."
+                                class="search-input" />
+                            <table class="result-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Surname</th>
+                                        <th>Serial Number</th>
+                                        <th>Device Name</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="deviceTableBody">
+                                    <!-- Rows from API will appear here -->
+                                </tbody>
+                            </table>
                         </div>
-                        <div class="radioDiv">
-                            <label for="insuranceNo_1">No</label>
-                            <input class="inputRadio" type="radio" id="insuranceNo_1" name="insurance_1" value="No"
-                                required>
+
+                        <!-- Contract Dashboard Box -->
+                        <div id="contractBox" class="transfer-box hidden">
+                            <input type="text" id="contractSearchInput" placeholder="Search contracts..."
+                                class="search-input" />
+                            <table class="result-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Surname</th>
+                                        <th>SIM Number</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="contractTableBody">
+                                    <!-- Contract rows will be injected here -->
+                                </tbody>
+                            </table>
                         </div>
-                    </div>
 
-                    <!-- Device Forms 2 to 10 (hidden by default) -->
-                    <!-- For brevity, only device 2 shown, replicate similarly for devices 3 to 10 -->
-                    <div class="device-form-wrapper" data-device-index="2" style="display:none; background:#f0e8e1;
-                                    
-                                    padding: 15px;
-                                    margin-bottom: 20px;
-                                    border: 1px solid #89753e86;">
-                        <h3>Device 2</h3>
+                        <input type="hidden" id="selectedDeviceId" name="selectedDeviceId" />
+                        <input type="hidden" id="selectedContractId" name="selectedContractId" />
 
-                        <label for="AName_2">Name of Device Owner:</label>
-                        <input type="text" id="AName_2" name="AName_2" required>
-                        <label for="ASurname_2">Surname Device Owner:</label>
-                        <input type="text" id="ASurname_2" name="ASurname_2">
-                        <label for="APersonnel_nr_2">Personnel Number Of Device Owner:</label>
-                        <input type="text" id="APersonnel_nr_2" name="APersonnel_nr_2">
-                        <label for="ACompany_2">Company:</label>
-                        <select id="ACompany_2" name="ACompany_2">
-                            <option>PCM</option>
-                            <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
-                            <option>PAS/PAC</option>
-                            <option>INT</option>
-                            <option>PSSS</option>
-                            <option>POLYGRAPH</option>
-                        </select>
-                        <label for="AClient_Division_2">Client Division:</label>
-                        <select id="AClient_Division_2" name="AClient_Division_2">
-                            <option>300462 - Vector CCTV</option>
-                            <option>ACS Gauteng - PAC</option>
-                            <option>Airlink</option>
-                            <option>Atlantis - RISK</option>
-                            <option>Avroy Slain - RISK</option>
-                            <option>Bollore - RISK</option>
-                            <option>Canal - RISK</option>
-                            <option>Clearing Agent - PCM</option>
-                            <option>Cross Border Clearing - PISA</option>
-                            <option>Cross Border Clearing - SWIFT</option>
-                            <option>DHL - RISK</option>
-                            <option>Health and Safety (F2W)</option>
-                            <option>Hellman - RISK</option>
-                            <option>IATA/ICAO - PAS</option>
-                            <option>IT - PCM BUDGET</option>
-                            <option>Imperial Watchtower - RISK</option>
-                            <option>KWE - RISK</option>
-                            <option>Load Management - RISK</option>
-                            <option>MT Route</option>
-                            <option>Operational Management - PLN</option>
-                            <option>Operational Management - RISK</option>
-                            <option>Operations Namibia - RISK</option>
-                            <option>PCM - Health and Safety</option>
-                            <option>PCM - Main</option>
-                            <option>PCM - Pallet Sock Company</option>
-                            <option>PCM - Polygraph Services</option>
-                            <option>PCM-Sales</option>
-                            <option>SG Bloemfontein - RISK</option>
-                            <option>SG Cape Town - RISK</option>
-                            <option>SG Durban - RISK</option>
-                            <option>SG George - RISK</option>
-                            <option>SG Johannesburg - RISK</option>
-                            <option>SG Port Elizabeth - RISK</option>
-                            <option>Training - PAS</option>
-                            <option>Transport - PLISA</option>
-                            <option>Vector Bloemfontein - RISK</option>
-                            <option>Vector Linbro CCTV - RISK</option>
-                            <option>Vector Linbro VA - RISK</option>
-                            <option>Vector Linbro WH</option>
-                            <option>Vector Linbro Warehouse - RISK</option>
-                            <option>Vector Nelspruit - RISK</option>
-                            <option>Vector Polokwane - RISK</option>
-                            <option>Vector Windhoek - RISK</option>
-                            <option>Woolworths -RISK</option>
-                        </select>
-                        <label for="Device_Name_2">Device Name:</label>
-                        <input type="text" id="Device_Name_2" name="Device_Name_2">
-                        <label for="device_make_2">Device Make:</label>
-                        <input type="text" id="device_make_2" name="device_make_2">
-                        <label for="device_model_2">Device Model:</label>
-                        <input type="text" id="device_model_2" name="device_model_2">
-                        <label for="Serial_Number_2">Serial Number:</label>
-                        <input type="text" id="Serial_Number_2" name="Serial_Number_2">
-                        <label for="Device_Description_2">Device Description:</label>
-                        <select id="Device_Description_2" name="Device_Description_2">
-                            <option>Laptop</option>
-                            <option>Tablet</option>
-                            <option>Cell-Phone</option>
-                            <option>Monitor-Screen</option>
-                            <option>Desktop</option>
-                            <option>Other</option>
-                        </select>
-                        <label>Does this device have insurance?:</label>
-                        <div class="radioDiv">
-                            <label for="insuranceYes_2">Yes</label>
-                            <input class="inputRadio" type="radio" id="insuranceYes_2" name="insurance_2" value="Yes"
-                                required>
-                        </div>
-                        <div class="radioDiv">
-                            <label for="insuranceNo_2">No</label>
-                            <input class="inputRadio" type="radio" id="insuranceNo_2" name="insurance_2" value="No"
-                                required>
-                        </div>
-                    </div>
+                        <p id="deviceSelectionMessage" class="selection-msg is-hidden"></p>
+                        <p id="contractSelectionMessage" class="selection-msg is-hidden"></p>
 
-                    <div class="device-form-wrapper" data-device-index="3" style="display:none; background: #faf7f2;
-                
-                                    padding: 15px;
-                                    margin-bottom: 20px;
-                                    border: 1px solid #ccc;">
-                        <h3>Device 3</h3>
 
-                        <label for="AName_3">Name of Device Owner:</label>
-                        <input type="text" id="AName_3" name="AName_3" required>
-                        <label for="ASurname_3">Surname Device Owner:</label>
-                        <input type="text" id="ASurname_3" name="ASurname_3">
-                        <label for="APersonnel_nr_3">Personnel Number Of Device Owner:</label>
-                        <input type="text" id="APersonnel_nr_3" name="APersonnel_nr_3">
-                        <label for="ACompany_3">Company:</label>
-                        <select id="ACompany_3" name="ACompany_3">
-                            <option>PCM</option>
-                            <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
-                            <option>PAS/PAC</option>
-                            <option>INT</option>
-                            <option>PSSS</option>
-                            <option>POLYGRAPH</option>
-                        </select>
-                        <label for="AClient_Division_3">Client Division:</label>
-                        <select id="AClient_Division_3" name="AClient_Division_3">
-                            <option>300462 - Vector CCTV</option>
-                            <option>ACS Gauteng - PAC</option>
-                            <option>Airlink</option>
-                            <option>Atlantis - RISK</option>
-                            <option>Avroy Slain - RISK</option>
-                            <option>Bollore - RISK</option>
-                            <option>Canal - RISK</option>
-                            <option>Clearing Agent - PCM</option>
-                            <option>Cross Border Clearing - PISA</option>
-                            <option>Cross Border Clearing - SWIFT</option>
-                            <option>DHL - RISK</option>
-                            <option>Health and Safety (F2W)</option>
-                            <option>Hellman - RISK</option>
-                            <option>IATA/ICAO - PAS</option>
-                            <option>IT - PCM BUDGET</option>
-                            <option>Imperial Watchtower - RISK</option>
-                            <option>KWE - RISK</option>
-                            <option>Load Management - RISK</option>
-                            <option>MT Route</option>
-                            <option>Operational Management - PLN</option>
-                            <option>Operational Management - RISK</option>
-                            <option>Operations Namibia - RISK</option>
-                            <option>PCM - Health and Safety</option>
-                            <option>PCM - Main</option>
-                            <option>PCM - Pallet Sock Company</option>
-                            <option>PCM - Polygraph Services</option>
-                            <option>PCM-Sales</option>
-                            <option>SG Bloemfontein - RISK</option>
-                            <option>SG Cape Town - RISK</option>
-                            <option>SG Durban - RISK</option>
-                            <option>SG George - RISK</option>
-                            <option>SG Johannesburg - RISK</option>
-                            <option>SG Port Elizabeth - RISK</option>
-                            <option>Training - PAS</option>
-                            <option>Transport - PLISA</option>
-                            <option>Vector Bloemfontein - RISK</option>
-                            <option>Vector Linbro CCTV - RISK</option>
-                            <option>Vector Linbro VA - RISK</option>
-                            <option>Vector Linbro WH</option>
-                            <option>Vector Linbro Warehouse - RISK</option>
-                            <option>Vector Nelspruit - RISK</option>
-                            <option>Vector Polokwane - RISK</option>
-                            <option>Vector Windhoek - RISK</option>
-                            <option>Woolworths -RISK</option>
-                        </select>
-                        <label for="Device_Name_3">Device Name:</label>
-                        <input type="text" id="Device_Name_3" name="Device_Name_3">
-                        <label for="device_make_3">Device Make:</label>
-                        <input type="text" id="device_make_3" name="device_make_3">
-                        <label for="device_model_3">Device Model:</label>
-                        <input type="text" id="device_model_3" name="device_model_3">
-                        <label for="Serial_Number_3">Serial Number:</label>
-                        <input type="text" id="Serial_Number_3" name="Serial_Number_3">
-                        <label for="Device_Description_3">Device Description:</label>
-                        <select id="Device_Description_3" name="Device_Description_3">
-                            <option>Laptop</option>
-                            <option>Tablet</option>
-                            <option>Cell-Phone</option>
-                            <option>Monitor-Screen</option>
-                            <option>Desktop</option>
-                            <option>Other</option>
-                        </select>
-                        <label>Does this device have insurance?:</label>
-                        <div class="radioDiv">
-                            <label for="insuranceYes_3">Yes</label>
-                            <input class="inputRadio" type="radio" id="insuranceYes_3" name="insurance_3" value="Yes"
-                                required>
-                        </div>
-                        <div class="radioDiv">
-                            <label for="insuranceNo_3">No</label>
-                            <input class="inputRadio" type="radio" id="insuranceNo_3" name="insurance_3" value="No"
-                                required>
-                        </div>
-                    </div>
-
-                    <div class="device-form-wrapper" data-device-index="4" style="display:none; background:#f0e8e1;
-                
-                                    padding: 15px;
-                                    margin-bottom: 20px;
-                                    border: 1px solid #ccc;">
-                        <h3>Device 4</h3>
-
-                        <label for="AName_4">Name of Device Owner:</label>
-                        <input type="text" id="AName_4" name="AName_4" required>
-                        <label for="ASurname_4">Surname Device Owner:</label>
-                        <input type="text" id="ASurname_4" name="ASurname_4">
-                        <label for="APersonnel_nr_4">Personnel Number Of Device Owner:</label>
-                        <input type="text" id="APersonnel_nr_4" name="APersonnel_nr_4">
-                        <label for="ACompany_4">Company:</label>
-                        <select id="ACompany_4" name="ACompany_4">
-                            <option>PCM</option>
-                            <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
-                            <option>PAS/PAC</option>
-                            <option>INT</option>
-                            <option>PSSS</option>
-                            <option>POLYGRAPH</option>
-                        </select>
-                        <label for="AClient_Division_4">Client Division:</label>
-                        <select id="AClient_Division_4" name="AClient_Division_4">
-                            <option>300462 - Vector CCTV</option>
-                            <option>ACS Gauteng - PAC</option>
-                            <option>Airlink</option>
-                            <option>Atlantis - RISK</option>
-                            <option>Avroy Slain - RISK</option>
-                            <option>Bollore - RISK</option>
-                            <option>Canal - RISK</option>
-                            <option>Clearing Agent - PCM</option>
-                            <option>Cross Border Clearing - PISA</option>
-                            <option>Cross Border Clearing - SWIFT</option>
-                            <option>DHL - RISK</option>
-                            <option>Health and Safety (F2W)</option>
-                            <option>Hellman - RISK</option>
-                            <option>IATA/ICAO - PAS</option>
-                            <option>IT - PCM BUDGET</option>
-                            <option>Imperial Watchtower - RISK</option>
-                            <option>KWE - RISK</option>
-                            <option>Load Management - RISK</option>
-                            <option>MT Route</option>
-                            <option>Operational Management - PLN</option>
-                            <option>Operational Management - RISK</option>
-                            <option>Operations Namibia - RISK</option>
-                            <option>PCM - Health and Safety</option>
-                            <option>PCM - Main</option>
-                            <option>PCM - Pallet Sock Company</option>
-                            <option>PCM - Polygraph Services</option>
-                            <option>PCM-Sales</option>
-                            <option>SG Bloemfontein - RISK</option>
-                            <option>SG Cape Town - RISK</option>
-                            <option>SG Durban - RISK</option>
-                            <option>SG George - RISK</option>
-                            <option>SG Johannesburg - RISK</option>
-                            <option>SG Port Elizabeth - RISK</option>
-                            <option>Training - PAS</option>
-                            <option>Transport - PLISA</option>
-                            <option>Vector Bloemfontein - RISK</option>
-                            <option>Vector Linbro CCTV - RISK</option>
-                            <option>Vector Linbro VA - RISK</option>
-                            <option>Vector Linbro WH</option>
-                            <option>Vector Linbro Warehouse - RISK</option>
-                            <option>Vector Nelspruit - RISK</option>
-                            <option>Vector Polokwane - RISK</option>
-                            <option>Vector Windhoek - RISK</option>
-                            <option>Woolworths -RISK</option>
-                        </select>
-                        <label for="Device_Name_4">Device Name:</label>
-                        <input type="text" id="Device_Name_4" name="Device_Name_4">
-                        <label for="device_make_4">Device Make:</label>
-                        <input type="text" id="device_make_4" name="device_make_4">
-                        <label for="device_model_4">Device Model:</label>
-                        <input type="text" id="device_model_4" name="device_model_4">
-                        <label for="Serial_Number_4">Serial Number:</label>
-                        <input type="text" id="Serial_Number_4" name="Serial_Number_4">
-                        <label for="Device_Description_4">Device Description:</label>
-                        <select id="Device_Description_4" name="Device_Description_4">
-                            <option>Laptop</option>
-                            <option>Tablet</option>
-                            <option>Cell-Phone</option>
-                            <option>Monitor-Screen</option>
-                            <option>Desktop</option>
-                            <option>Other</option>
-                        </select>
-                        <label>Does this device have insurance?:</label>
-                        <div class="radioDiv">
-                            <label for="insuranceYes_4">Yes</label>
-                            <input class="inputRadio" type="radio" id="insuranceYes_4" name="insurance_4" value="Yes"
-                                required>
-                        </div>
-                        <div class="radioDiv">
-                            <label for="insuranceNo_4">No</label>
-                            <input class="inputRadio" type="radio" id="insuranceNo_4" name="insurance_4" value="No"
-                                required>
-                        </div>
-                    </div>
-
-                    <div class="device-form-wrapper" data-device-index="5" style="display:none; background: #faf7f2;
-                
-                                        padding: 15px;
-                                        margin-bottom: 20px;
-                                        border: 1px solid #ccc;">
-                        <h3>Device 5</h3>
-
-                        <label for="AName_5">Name of Device Owner:</label>
-                        <input type="text" id="AName_5" name="AName_5" required>
-                        <label for="ASurname_5">Surname Device Owner:</label>
-                        <input type="text" id="ASurname_5" name="ASurname_5">
-                        <label for="APersonnel_nr_5">Personnel Number Of Device Owner:</label>
-                        <input type="text" id="APersonnel_nr_5" name="APersonnel_nr_5">
-                        <label for="ACompany_5">Company:</label>
-                        <select id="ACompany_5" name="ACompany_5">
-                            <option>PCM</option>
-                            <option>PRO
-                            <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
-                            <option>PAS/PAC</option>
-                            <option>INT</option>
-                            <option>PSSS</option>
-                            <option>POLYGRAPH</option>
-                        </select>
-                        <label for="AClient_Division_5">Client Division:</label>
-                        <select id="AClient_Division_5" name="AClient_Division_5">
-                            <option>300462 - Vector CCTV</option>
-                            <option>ACS Gauteng - PAC</option>
-                            <option>Airlink</option>
-                            <option>Atlantis - RISK</option>
-                            <option>Avroy Slain - RISK</option>
-                            <option>Bollore - RISK</option>
-                            <option>Canal - RISK</option>
-                            <option>Clearing Agent - PCM</option>
-                            <option>Cross Border Clearing - PISA</option>
-                            <option>Cross Border Clearing - SWIFT</option>
-                            <option>DHL - RISK</option>
-                            <option>Health and Safety (F2W)</option>
-                            <option>Hellman - RISK</option>
-                            <option>IATA/ICAO - PAS</option>
-                            <option>IT - PCM BUDGET</option>
-                            <option>Imperial Watchtower - RISK</option>
-                            <option>KWE - RISK</option>
-                            <option>Load Management - RISK</option>
-                            <option>MT Route</option>
-                            <option>Operational Management - PLN</option>
-                            <option>Operational Management - RISK</option>
-                            <option>Operations Namibia - RISK</option>
-                            <option>PCM - Health and Safety</option>
-                            <option>PCM - Main</option>
-                            <option>PCM - Pallet Sock Company</option>
-                            <option>PCM - Polygraph Services</option>
-                            <option>PCM-Sales</option>
-                            <option>SG Bloemfontein - RISK</option>
-                            <option>SG Cape Town - RISK</option>
-                            <option>SG Durban - RISK</option>
-                            <option>SG George - RISK</option>
-                            <option>SG Johannesburg - RISK</option>
-                            <option>SG Port Elizabeth - RISK</option>
-                            <option>Training - PAS</option>
-                            <option>Transport - PLISA</option>
-                            <option>Vector Bloemfontein - RISK</option>
-                            <option>Vector Linbro CCTV - RISK</option>
-                            <option>Vector Linbro VA - RISK</option>
-                            <option>Vector Linbro WH</option>
-                            <option>Vector Linbro Warehouse - RISK</option>
-                            <option>Vector Nelspruit - RISK</option>
-                            <option>Vector Polokwane - RISK</option>
-                            <option>Vector Windhoek - RISK</option>
-                            <option>Woolworths -RISK</option>
-                        </select>
-                        <label for="Device_Name_5">Device Name:</label>
-                        <input type="text" id="Device_Name_5" name="Device_Name_5">
-                        <label for="device_make_5">Device Make:</label>
-                        <input type="text" id="device_make_5" name="device_make_5">
-                        <label for="device_model_5">Device Model:</label>
-                        <input type="text" id="device_model_5" name="device_model_5">
-                        <label for="Serial_Number_5">Serial Number:</label>
-                        <input type="text" id="Serial_Number_5" name="Serial_Number_5">
-                        <label for="Device_Description_5">Device Description:</label>
-                        <select id="Device_Description_5" name="Device_Description_5">
-                            <option>Laptop</option>
-                            <option>Tablet</option>
-                            <option>Cell-Phone</option>
-                            <option>Monitor-Screen</option>
-                            <option>Desktop</option>
-                            <option>Other</option>
-                        </select>
-                        <label>Does this device have insurance?:</label>
-                        <div class="radioDiv">
-                            <label for="insuranceYes_5">Yes</label>
-                            <input class="inputRadio" type="radio" id="insuranceYes_5" name="insurance_5" value="Yes"
-                                required>
-                        </div>
-                        <div class="radioDiv">
-                            <label for="insuranceNo_5">No</label>
-                            <input class="inputRadio" type="radio" id="insuranceNo_5" name="insurance_5" value="No"
-                                required>
-                        </div>
-                    </div>
-
-                    <div class="device-form-wrapper" data-device-index="6" style="display:none; background:#f0e8e1;
-                
-                                        padding: 15px;
-                                        margin-bottom: 20px;
-                                        border: 1px solid #ccc;">
-                        <h3>Device 6</h3>
-
-                        <label for="AName_6">Name of Device Owner:</label>
-                        <input type="text" id="AName_6" name="AName_6" required>
-                        <label for="ASurname_6">Surname Device Owner:</label>
-                        <input type="text" id="ASurname_6" name="ASurname_6" required>
-                        <label for="APersonnel_nr_6">Personnel Number Of Device Owner:</label>
-                        <input type="text" id="APersonnel_nr_6" name="APersonnel_nr_6" required>
-                        <label for="ACompany_6">Company:</label>
-                        <select id="ACompany_6" name="ACompany_6" required>
-                            <option>PCM</option>
-                            <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
-                            <option>PAS/PAC</option>
-                            <option>INT</option>
-                            <option>PSSS</option>
-                            <option>POLYGRAPH</option>
-                        </select>
-                        <label for="AClient_Division_6">Client Division:</label>
-                        <select id="AClient_Division_6" name="AClient_Division_6" required>
-                            <option>300462 - Vector CCTV</option>
-                            <option>ACS Gauteng - PAC</option>
-                            <option>Airlink</option>
-                            <option>Atlantis - RISK</option>
-                            <option>Avroy Slain - RISK</option>
-                            <option>Bollore - RISK</option>
-                            <option>Canal - RISK</option>
-                            <option>Clearing Agent - PCM</option>
-                            <option>Cross Border Clearing - PISA</option>
-                            <option>Cross Border Clearing - SWIFT</option>
-                            <option>DHL - RISK</option>
-                            <option>Health and Safety (F2W)</option>
-                            <option>Hellman - RISK</option>
-                            <option>IATA/ICAO - PAS</option>
-                            <option>IT - PCM BUDGET</option>
-                            <option>Imperial Watchtower - RISK</option>
-                            <option>KWE - RISK</option>
-                            <option>Load Management - RISK</option>
-                            <option>MT Route</option>
-                            <option>Operational Management - PLN</option>
-                            <option>Operational Management - RISK</option>
-                            <option>Operations Namibia - RISK</option>
-                            <option>PCM - Health and Safety</option>
-                            <option>PCM - Main</option>
-                            <option>PCM - Pallet Sock Company</option>
-                            <option>PCM - Polygraph Services</option>
-                            <option>PCM-Sales</option>
-                            <option>SG Bloemfontein - RISK</option>
-                            <option>SG Cape Town - RISK</option>
-                            <option>SG Durban - RISK</option>
-                            <option>SG George - RISK</option>
-                            <option>SG Johannesburg - RISK</option>
-                            <option>SG Port Elizabeth - RISK</option>
-                            <option>Training - PAS</option>
-                            <option>Transport - PLISA</option>
-                            <option>Vector Bloemfontein - RISK</option>
-                            <option>Vector Linbro CCTV - RISK</option>
-                            <option>Vector Linbro VA - RISK</option>
-                            <option>Vector Linbro WH</option>
-                            <option>Vector Linbro Warehouse - RISK</option>
-                            <option>Vector Nelspruit - RISK</option>
-                            <option>Vector Polokwane - RISK</option>
-                            <option>Vector Windhoek - RISK</option>
-                            <option>Woolworths -RISK</option>
-                        </select>
-                        <label for="Device_Name_6">Device Name:</label>
-                        <input type="text" id="Device_Name_6" name="Device_Name_6">
-                        <label for="device_make_6">Device Make:</label>
-                        <input type="text" id="device_make_6" name="device_make_6">
-                        <label for="device_model_6">Device Model:</label>
-                        <input type="text" id="device_model_6" name="device_model_6">
-                        <label for="Serial_Number_6">Serial Number:</label>
-                        <input type="text" id="Serial_Number_6" name="Serial_Number_6">
-                        <label for="Device_Description_6">Device Description:</label>
-                        <select id="Device_Description_6" name="Device_Description_6" required>
-                            <option>Laptop</option>
-                            <option>Tablet</option>
-                            <option>Cell-Phone</option>
-                            <option>Monitor-Screen</option>
-                            <option>Desktop</option>
-                            <option>Other</option>
-                        </select>
-                        <label>Does this device have insurance?:</label>
-                        <div class="radioDiv">
-                            <label for="insuranceYes_6">Yes</label>
-                            <input class="inputRadio" type="radio" id="insuranceYes_6" name="insurance_6" value="Yes"
-                                required>
-                        </div>
-                        <div class="radioDiv">
-                            <label for="insuranceNo_6">No</label>
-                            <input class="inputRadio" type="radio" id="insuranceNo_6" name="insurance_6" value="No"
-                                required>
-                        </div>
-                    </div>
-
-                    <div class="device-form-wrapper" data-device-index="7" style="display:none; background: #faf7f2;
-                                
-                                        padding: 15px;
-                                        margin-bottom: 20px;
-                                        border: 1px solid #ccc;">
-                        <h3>Device 7</h3>
-
-                        <label for="AName_7">Name of Device Owner:</label>
-                        <input type="text" id="AName_7" name="AName_7" required>
-                        <label for="ASurname_7">Surname Device Owner:</label>
-                        <input type="text" id="ASurname_7" name="ASurname_7" required>
-                        <label for="APersonnel_nr_7">Personnel Number Of Device Owner:</label>
-                        <input type="text" id="APersonnel_nr_7" name="APersonnel_nr_7" required>
-                        <label for="ACompany_7">Company:</label>
-                        <select id="ACompany_7" name="ACompany_7" required>
-                            <option>PCM</option>
-                            <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
-                            <option>PAS/PAC</option>
-                            <option>INT</option>
-                            <option>PSSS</option>
-                            <option>POLYGRAPH</option>
-                        </select>
-                        <label for="AClient_Division_7">Client Division:</label>
-                        <select id="AClient_Division_7" name="AClient_Division_7" required>
-                            <option>300462 - Vector CCTV</option>
-                            <option>ACS Gauteng - PAC</option>
-                            <option>Airlink</option>
-                            <option>Atlantis - RISK</option>
-                            <option>Avroy Slain - RISK</option>
-                            <option>Bollore - RISK</option>
-                            <option>Canal - RISK</option>
-                            <option>Clearing Agent - PCM</option>
-                            <option>Cross Border Clearing - PISA</option>
-                            <option>Cross Border Clearing - SWIFT</option>
-                            <option>DHL - RISK</option>
-                            <option>Health and Safety (F2W)</option>
-                            <option>Hellman - RISK</option>
-                            <option>IATA/ICAO - PAS</option>
-                            <option>IT - PCM BUDGET</option>
-                            <option>Imperial Watchtower - RISK</option>
-                            <option>KWE - RISK</option>
-                            <option>Load Management - RISK</option>
-                            <option>MT Route</option>
-                            <option>Operational Management - PLN</option>
-                            <option>Operational Management - RISK</option>
-                            <option>Operations Namibia - RISK</option>
-                            <option>PCM - Health and Safety</option>
-                            <option>PCM - Main</option>
-                            <option>PCM - Pallet Sock Company</option>
-                            <option>PCM - Polygraph Services</option>
-                            <option>PCM-Sales</option>
-                            <option>SG Bloemfontein - RISK</option>
-                            <option>SG Cape Town - RISK</option>
-                            <option>SG Durban - RISK</option>
-                            <option>SG George - RISK</option>
-                            <option>SG Johannesburg - RISK</option>
-                            <option>SG Port Elizabeth - RISK</option>
-                            <option>Training - PAS</option>
-                            <option>Transport - PLISA</option>
-                            <option>Vector Bloemfontein - RISK</option>
-                            <option>Vector Linbro CCTV - RISK</option>
-                            <option>Vector Linbro VA - RISK</option>
-                            <option>Vector Linbro WH</option>
-                            <option>Vector Linbro Warehouse - RISK</option>
-                            <option>Vector Nelspruit - RISK</option>
-                            <option>Vector Polokwane - RISK</option>
-                            <option>Vector Windhoek - RISK</option>
-                            <option>Woolworths -RISK</option>
-                        </select>
-                        <label for="Device_Name_7">Device Name:</label>
-                        <input type="text" id="Device_Name_7" name="Device_Name_7">
-                        <label for="device_make_7">Device Make:</label>
-                        <input type="text" id="device_make_7" name="device_make_7">
-                        <label for="device_model_7">Device Model:</label>
-                        <input type="text" id="device_model_7" name="device_model_7">
-                        <label for="Serial_Number_7">Serial Number:</label>
-                        <input type="text" id="Serial_Number_7" name="Serial_Number_7">
-                        <label for="Device_Description_7">Device Description:</label>
-                        <select id="Device_Description_7" name="Device_Description_7" required>
-                            <option>Laptop</option>
-                            <option>Tablet</option>
-                            <option>Cell-Phone</option>
-                            <option>Monitor-Screen</option>
-                            <option>Desktop</option>
-                            <option>Other</option>
-                        </select>
-                        <label>Does this device have insurance?:</label>
-                        <div class="radioDiv">
-                            <label for="insuranceYes_7">Yes</label>
-                            <input class="inputRadio" type="radio" id="insuranceYes_7" name="insurance_7" value="Yes"
-                                required>
-                        </div>
-                        <div class="radioDiv">
-                            <label for="insuranceNo_7">No</label>
-                            <input class="inputRadio" type="radio" id="insuranceNo_7" name="insurance_7" value="No"
-                                required>
-                        </div>
-                    </div>
-
-                    <div class="device-form-wrapper" data-device-index="8" style="display:none; background:#f0e8e1;
-                
-                                        padding: 15px;
-                                        margin-bottom: 20px;
-                                        border: 1px solid #ccc;">
-                        <h3>Device 8</h3>
-
-                        <label for="AName_8">Name of Device Owner:</label>
-                        <input type="text" id="AName_8" name="AName_8" required>
-                        <label for="ASurname_8">Surname Device Owner:</label>
-                        <input type="text" id="ASurname_8" name="ASurname_8" required>
-                        <label for="APersonnel_nr_8">Personnel Number Of Device Owner:</label>
-                        <input type="text" id="APersonnel_nr_8" name="APersonnel_nr_8" required>
-                        <label for="ACompany_8">Company:</label>
-                        <select id="ACompany_8" name="ACompany_8" required>
-                            <option>PCM</option>
-                            <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
-                            <option>PAS/PAC</option>
-                            <option>INT</option>
-                            <option>PSSS</option>
-                            <option>POLYGRAPH</option>
-                        </select>
-                        <label for="AClient_Division_8">Client Division:</label>
-                        <select id="AClient_Division_8" name="AClient_Division_8" required>
-                            <option>300462 - Vector CCTV</option>
-                            <option>ACS Gauteng - PAC</option>
-                            <option>Airlink</option>
-                            <option>Atlantis - RISK</option>
-                            <option>Avroy Slain - RISK</option>
-                            <option>Bollore - RISK</option>
-                            <option>Canal - RISK</option>
-                            <option>Clearing Agent - PCM</option>
-                            <option>Cross Border Clearing - PISA</option>
-                            <option>Cross Border Clearing - SWIFT</option>
-                            <option>DHL - RISK</option>
-                            <option>Health and Safety (F2W)</option>
-                            <option>Hellman - RISK</option>
-                            <option>IATA/ICAO - PAS</option>
-                            <option>IT - PCM BUDGET</option>
-                            <option>Imperial Watchtower - RISK</option>
-                            <option>KWE - RISK</option>
-                            <option>Load Management - RISK</option>
-                            <option>MT Route</option>
-                            <option>Operational Management - PLN</option>
-                            <option>Operational Management - RISK</option>
-                            <option>Operations Namibia - RISK</option>
-                            <option>PCM - Health and Safety</option>
-                            <option>PCM - Main</option>
-                            <option>PCM - Pallet Sock Company</option>
-                            <option>PCM - Polygraph Services</option>
-                            <option>PCM-Sales</option>
-                            <option>SG Bloemfontein - RISK</option>
-                            <option>SG Cape Town - RISK</option>
-                            <option>SG Durban - RISK</option>
-                            <option>SG George - RISK</option>
-                            <option>SG Johannesburg - RISK</option>
-                            <option>SG Port Elizabeth - RISK</option>
-                            <option>Training - PAS</option>
-                            <option>Transport - PLISA</option>
-                            <option>Vector Bloemfontein - RISK</option>
-                            <option>Vector Linbro CCTV - RISK</option>
-                            <option>Vector Linbro VA - RISK</option>
-                            <option>Vector Linbro WH</option>
-                            <option>Vector Linbro Warehouse - RISK</option>
-                            <option>Vector Nelspruit - RISK</option>
-                            <option>Vector Polokwane - RISK</option>
-                            <option>Vector Windhoek - RISK</option>
-                            <option>Woolworths -RISK</option>
-                        </select>
-                        <label for="Device_Name_8">Device Name:</label>
-                        <input type="text" id="Device_Name_8" name="Device_Name_8">
-                        <label for="device_make_8">Device Make:</label>
-                        <input type="text" id="device_make_8" name="device_make_8">
-                        <label for="device_model_8">Device Model:</label>
-                        <input type="text" id="device_model_8" name="device_model_8">
-                        <label for="Serial_Number_8">Serial Number:</label>
-                        <input type="text" id="Serial_Number_8" name="Serial_Number_8">
-                        <label for="Device_Description_8">Device Description:</label>
-                        <select id="Device_Description_8" name="Device_Description_8" required>
-                            <option>Laptop</option>
-                            <option>Tablet</option>
-                            <option>Cell-Phone</option>
-                            <option>Monitor-Screen</option>
-                            <option>Desktop</option>
-                            <option>Other</option>
-                        </select>
-                        <label>Does this device have insurance?:</label>
-                        <div class="radioDiv">
-                            <label for="insuranceYes_8">Yes</label>
-                            <input class="inputRadio" type="radio" id="insuranceYes_8" name="insurance_8" value="Yes"
-                                required>
-                        </div>
-                        <div class="radioDiv">
-                            <label for="insuranceNo_8">No</label>
-                            <input class="inputRadio" type="radio" id="insuranceNo_8" name="insurance_8" value="No"
-                                required>
-                        </div>
-                    </div>
-
-                    <div class="device-form-wrapper" data-device-index="9" style="display:none; background: #faf7f2;
-                
-                                        padding: 15px;
-                                        margin-bottom: 20px;
-                                        border: 1px solid #ccc;">
-                        <h3>Device 9</h3>
-
-                        <label for="AName_9">Name of Device Owner:</label>
-                        <input type="text" id="AName_9" name="AName_9" required>
-                        <label for="ASurname_9">Surname Device Owner:</label>
-                        <input type="text" id="ASurname_9" name="ASurname_9" required>
-                        <label for="APersonnel_nr_9">Personnel Number Of Device Owner:</label>
-                        <input type="text" id="APersonnel_nr_9" name="APersonnel_nr_9" required>
-                        <label for="ACompany_9">Company:</label>
-                        <select id="ACompany_9" name="ACompany_9" required>
-                            <option>PCM</option>
-                            <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
-                            <option>PAS/PAC</option>
-                            <option>INT</option>
-                            <option>PSSS</option>
-                            <option>POLYGRAPH</option>
-                        </select>
-                        <label for="AClient_Division_9">Client Division:</label>
-                        <select id="AClient_Division_9" name="AClient_Division_9" required>
-                            <option>300462 - Vector CCTV</option>
-                            <option>ACS Gauteng - PAC</option>
-                            <option>Airlink</option>
-                            <option>Atlantis - RISK</option>
-                            <option>Avroy Slain - RISK</option>
-                            <option>Bollore - RISK</option>
-                            <option>Canal - RISK</option>
-                            <option>Clearing Agent - PCM</option>
-                            <option>Cross Border Clearing - PISA</option>
-                            <option>Cross Border Clearing - SWIFT</option>
-                            <option>DHL - RISK</option>
-                            <option>Health and Safety (F2W)</option>
-                            <option>Hellman - RISK</option>
-                            <option>IATA/ICAO - PAS</option>
-                            <option>IT - PCM BUDGET</option>
-                            <option>Imperial Watchtower - RISK</option>
-                            <option>KWE - RISK</option>
-                            <option>Load Management - RISK</option>
-                            <option>MT Route</option>
-                            <option>Operational Management - PLN</option>
-                            <option>Operational Management - RISK</option>
-                            <option>Operations Namibia - RISK</option>
-                            <option>PCM - Health and Safety</option>
-                            <option>PCM - Main</option>
-                            <option>PCM - Pallet Sock Company</option>
-                            <option>PCM - Polygraph Services</option>
-                            <option>PCM-Sales</option>
-                            <option>SG Bloemfontein - RISK</option>
-                            <option>SG Cape Town - RISK</option>
-                            <option>SG Durban - RISK</option>
-                            <option>SG George - RISK</option>
-                            <option>SG Johannesburg - RISK</option>
-                            <option>SG Port Elizabeth - RISK</option>
-                            <option>Training - PAS</option>
-                            <option>Transport - PLISA</option>
-                            <option>Vector Bloemfontein - RISK</option>
-                            <option>Vector Linbro CCTV - RISK</option>
-                            <option>Vector Linbro VA - RISK</option>
-                            <option>Vector Linbro WH</option>
-                            <option>Vector Linbro Warehouse - RISK</option>
-                            <option>Vector Nelspruit - RISK</option>
-                            <option>Vector Polokwane - RISK</option>
-                            <option>Vector Windhoek - RISK</option>
-                            <option>Woolworths -RISK</option>
-                        </select>
-                        <label for="Device_Name_9">Device Name:</label>
-                        <input type="text" id="Device_Name_9" name="Device_Name_9">
-                        <label for="device_make_9">Device Make:</label>
-                        <input type="text" id="device_make_9" name="device_make_9">
-                        <label for="device_model_9">Device Model:</label>
-                        <input type="text" id="device_model_9" name="device_model_9">
-                        <label for="Serial_Number_9">Serial Number:</label>
-                        <input type="text" id="Serial_Number_9" name="Serial_Number_9">
-                        <label for="Device_Description_9">Device Description:</label>
-                        <select id="Device_Description_9" name="Device_Description_9" required>
-                            <option>Laptop</option>
-                            <option>Tablet</option>
-                            <option>Cell-Phone</option>
-                            <option>Monitor-Screen</option>
-                            <option>Desktop</option>
-                            <option>Other</option>
-                        </select>
-                        <label>Does this device have insurance?:</label>
-                        <div class="radioDiv">
-                            <label for="insuranceYes_9">Yes</label>
-                            <input class="inputRadio" type="radio" id="insuranceYes_9" name="insurance_9" value="Yes"
-                                required>
-                        </div>
-                        <div class="radioDiv">
-                            <label for="insuranceNo_9">No</label>
-                            <input class="inputRadio" type="radio" id="insuranceNo_9" name="insurance_9" value="No"
-                                required>
-                        </div>
-                    </div>
-
-                    <div class="device-form-wrapper" data-device-index="10" style="display:none; background:#f0e8e1;
-                
-                                        padding: 15px;
-                                        margin-bottom: 20px;
-                                        border: 1px solid #ccc;">
-                        <h3>Device 10</h3>
-
-                        <label for="AName_10">Name of Device Owner:</label>
+                        <label for="AName_10">Name:</label>
                         <input type="text" id="AName_10" name="AName_10" required>
-                        <label for="ASurname_10">Surname Device Owner:</label>
+                        <label for="ASurname_10">Surname:</label>
                         <input type="text" id="ASurname_10" name="ASurname_10" required>
-                        <label for="APersonnel_nr_10">Personnel Number Of Device Owner:</label>
+                        <label for="APersonnel_nr_10">Personnel Number:</label>
                         <input type="text" id="APersonnel_nr_10" name="APersonnel_nr_10" required>
                         <label for="ACompany_10">Company:</label>
                         <select id="ACompany_10" name="ACompany_10" required>
@@ -1180,186 +1348,23 @@
                             <option>Vector Windhoek - RISK</option>
                             <option>Woolworths -RISK</option>
                         </select>
-                        <label for="Device_Name_10">Device Name:</label>
-                        <input type="text" id="Device_Name_10" name="Device_Name_10">
-                        <label for="device_make_10">Device Make:</label>
-                        <input type="text" id="device_make_10" name="device_make_10">
-                        <label for="device_model_10">Device Model:</label>
-                        <input type="text" id="device_model_10" name="device_model_10">
-                        <label for="Serial_Number_10">Serial Number:</label>
-                        <input type="text" id="Serial_Number_10" name="Serial_Number_10">
-                        <label for="Device_Description_10">Device Description:</label>
-                        <select id="Device_Description_10" name="Device_Description_10" required>
-                            <option>Laptop</option>
-                            <option>Tablet</option>
-                            <option>Cell-Phone</option>
-                            <option>Monitor-Screen</option>
-                            <option>Desktop</option>
-                            <option>Other</option>
-                        </select>
-                        <label>Does this device have insurance?:</label>
-                        <div class="radioDiv">
-                            <label for="insuranceYes_10">Yes</label>
-                            <input class="inputRadio" type="radio" id="insuranceYes_10" name="insurance_10" value="Yes"
-                                required>
-                        </div>
-                        <div class="radioDiv">
-                            <label for="insuranceNo_10">No</label>
-                            <input class="inputRadio" type="radio" id="insuranceNo_10" name="insurance_10" value="No"
-                                required>
-                        </div>
+
                     </div>
-
-
-                    <button type="submit" id="deviceSubmitBtn" class="formSubmitButton">Submit</button>
-
-                    <button id="submitAllBtn" class="submitbothbutton" type="button">
-                        Submit Contract + Devices
-                    </button>
-
+                    <button type="submit" id="transferSubmitBtn" class="formSubmitButton">Submit</button>
                 </form>
+
             </div>
 
-
-
-
-
         </div>
 
-        <div class="contentInner">
-            <div class="boxTopHeader">Transferral Form</div>
+    </main>
 
 
-
-            {% if message %}
-            <p style="color: green;">{{ message }}</p>
-            {% endif %}
-
-            <form id="TransferralForm" method="post" action="/submit_transfer">
-                <div class="button-group">
-                    <button type="button" id="DeviceTransferBtn" class="transfer-btn selected">Device Transfer</button>
-                    <button type="button" id="ContractTransferBtn" class="transfer-btn">Contract Transfer</button>
-                </div>
-                <div class="vodacom-form-wrapper">
-                    <div id="deviceBox" class="transfer-box">
-                        <input type="text" id="deviceSearchInput" placeholder="Search devices..."
-                            class="search-input" />
-                        <table class="result-table">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Surname</th>
-                                    <th>Serial Number</th>
-                                    <th>Device Name</th>
-                                </tr>
-                            </thead>
-                            <tbody id="deviceTableBody">
-                                <!-- Rows from API will appear here -->
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Contract Dashboard Box -->
-                    <div id="contractBox" class="transfer-box hidden">
-                        <input type="text" id="contractSearchInput" placeholder="Search contracts..."
-                            class="search-input" />
-                        <table class="result-table">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Surname</th>
-                                    <th>SIM Number</th>
-                                </tr>
-                            </thead>
-                            <tbody id="contractTableBody">
-                                <!-- Contract rows will be injected here -->
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <input type="hidden" id="selectedDeviceId" name="selectedDeviceId" />
-                    <input type="hidden" id="selectedContractId" name="selectedContractId" />
-
-                    <p id="deviceSelectionMessage" class="selection-msg" style="display: none;"></p>
-                    <p id="contractSelectionMessage" class="selection-msg" style="display: none;"></p>
-
-
-                    <label for="AName_10">Name:</label>
-                    <input type="text" id="AName_10" name="AName_10" required>
-                    <label for="ASurname_10">Surname:</label>
-                    <input type="text" id="ASurname_10" name="ASurname_10" required>
-                    <label for="APersonnel_nr_10">Personnel Number:</label>
-                    <input type="text" id="APersonnel_nr_10" name="APersonnel_nr_10" required>
-                    <label for="ACompany_10">Company:</label>
-                    <select id="ACompany_10" name="ACompany_10" required>
-                        <option>PCM</option>
-                        <option>PROFESSIONAL RISK & ASSET MANAGEMENT</option>
-                        <option>PAS/PAC</option>
-                        <option>INT</option>
-                        <option>PSSS</option>
-                        <option>POLYGRAPH</option>
-                    </select>
-                    <label for="AClient_Division_10">Client Division:</label>
-                    <select id="AClient_Division_10" name="AClient_Division_10" required>
-                        <option>300462 - Vector CCTV</option>
-                        <option>ACS Gauteng - PAC</option>
-                        <option>Airlink</option>
-                        <option>Atlantis - RISK</option>
-                        <option>Avroy Slain - RISK</option>
-                        <option>Bollore - RISK</option>
-                        <option>Canal - RISK</option>
-                        <option>Clearing Agent - PCM</option>
-                        <option>Cross Border Clearing - PISA</option>
-                        <option>Cross Border Clearing - SWIFT</option>
-                        <option>DHL - RISK</option>
-                        <option>Health and Safety (F2W)</option>
-                        <option>Hellman - RISK</option>
-                        <option>IATA/ICAO - PAS</option>
-                        <option>IT - PCM BUDGET</option>
-                        <option>Imperial Watchtower - RISK</option>
-                        <option>KWE - RISK</option>
-                        <option>Load Management - RISK</option>
-                        <option>MT Route</option>
-                        <option>Operational Management - PLN</option>
-                        <option>Operational Management - RISK</option>
-                        <option>Operations Namibia - RISK</option>
-                        <option>PCM - Health and Safety</option>
-                        <option>PCM - Main</option>
-                        <option>PCM - Pallet Sock Company</option>
-                        <option>PCM - Polygraph Services</option>
-                        <option>PCM-Sales</option>
-                        <option>SG Bloemfontein - RISK</option>
-                        <option>SG Cape Town - RISK</option>
-                        <option>SG Durban - RISK</option>
-                        <option>SG George - RISK</option>
-                        <option>SG Johannesburg - RISK</option>
-                        <option>SG Port Elizabeth - RISK</option>
-                        <option>Training - PAS</option>
-                        <option>Transport - PLISA</option>
-                        <option>Vector Bloemfontein - RISK</option>
-                        <option>Vector Linbro CCTV - RISK</option>
-                        <option>Vector Linbro VA - RISK</option>
-                        <option>Vector Linbro WH</option>
-                        <option>Vector Linbro Warehouse - RISK</option>
-                        <option>Vector Nelspruit - RISK</option>
-                        <option>Vector Polokwane - RISK</option>
-                        <option>Vector Windhoek - RISK</option>
-                        <option>Woolworths -RISK</option>
-                    </select>
-
-                </div>
-                <button type="submit" id="transferSubmitBtn" class="formSubmitButton">Submit</button>
-            </form>
-
-        </div>
-
-    </div>
-
-
+    <script src="/static/ui/components/sidebar.js"></script>
     <script>
         /* =========================================
-           FORM.JS — unified script for form.html
-           Place this once at the end of the <body>.
+            FORM.JS - unified script for form.html
+            Place this once at the end of the <body>.
         ========================================= */
         document.addEventListener("DOMContentLoaded", () => {
             // ====== DOM GETTERS ======
@@ -1777,29 +1782,6 @@
             });
         });
         document.addEventListener("DOMContentLoaded", () => {
-            const handle = document.getElementById("sidebarHandle");
-            const collapseBtn = document.getElementById("sidebarCollapse"); // optional header button
-            const scrim = document.getElementById("sidebarScrim");
-
-            function toggleSidebar() {
-                const collapsed = document.body.classList.toggle("sidebar-collapsed");
-
-                handle?.setAttribute("aria-pressed", String(!collapsed ? true : false));
-                handle?.setAttribute(
-                    "aria-label",
-                    collapsed ? "Expand sidebar" : "Collapse sidebar"
-                );
-                handle.title = collapsed ? "Expand sidebar" : "Collapse sidebar";
-            }
-
-            handle?.addEventListener("click", toggleSidebar);
-            collapseBtn?.addEventListener("click", toggleSidebar);
-
-            scrim?.addEventListener("click", () => {
-                document.body.classList.remove("sidebar-open");
-            });
-        });
-        document.addEventListener("DOMContentLoaded", () => {
             const logoutLink = document.getElementById("logoutLink");
             if (logoutLink) {
                 logoutLink.addEventListener("click", function (e) {
@@ -1812,13 +1794,13 @@
             }
         });
         document.addEventListener("DOMContentLoaded", () => {
-            /* … your existing sidebar JS … */
+            /* sidebar JS */
 
             // === NEW: play the active-link intro animation on page load (skip Log Out) ===
             const activeLinks = Array.from(document.querySelectorAll(".sidebar a.active"))
                 .filter(a => a.id !== "logoutLink");
 
-            // Start them in “hover” pose and animate into “active”
+            // Start them in hover pose and animate into active
             activeLinks.forEach(a => a.classList.add("just-activated"));
 
             // After 1s (box-shadow fade done), clean up the temp class

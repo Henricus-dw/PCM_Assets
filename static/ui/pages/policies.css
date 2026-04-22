@@ -1,0 +1,1059 @@
+/* Policies Management Page Styles */
+
+body.policies-management {
+    background: #ffffff;
+    color: #1a1c1c;
+    font-family: 'Inter', sans-serif;
+}
+
+body.policies-management .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    vertical-align: middle;
+}
+
+/* -- Layout --------------------------------------------- */
+
+body.policies-management .pm-page {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 1.5rem 1.25rem 3rem;
+}
+
+body.policies-management .pm-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+body.policies-management .pm-header {
+    margin-bottom: 1.5rem;
+}
+
+body.policies-management .pm-header h1 {
+    margin: 0;
+    font-family: 'Manrope', sans-serif;
+    font-size: clamp(1.75rem, 2.5vw, 2.3rem);
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    color: #1a1c1c;
+    line-height: 1.15;
+}
+
+body.policies-management .pm-header p {
+    margin: 0.5rem 0 0;
+    color: #515d6d;
+    font-size: 0.9rem;
+    max-width: 52rem;
+    line-height: 1.5;
+}
+
+body.policies-management .pm-workspace {
+    display: grid;
+    grid-template-columns: 20rem minmax(0, 1fr);
+    gap: 1.25rem;
+    align-items: start;
+}
+
+/* -- Buttons -------------------------------------------- */
+
+body.policies-management .pm-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    border: none;
+    border-radius: 0.125rem;
+    padding: 0.45rem 0.875rem;
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.15s, transform 0.12s;
+}
+
+body.policies-management .pm-btn:hover {
+    transform: translateY(-1px);
+}
+
+body.policies-management .pm-btn-neutral {
+    background: #e8e8e7;
+    color: #414848;
+}
+
+body.policies-management .pm-btn-neutral:hover {
+    background: #dddedd;
+}
+
+body.policies-management .pm-btn-primary {
+    background: #406262;
+    color: #ffffff;
+    box-shadow: 0 6px 16px rgba(64, 98, 98, 0.25);
+}
+
+body.policies-management .pm-btn-primary:hover {
+    background: #375656;
+}
+
+/* -- Upload Panel --------------------------------------- */
+
+body.policies-management .pm-upload-panel {
+    background: #f4f4f3;
+    border: 1px solid #e0e4e3;
+    border-radius: 0.125rem;
+    padding: 1.25rem;
+}
+
+body.policies-management .pm-panel-heading {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0 0 1.1rem;
+    font-family: 'Manrope', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #406262;
+}
+
+body.policies-management .pm-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-bottom: 0.85rem;
+}
+
+body.policies-management .pm-field label {
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 700;
+    color: #717878;
+    padding-left: 0.125rem;
+}
+
+body.policies-management .pm-field input,
+body.policies-management .pm-field select,
+body.policies-management .pm-field textarea {
+    width: 100%;
+    background: #ffffff;
+    border: none;
+    border-radius: 0.125rem;
+    padding: 0.55rem 0.68rem;
+    font: inherit;
+    font-size: 0.85rem;
+    color: #1a1c1c;
+    outline: none;
+    transition: box-shadow 0.15s;
+    box-shadow: 0 0 0 1px rgba(113, 120, 120, 0.18);
+}
+
+body.policies-management .pm-field input:focus,
+body.policies-management .pm-field select:focus,
+body.policies-management .pm-field textarea:focus {
+    box-shadow: 0 0 0 2px #406262;
+}
+
+body.policies-management .pm-field textarea {
+    min-height: 72px;
+    resize: vertical;
+}
+
+body.policies-management .pm-field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+body.policies-management .pm-users-box {
+    max-height: 8rem;
+    overflow-y: auto;
+    border: 1px solid #dde0df;
+    border-radius: 0.125rem;
+    padding: 0.5rem 0.625rem;
+    background: #ffffff;
+}
+
+body.policies-management .pm-users-box label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.2rem 0;
+    font-size: 0.8rem;
+    color: #414848;
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 400;
+}
+
+body.policies-management .pm-upload-drop {
+    border: 2px dashed rgba(113, 120, 120, 0.35);
+    border-radius: 0.125rem;
+    padding: 1.5rem 1rem;
+    background: rgba(255, 255, 255, 0.5);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-align: center;
+    transition: background 0.15s;
+}
+
+body.policies-management .pm-upload-drop:hover {
+    background: rgba(255, 255, 255, 0.85);
+}
+
+body.policies-management .pm-upload-drop .material-symbols-outlined {
+    font-size: 2rem;
+    color: #717878;
+    transition: color 0.15s;
+}
+
+body.policies-management .pm-upload-drop:hover .material-symbols-outlined {
+    color: #406262;
+}
+
+body.policies-management .pm-upload-drop p {
+    margin: 0;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #1a1c1c;
+}
+
+body.policies-management .pm-upload-drop .pm-muted {
+    font-size: 0.7rem;
+    color: #717878;
+    font-weight: 400;
+}
+
+body.policies-management .pm-submit-btn {
+    width: 100%;
+    background: #406262;
+    color: #ffffff;
+    border: none;
+    border-radius: 0.125rem;
+    padding: 0.75rem 1rem;
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    transition: background 0.15s, transform 0.12s;
+}
+
+body.policies-management .pm-submit-btn:hover {
+    background: #375656;
+    transform: translateY(-1px);
+}
+
+/* -- Documents Panel ------------------------------------ */
+
+body.policies-management .pm-docs-panel {
+    background: #ffffff;
+    border: 1px solid #e0e4e3;
+    border-radius: 0.125rem;
+    padding: 1.25rem;
+}
+
+body.policies-management .pm-docs-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+body.policies-management .pm-docs-heading {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0;
+    font-family: 'Manrope', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1a1c1c;
+}
+
+body.policies-management .pm-docs-heading .material-symbols-outlined {
+    color: #406262;
+}
+
+body.policies-management .pm-filter-row {
+    display: flex;
+    gap: 0.5rem;
+}
+
+body.policies-management .pm-pill-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    border: none;
+    border-radius: 999px;
+    background: #e8e8e7;
+    color: #5f5e5e;
+    padding: 0.4rem 0.75rem;
+    font: inherit;
+    font-size: 0.72rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+body.policies-management .pm-pill-btn:hover {
+    background: #dddedd;
+}
+
+body.policies-management .pm-pill-btn .material-symbols-outlined {
+    font-size: 0.875rem;
+}
+
+/* -- Document cards grid -------------------------------- */
+
+body.policies-management .pm-docs-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.875rem;
+}
+
+body.policies-management .pm-doc-card {
+    background: #f4f4f3;
+    border: 1px solid #e0e4e3;
+    border-radius: 0.125rem;
+    padding: 0.875rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    transition: background 0.2s;
+}
+
+body.policies-management .pm-doc-card:hover {
+    background: #eeeeec;
+}
+
+body.policies-management .pm-doc-card.is-archived {
+    border-style: dashed;
+}
+
+body.policies-management .pm-doc-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+body.policies-management .pm-doc-icon {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 0.125rem;
+    background: #c5eae9;
+    color: #406262;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+body.policies-management .pm-doc-badge {
+    font-size: 0.6rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border-radius: 999px;
+    padding: 0.25rem 0.625rem;
+}
+
+body.policies-management .pm-doc-card.is-archived .pm-doc-icon {
+    background: #d7e3f6;
+    color: #3c4857;
+}
+
+body.policies-management .pm-doc-badge.badge-active {
+    background: #e8f5f3;
+    color: #24514e;
+}
+
+body.policies-management .pm-doc-badge.badge-archived {
+    background: #e2e2e2;
+    color: #525252;
+}
+
+body.policies-management .pm-doc-title {
+    margin: 0;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.97rem;
+    font-weight: 700;
+    color: #1a1c1c;
+    line-height: 1.2;
+    transition: color 0.15s;
+}
+
+body.policies-management .pm-doc-card:hover .pm-doc-title {
+    color: #406262;
+}
+
+body.policies-management .pm-doc-meta {
+    margin: 0.25rem 0 0;
+    font-size: 0.74rem;
+    color: #515d6d;
+}
+
+body.policies-management .pm-doc-info {
+    border-top: 1px solid rgba(193, 200, 199, 0.4);
+    padding-top: 0.6rem;
+    display: flex;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+}
+
+body.policies-management .pm-info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+body.policies-management .pm-info-label {
+    font-size: 0.58rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 800;
+    color: #9aa0a0;
+}
+
+body.policies-management .pm-info-value {
+    font-size: 0.75rem;
+    color: #414848;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+body.policies-management .pm-info-value .material-symbols-outlined {
+    font-size: 0.8rem;
+}
+
+/* -- Visibility inline form ----------------------------- */
+
+body.policies-management .pm-visibility-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+body.policies-management .pm-visibility-form select {
+    border: 1px solid #d5dada;
+    border-radius: 0.125rem;
+    padding: 0.45rem 0.625rem;
+    font: inherit;
+    font-size: 0.78rem;
+    background: #ffffff;
+    color: #1a1c1c;
+    outline: none;
+}
+
+body.policies-management .pm-save-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    border: none;
+    border-radius: 0.125rem;
+    background: #406262;
+    color: #ffffff;
+    padding: 0.45rem 0.7rem;
+    font: inherit;
+    font-size: 0.72rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+body.policies-management .pm-save-btn:hover {
+    background: #375656;
+}
+
+body.policies-management .pm-save-btn .material-symbols-outlined {
+    font-size: 0.875rem;
+}
+
+body.policies-management .pm-users-row {
+    margin-top: 0.5rem;
+}
+
+/* -- Document action buttons ---------------------------- */
+
+body.policies-management .pm-doc-actions {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.375rem;
+}
+
+body.policies-management .pm-doc-card>.pm-doc-actions,
+body.policies-management .pm-doc-card>form:last-child {
+    margin-top: auto;
+}
+
+body.policies-management .pm-action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2rem;
+    min-height: 2.75rem;
+    border: none;
+    border-radius: 0.125rem;
+    background: transparent;
+    color: #5f5e5e;
+    font: inherit;
+    font-size: 0.58rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    text-decoration: none;
+    cursor: pointer;
+    padding: 0.375rem;
+    transition: background 0.15s, color 0.15s;
+}
+
+body.policies-management .pm-action-btn .material-symbols-outlined {
+    font-size: 1rem;
+}
+
+body.policies-management .pm-action-btn:hover {
+    background: #e2e2e2;
+}
+
+body.policies-management .pm-action-btn.action-danger:hover {
+    background: #ffdad6;
+    color: #ba1a1a;
+}
+
+body.policies-management .pm-action-btn.action-danger {
+    color: #ba1a1a;
+}
+
+body.policies-management .pm-action-btn--full {
+    width: 100%;
+}
+
+/* -- Empty state ---------------------------------------- */
+
+body.policies-management .pm-empty {
+    border: 2px dashed rgba(113, 120, 120, 0.25);
+    border-radius: 0.125rem;
+    padding: 3rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    text-align: center;
+    color: #717878;
+}
+
+body.policies-management .pm-empty .material-symbols-outlined {
+    font-size: 2.5rem;
+}
+
+body.policies-management .pm-empty p {
+    margin: 0;
+    font-size: 0.87rem;
+}
+
+/* -- Stats footer --------------------------------------- */
+
+body.policies-management .pm-stats {
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid rgba(193, 200, 199, 0.25);
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.875rem;
+}
+
+body.policies-management .pm-stat-card {
+    background: #f4f4f3;
+    border: 1px solid #e0e4e3;
+    border-radius: 0.125rem;
+    padding: 0.875rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+body.policies-management .pm-stat-icon {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    background: #c5eae9;
+    color: #2c5553;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+body.policies-management .pm-stat-icon .material-symbols-outlined {
+    font-size: 1.1rem;
+}
+
+body.policies-management .pm-stat-value {
+    margin: 0;
+    font-family: 'Manrope', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #1a1c1c;
+    line-height: 1;
+}
+
+body.policies-management .pm-stat-label {
+    margin: 0.2rem 0 0;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 700;
+    color: #717878;
+}
+
+/* -- Utilities ------------------------------------------ */
+
+body.policies-management .is-hidden {
+    display: none !important;
+}
+
+/* -- Responsive ----------------------------------------- */
+
+@media (max-width: 960px) {
+    body.policies-management .pm-workspace {
+        grid-template-columns: 1fr;
+    }
+
+    body.policies-management .pm-docs-grid,
+    body.policies-management .pm-stats,
+    body.policies-management .pm-field-row {
+        grid-template-columns: 1fr;
+    }
+
+    body.policies-management .pm-topbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    body.policies-management .pm-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Policies Edit Page */
+
+body.policies-edit {
+    background: #ffffff;
+    color: #1a1c1c;
+    font-family: 'Inter', sans-serif;
+}
+
+body.policies-edit .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    vertical-align: middle;
+}
+
+body.policies-edit .pe-page {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 1.5rem 1.7rem 3rem;
+}
+
+body.policies-edit .pe-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    margin-bottom: 1.1rem;
+}
+
+body.policies-edit .pe-header {
+    margin-bottom: 1.2rem;
+}
+
+body.policies-edit .pe-header h1 {
+    margin: 0;
+    font-family: 'Manrope', sans-serif;
+    font-size: clamp(1.55rem, 2.2vw, 2rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #406262;
+    line-height: 1.15;
+}
+
+body.policies-edit .pe-header p {
+    margin: 0.35rem 0 0;
+    color: #656464;
+    font-size: 0.84rem;
+    line-height: 1.5;
+}
+
+body.policies-edit .pe-panel {
+    background: #f4f4f3;
+    border: 1px solid rgba(193, 200, 199, 0.35);
+    border-radius: 0.125rem;
+    padding: 1.2rem 1.3rem;
+}
+
+body.policies-edit .pe-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.65rem;
+}
+
+body.policies-edit .pe-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-bottom: 0.65rem;
+}
+
+body.policies-edit .pe-full {
+    grid-column: 1 / -1;
+}
+
+body.policies-edit .pe-field label {
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 700;
+    color: #717878;
+    padding-left: 0.1rem;
+}
+
+body.policies-edit .pe-field input,
+body.policies-edit .pe-field select,
+body.policies-edit .pe-field textarea {
+    width: 100%;
+    background: #ffffff;
+    border: 1px solid rgba(193, 200, 199, 0.5);
+    border-radius: 0.125rem;
+    padding: 0.55rem 0.68rem;
+    font: inherit;
+    font-size: 0.84rem;
+    color: #1a1c1c;
+    outline: none;
+}
+
+body.policies-edit .pe-field input:focus,
+body.policies-edit .pe-field select:focus,
+body.policies-edit .pe-field textarea:focus {
+    border-color: #406262;
+}
+
+body.policies-edit .pe-field textarea {
+    min-height: 96px;
+    resize: vertical;
+}
+
+body.policies-edit .pe-file-info {
+    padding: 0.7rem 0.8rem;
+    background: #ffffff;
+    border: 1px solid rgba(193, 200, 199, 0.5);
+    border-radius: 0.125rem;
+    font-size: 0.8rem;
+    color: #355454;
+    line-height: 1.5;
+}
+
+body.policies-edit .pe-actions {
+    margin-top: 0.9rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.45rem;
+}
+
+body.policies-edit .pe-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    border: none;
+    border-radius: 0.125rem;
+    padding: 0.45rem 0.875rem;
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.12s;
+}
+
+body.policies-edit .pe-btn-neutral {
+    background: #e8e8e7;
+    color: #414848;
+}
+
+body.policies-edit .pe-btn-neutral:hover {
+    background: #dddedd;
+}
+
+body.policies-edit .pe-btn-primary {
+    background: #406262;
+    color: #ffffff;
+}
+
+body.policies-edit .pe-btn-primary:hover {
+    background: #375656;
+}
+
+@media (max-width: 760px) {
+    body.policies-edit .pe-page {
+        padding: 1.2rem 1rem 2.2rem;
+    }
+
+    body.policies-edit .pe-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    body.policies-edit .pe-actions {
+        flex-direction: column;
+    }
+
+    body.policies-edit .pe-btn {
+        width: 100%;
+    }
+}
+
+/* Policies Directory Page */
+
+body.policies-directory {
+    background: #ffffff;
+    color: #1a1c1c;
+    font-family: 'Inter', sans-serif;
+}
+
+body.policies-directory .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    vertical-align: middle;
+}
+
+body.policies-directory .pd-page {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 1.5rem 1.7rem 3rem;
+}
+
+body.policies-directory .pd-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 1.15rem;
+}
+
+body.policies-directory .pd-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    border: none;
+    border-radius: 0.125rem;
+    padding: 0.45rem 0.875rem;
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.12s;
+}
+
+body.policies-directory .pd-btn-neutral {
+    background: #e8e8e7;
+    color: #414848;
+}
+
+body.policies-directory .pd-btn-neutral:hover {
+    background: #dddedd;
+}
+
+body.policies-directory .pd-btn-primary {
+    background: #406262;
+    color: #ffffff;
+}
+
+body.policies-directory .pd-btn-primary:hover {
+    background: #375656;
+}
+
+body.policies-directory .pd-hero {
+    background: #f4f4f3;
+    border: 1px solid rgba(193, 200, 199, 0.35);
+    border-radius: 0.125rem;
+    padding: 1.1rem 1.2rem;
+    margin-bottom: 0.95rem;
+}
+
+body.policies-directory .pd-hero h1 {
+    margin: 0;
+    font-family: 'Manrope', sans-serif;
+    font-size: clamp(1.6rem, 2.5vw, 2rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #406262;
+    line-height: 1.15;
+}
+
+body.policies-directory .pd-hero p {
+    margin: 0.45rem 0 0;
+    color: #656464;
+    font-size: 0.84rem;
+    line-height: 1.5;
+    max-width: 56rem;
+}
+
+body.policies-directory .pd-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin: 0.9rem 0 0.75rem;
+}
+
+body.policies-directory .pd-chip {
+    border: 1px solid rgba(193, 200, 199, 0.55);
+    border-radius: 999px;
+    padding: 0.4rem 0.72rem;
+    font: inherit;
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: #5f5e5e;
+    background: #ffffff;
+    cursor: pointer;
+    transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+body.policies-directory .pd-chip.active {
+    background: #c5eae9;
+    border-color: #9dcfcd;
+    color: #244545;
+}
+
+body.policies-directory .pd-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.8rem;
+}
+
+body.policies-directory .pd-card {
+    background: #f4f4f3;
+    border: 1px solid rgba(193, 200, 199, 0.35);
+    border-radius: 0.125rem;
+    padding: 0.85rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    min-height: 220px;
+}
+
+body.policies-directory .pd-meta {
+    display: flex;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+}
+
+body.policies-directory .pd-badge {
+    font-size: 0.62rem;
+    font-weight: 800;
+    border-radius: 999px;
+    padding: 0.22rem 0.5rem;
+    background: #e8e8e7;
+    color: #5f5e5e;
+}
+
+body.policies-directory .pd-title {
+    margin: 0;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1a1c1c;
+    line-height: 1.25;
+}
+
+body.policies-directory .pd-desc {
+    margin: 0;
+    color: #515d6d;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    min-height: 2.2em;
+}
+
+body.policies-directory .pd-actions {
+    margin-top: auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.35rem;
+}
+
+body.policies-directory .pd-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    border: none;
+    border-radius: 0.125rem;
+    padding: 0.42rem 0.55rem;
+    font: inherit;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background 0.12s;
+}
+
+body.policies-directory .pd-action .material-symbols-outlined {
+    font-size: 0.92rem;
+}
+
+body.policies-directory .pd-action-preview {
+    background: #e8e8e7;
+    color: #414848;
+}
+
+body.policies-directory .pd-action-preview:hover {
+    background: #dddedd;
+}
+
+body.policies-directory .pd-action-download {
+    background: #406262;
+    color: #ffffff;
+}
+
+body.policies-directory .pd-action-download:hover {
+    background: #375656;
+}
+
+body.policies-directory .pd-empty {
+    border: 1px dashed rgba(193, 200, 199, 0.5);
+    border-radius: 0.125rem;
+    padding: 2.2rem 1.2rem;
+    text-align: center;
+    color: #717878;
+    font-size: 0.86rem;
+    font-weight: 600;
+}
+
+@media (max-width: 1080px) {
+    body.policies-directory .pd-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 760px) {
+    body.policies-directory .pd-page {
+        padding: 1.2rem 1rem 2.2rem;
+    }
+
+    body.policies-directory .pd-grid {
+        grid-template-columns: 1fr;
+    }
+
+    body.policies-directory .pd-topbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    body.policies-directory .pd-btn {
+        width: 100%;
+    }
+}

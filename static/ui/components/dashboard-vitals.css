@@ -1,0 +1,101 @@
+﻿/* Dashboard Vitals: Metrics, KPI cards, and status widgets */
+
+.dashboard-vitals {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    align-items: flex-start;
+}
+
+.vitals-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.vitals-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--primary, #406262);
+}
+
+.vitals-header p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--secondary, #5f5e5e);
+}
+
+.vitals-metrics {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    background: var(--surface-container-low, #f4f4f3);
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.125rem;
+    flex-wrap: wrap;
+}
+
+.vitals-metric-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.vitals-metric-label {
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--secondary, #5f5e5e);
+}
+
+.vitals-metric-value {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--primary, #406262);
+}
+
+.vitals-metric-subtext {
+    font-size: 0.625rem;
+    color: var(--tertiary, #515d6d);
+    font-weight: 500;
+}
+
+.vitals-divider {
+    width: 1px;
+    height: 2rem;
+    background: var(--outline-variant, #c1c8c7);
+    opacity: 0.4;
+}
+
+.vitals-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-left: auto;
+}
+
+.vitals-action-btn {
+    padding: 0.5rem 1rem;
+    background: var(--surface-container-high, #e8e8e7);
+    color: var(--primary, #406262);
+    border: none;
+    border-radius: 0.125rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: background 200ms ease, color 200ms ease;
+}
+
+.vitals-action-btn:hover {
+    background: var(--surface-container-highest, #e2e2e2);
+}
+
+.vitals-action-btn .material-symbols-outlined {
+    font-size: 0.875rem;
+}

@@ -1,0 +1,25 @@
+/* Shared app shell and content layout primitives. */
+
+.app-shell {
+    min-height: 100vh;
+}
+
+.content,
+.content2,
+.content3,
+.content4 {
+    margin-left: var(--content-offset);
+    margin-right: var(--content-gap);
+}
+
+.content {
+    margin-top: var(--content-gap);
+    margin-bottom: var(--content-gap);
+}
+
+@media (max-width: 1024px) {
+    :root {
+        --sidebar-width: 180px;
+        --content-gap: 14px;
+    }
+}

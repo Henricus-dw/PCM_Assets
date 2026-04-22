@@ -3,397 +3,221 @@
 
 <head>
     <meta charset="utf-8" />
-    <title>Time and Attendance</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Time and Attendance | PCM Tracer</title>
     <link rel="icon" href="/static/pcm-lockup-goldc-final.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="/static/styles.css?v={{ time }}">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="/static/ui/main.css?v={{ time }}">
+    <link rel="stylesheet" href="/static/ui/pages/time-attendance-dashboard.css?v={{ time }}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-    <style>
-        .refresh-btn {
-            background: #3b82f6;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: background 0.2s;
-        }
-
-        .refresh-btn:hover {
-            background: #2563eb;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .stat-box {
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 15px;
-            text-align: center;
-        }
-
-        .stat-label {
-            font-size: 0.85rem;
-            color: #6b7280;
-            margin-bottom: 8px;
-        }
-
-        .stat-value {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #111827;
-        }
-
-        .no-data {
-            padding: 40px;
-            text-align: center;
-            color: #9ca3af;
-        }
-
-        .card-head .export-button,
-        .card-head #export-pdf-btn {
-            top: 0;
-        }
-
-        .header-filter {
-            width: 100%;
-            box-sizing: border-box;
-            height: 26px;
-            padding: 4px 6px;
-            border: 1px solid #d1d5db;
-            border-radius: 4px;
-            font-size: 0.78rem;
-            margin-top: 4px;
-        }
-
-        #sessionsTable thead th[data-col] {
-            position: relative;
-            vertical-align: top;
-        }
-
-        #sessionsTable thead th[data-col] .header-label {
-            display: block;
-        }
-
-        .filter-toggle {
-            margin-top: 0;
-            border: 1px solid rgba(148, 163, 184, 0.45);
-            background: rgba(248, 250, 252, 0.92);
-            border-radius: 3px;
-            font-size: 10px;
-            color: #6b7280;
-            cursor: pointer;
-            width: 14px;
-            height: 14px;
-            line-height: 12px;
-            padding: 0;
-            opacity: 0.9;
-        }
-
-        #sessionsTable thead th[data-col] .filter-toggle {
-            position: absolute;
-            top: 50%;
-            right: 3px;
-            transform: translateY(-50%);
-        }
-
-        .filter-toggle:hover {
-            color: #111827;
-            border-color: #cbd5e1;
-        }
-
-        .flags-list {
-            display: grid;
-            gap: 8px;
-        }
-
-        .flag-row {
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 8px 10px;
-            background: #fff;
-        }
-
-        .flag-row .top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.82rem;
-            font-weight: 700;
-            color: #111827;
-            margin-bottom: 4px;
-        }
-
-        .flag-row .reason {
-            font-size: 0.78rem;
-            color: #6b7280;
-            line-height: 1.3;
-        }
-
-        .flag-type-pill {
-            font-size: 0.7rem;
-            font-weight: 700;
-            padding: 2px 8px;
-            border-radius: 999px;
-            background: #fee2e2;
-            color: #991b1b;
-            white-space: nowrap;
-        }
-
-        .flag-meta {
-            font-size: 0.74rem;
-            color: #6b7280;
-            margin-top: 3px;
-        }
-
-        .flag-actions {
-            margin-top: 8px;
-            display: flex;
-            justify-content: flex-end;
-        }
-
-        .btn-remediate {
-            border: none;
-            background: #4b5e70;
-            color: #fff;
-            border-radius: 8px;
-            padding: 6px 10px;
-            font-weight: 700;
-            font-size: 0.74rem;
-            cursor: pointer;
-        }
-
-        .btn-remediate:hover {
-            background: #37495d;
-        }
-
-        .flag-modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(15, 23, 42, 0.45);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1200;
-        }
-
-        .flag-modal.open {
-            display: flex;
-        }
-
-        .flag-modal-card {
-            background: #fff;
-            border-radius: 12px;
-            width: min(520px, 92vw);
-            box-shadow: 0 18px 45px rgba(0, 0, 0, 0.2);
-            padding: 16px;
-        }
-
-        .flag-modal-card h3 {
-            margin: 0 0 8px;
-            font-size: 1rem;
-            color: #111827;
-        }
-
-        .flag-preview-box {
-            border: 1px solid #e5e7eb;
-            background: #f8fafc;
-            border-radius: 8px;
-            padding: 10px;
-            font-size: 0.82rem;
-            color: #374151;
-            line-height: 1.35;
-            margin-bottom: 12px;
-        }
-
-        .flag-modal-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 8px;
-            margin-top: 12px;
-        }
-
-        .btn-secondary {
-            border: 1px solid #d1d5db;
-            background: #fff;
-            color: #111827;
-            border-radius: 8px;
-            padding: 6px 12px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        .btn-secondary:hover {
-            background: #f8fafc;
-        }
-
-        .btn-danger {
-            border: none;
-            background: #8b0000;
-            color: #fff;
-            border-radius: 8px;
-            padding: 6px 12px;
-            cursor: pointer;
-            font-weight: 700;
-        }
-
-        .btn-danger:hover {
-            background: #6e0000;
-        }
-    </style>
 </head>
 
-<body class="home-dashboard">
-    <!-- Sidebar -->
-    <div class="sidebar">
+<body class="dashboard-page app-with-sidebar time-attendance-dashboard">
+    {% set admin_href = '/admin?module=biometric' %}
+    {% set settings_href = '/settings?module=biometric' %}
 
-        <!-- Module navigation -->
-        <div class="nav-top">
-            <a href="/time-attendance"
-                class="{{ 'active' if section == 'time-attendance' else '' }}"><span>Employees</span></a>
-            <a href="/time-attendance-dashboard"
-                class="{{ 'active' if section == 'time-attendance-dashboard' else '' }}"><span>Time
-                    and Attendance</span></a>
-            <a href="/hours-accumulated"
-                class="{{ 'active' if section == 'accumulated-hours' else '' }}"><span>Accumulated Hours</span></a>
-        </div>
-        <div class="sidebar-mid">
-            <a href="/" class="sidebar-return" title="Return">↺ Return</a>
-        </div>
-
-        <!-- Bottom navigation -->
-        <div class="nav-bottom">
-            {% if request.session.get('is_admin') %}
-            <a href="/admin?module=biometric"
-                class="{{ 'active' if section == 'admin' else '' }}"><span>Admin</span></a>
-            {% endif %}
-
-            <a href="/settings?module=biometric"
-                class="{{ 'active' if section == 'settings' else '' }}"><span>Settings</span></a>
-            <a href="/logout" id="logoutLink" class="{{ 'active' if section == 'logout' else '' }}">
-                <span>Log Out</span>
-            </a>
-        </div>
-        <button id="sidebarHandle" class="sidebar-handle" aria-label="Collapse sidebar" aria-pressed="false"
-            title="Collapse sidebar"> <span class="handle-icon" aria-hidden="true">⟨</span> </button>
-    </div>
-
-    <!-- Main content area -->
-    <div class="content4">
-        <div class="contentInner4">
-            <div class="dash-grid biometric-grid">
-                <!-- Sessions -->
-                <section class="card card--tall sessions-card">
-                    <header class="card-head">
-                        <div></div>
-                        <div style="display:flex; gap:10px; align-items:center;">
-                            <span class="muted" style="font-size:12px;">Export:</span>
-                            <button id="export-btn" class="export-button" type="button" aria-label="Export Excel">
-                                <img src="/static/excel-document.svg" alt="Excel" class="excel-icon">
-                            </button>
-                            <button id="export-pdf-btn" type="button" aria-label="Export PDF">
-                                <img src="/static/download.svg" alt="PDF Icon" class="pdf-icon">
-                            </button>
-                            <input id="filterStartDate" type="date" class="input" style="height:32px;" />
-                            <input id="filterEndDate" type="date" class="input" style="height:32px;" />
-                        </div>
-                    </header>
-                    <div class="table-wrap">
-                        <table class="small-table time-attendance-table" id="sessionsTable">
-                            <colgroup>
-                                <col class="col-name" />
-                                <col class="col-company" />
-                                <col class="col-site" />
-                                <col class="col-division" />
-                                <col class="col-check-in" />
-                                <col class="col-check-out" />
-                                <col class="col-duration" />
-                            </colgroup>
-                            <thead>
-                                <tr>
-                                    <th data-col="name">
-                                        <div class="header-label">Name &amp; Surname</div>
-                                        <input type="text" class="header-filter" data-col="name"
-                                            style="display:none;" />
-                                        <button class="filter-toggle" data-col="name" aria-label="Filter">⌕</button>
-                                    </th>
-                                    <th data-col="company">
-                                        <div class="header-label">Company</div>
-                                        <input type="text" class="header-filter" data-col="company"
-                                            style="display:none;" />
-                                        <button class="filter-toggle" data-col="company" aria-label="Filter">⌕</button>
-                                    </th>
-                                    <th data-col="site">
-                                        <div class="header-label">Site</div>
-                                        <input type="text" class="header-filter" data-col="site"
-                                            style="display:none;" />
-                                        <button class="filter-toggle" data-col="site" aria-label="Filter">⌕</button>
-                                    </th>
-                                    <th data-col="division">
-                                        <div class="header-label">Division</div>
-                                        <input type="text" class="header-filter" data-col="division"
-                                            style="display:none;" />
-                                        <button class="filter-toggle" data-col="division" aria-label="Filter">⌕</button>
-                                    </th>
-                                    <th data-col="check_in">
-                                        <div class="header-label">Check-in</div>
-                                        <input type="text" class="header-filter" data-col="check_in"
-                                            style="display:none;" />
-                                        <button class="filter-toggle" data-col="check_in" aria-label="Filter">⌕</button>
-                                    </th>
-                                    <th data-col="check_out">
-                                        <div class="header-label">Check-out</div>
-                                        <input type="text" class="header-filter" data-col="check_out"
-                                            style="display:none;" />
-                                        <button class="filter-toggle" data-col="check_out"
-                                            aria-label="Filter">⌕</button>
-                                    </th>
-                                    <th data-col="duration">
-                                        <div class="header-label">Duration</div>
-                                        <input type="text" class="header-filter" data-col="duration"
-                                            style="display:none;" />
-                                        <button class="filter-toggle" data-col="duration" aria-label="Filter">⌕</button>
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody id="sessionsBody">
-                                <tr>
-                                    <td colspan="7" class="muted">Loading sessions...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <section class="card card--tall">
-                    <header class="card-head">
-                        <h2>Session Flags</h2>
-                        <span class="pill" id="sessionFlagsCount">0</span>
-                    </header>
-                    <div class="table-wrap" style="padding:10px; overflow:auto;">
-                        <div id="sessionFlagsBody" class="flags-list">
-                            <div class="muted">Loading flags...</div>
-                        </div>
-                    </div>
-                </section>
+    <div class="dashboard-main">
+        <aside class="sidebar">
+            <div class="sidebar-top">
+                <div class="sidebar-brand">
+                    <span class="sidebar-brand-title">Asset Management</span>
+                    <span class="sidebar-brand-sub">Enterprise Portal</span>
+                </div>
+                <nav class="nav-top">
+                    <a href="/time-attendance" class="{{ 'active' if section == 'time-attendance' else '' }}">
+                        <span class="material-symbols-outlined">groups</span>
+                        <span>Employees</span>
+                    </a>
+                    <a href="/time-attendance-dashboard"
+                        class="{{ 'active' if section == 'time-attendance-dashboard' else '' }}">
+                        <span class="material-symbols-outlined">calendar_month</span>
+                        <span>Attendance Dashboard</span>
+                    </a>
+                    <a href="/hours-accumulated" class="{{ 'active' if section == 'accumulated-hours' else '' }}">
+                        <span class="material-symbols-outlined">timer</span>
+                        <span>Accumulated Hours</span>
+                    </a>
+                </nav>
             </div>
-        </div>
+            <div class="sidebar-mid">
+                <a href="/" class="sidebar-return" title="Return">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                    <span>Return</span>
+                </a>
+            </div>
+            <div class="nav-bottom">
+                {% if request.session.get('is_admin') %}
+                <a href="{{ admin_href }}" class="{{ 'active' if section == 'admin' else '' }}">
+                    <span class="material-symbols-outlined">admin_panel_settings</span>
+                    <span>Admin</span>
+                </a>
+                {% endif %}
+                <a href="{{ settings_href }}" class="{{ 'active' if section == 'settings' else '' }}">
+                    <span class="material-symbols-outlined">settings</span>
+                    <span>Settings</span>
+                </a>
+                <a href="/logout" id="logoutLink" class="{{ 'active' if section == 'logout' else '' }}">
+                    <span class="material-symbols-outlined">logout</span>
+                    <span>Log Out</span>
+                </a>
+            </div>
+            <button id="sidebarHandle" class="sidebar-handle" aria-label="Collapse sidebar" aria-pressed="false"
+                title="Collapse sidebar">
+                <span class="handle-icon" aria-hidden="true">⟨</span>
+            </button>
+        </aside>
+
+        <main class="dashboard-content">
+            <div class="ta-shell">
+                <div class="ta-layout-grid">
+                    <section class="ta-main-col">
+                        <div class="ta-page-header">
+                            <h2 class="ta-title">Time and Attendance</h2>
+                            <div class="dashboard-vitals ta-vitals">
+                                <div class="vitals-metrics">
+                                    <div class="vitals-metric-group">
+                                        <div class="vitals-metric-label">Date Range</div>
+                                        <div class="ta-date-range">
+                                            <input id="filterStartDate" type="date" class="ta-input ta-date-input" />
+                                            <span>to</span>
+                                            <input id="filterEndDate" type="date" class="ta-input ta-date-input" />
+                                        </div>
+                                    </div>
+                                    <div class="vitals-divider"></div>
+                                    <div class="vitals-actions ta-vitals-actions">
+                                        <button id="export-btn" class="vitals-action-btn" type="button"
+                                            aria-label="Export Excel">
+                                            <span class="material-symbols-outlined">file_download</span>
+                                            Excel
+                                        </button>
+                                        <button id="export-pdf-btn" class="vitals-action-btn" type="button"
+                                            aria-label="Export PDF">
+                                            <span class="material-symbols-outlined">picture_as_pdf</span>
+                                            PDF
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <section class="ta-board">
+                            <div class="ta-table-toolbar">
+                                <div class="ta-table-filters">
+                                    <button id="taFilterToolbarBtn" type="button" class="ta-table-filter-btn"
+                                        aria-label="Search filters">
+                                        <span class="material-symbols-outlined">search</span>
+                                    </button>
+                                    <span class="ta-table-filter-label">ACTIVE FILTERS:</span>
+                                    <span id="taActiveFiltersHost" class="ta-table-active-badges"></span>
+                                </div>
+                            </div>
+                            <div class="table-wrap no-scrollbar">
+                                <table class="time-attendance-table" id="sessionsTable">
+                                    <colgroup>
+                                        <col class="col-name" />
+                                        <col class="col-company" />
+                                        <col class="col-site" />
+                                        <col class="col-division" />
+                                        <col class="col-check-in" />
+                                        <col class="col-check-out" />
+                                        <col class="col-duration" />
+                                    </colgroup>
+                                    <thead>
+                                        <tr>
+                                            <th data-col="name">
+                                                <div class="header-label">Name &amp; Surname</div>
+                                                <input type="text" class="header-filter is-hidden" data-col="name"
+                                                     />
+                                                <button class="filter-toggle" data-col="name" aria-label="Filter"><span
+                                                        class="material-symbols-outlined">search</span></button>
+                                            </th>
+                                            <th data-col="company">
+                                                <div class="header-label">Company</div>
+                                                <input type="text" class="header-filter is-hidden" data-col="company"
+                                                     />
+                                                <button class="filter-toggle" data-col="company"
+                                                    aria-label="Filter"><span
+                                                        class="material-symbols-outlined">search</span></button>
+                                            </th>
+                                            <th data-col="site">
+                                                <div class="header-label">Site</div>
+                                                <input type="text" class="header-filter is-hidden" data-col="site"
+                                                     />
+                                                <button class="filter-toggle" data-col="site" aria-label="Filter"><span
+                                                        class="material-symbols-outlined">search</span></button>
+                                            </th>
+                                            <th data-col="division">
+                                                <div class="header-label">Division</div>
+                                                <input type="text" class="header-filter is-hidden" data-col="division"
+                                                     />
+                                                <button class="filter-toggle" data-col="division"
+                                                    aria-label="Filter"><span
+                                                        class="material-symbols-outlined">search</span></button>
+                                            </th>
+                                            <th data-col="check_in">
+                                                <div class="header-label">Check-in</div>
+                                                <input type="text" class="header-filter is-hidden" data-col="check_in"
+                                                     />
+                                                <button class="filter-toggle" data-col="check_in"
+                                                    aria-label="Filter"><span
+                                                        class="material-symbols-outlined">search</span></button>
+                                            </th>
+                                            <th data-col="check_out">
+                                                <div class="header-label">Check-out</div>
+                                                <input type="text" class="header-filter is-hidden" data-col="check_out"
+                                                     />
+                                                <button class="filter-toggle" data-col="check_out"
+                                                    aria-label="Filter"><span
+                                                        class="material-symbols-outlined">search</span></button>
+                                            </th>
+                                            <th data-col="duration">
+                                                <div class="header-label">Duration</div>
+                                                <input type="text" class="header-filter is-hidden" data-col="duration"
+                                                     />
+                                                <button class="filter-toggle" data-col="duration"
+                                                    aria-label="Filter"><span
+                                                        class="material-symbols-outlined">search</span></button>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="sessionsBody">
+                                        <tr>
+                                            <td colspan="7" class="muted">Loading sessions...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+                    </section>
+
+                    <aside class="ta-side-rail">
+                        <section class="ta-card ta-flags-card">
+                            <header class="ta-card-head">
+                                <h4>Session Flags</h4>
+                                <span class="ta-pill" id="sessionFlagsCount">0</span>
+                            </header>
+                            <div class="ta-flags-body no-scrollbar">
+                                <div id="sessionFlagsBody" class="flags-list">
+                                    <div class="muted">Loading flags...</div>
+                                </div>
+                            </div>
+                        </section>
+                    </aside>
+                </div>
+            </div>
+        </main>
     </div>
 
     <div id="flagModal" class="flag-modal" aria-hidden="true">
         <div class="flag-modal-card" role="dialog" aria-modal="true" aria-labelledby="flagModalTitle">
             <h3 id="flagModalTitle">Remediate Flag</h3>
             <div class="flag-preview-box" id="flagModalPreview">Loading...</div>
-            <div id="flagModalError" class="muted" style="display:none; color:#b91c1c; margin-bottom:8px;"></div>
+            <div id="flagModalError" class="muted ta-error is-hidden"></div>
             <div class="flag-modal-actions">
                 <button type="button" class="btn-secondary" onclick="closeFlagModal()">Cancel</button>
                 <button type="button" id="flagActionConvert" class="btn-remediate">Apply change</button>
@@ -401,7 +225,7 @@
             </div>
         </div>
     </div>
-
+    <script src="/static/ui/components/sidebar.js"></script>
     <script>
         let autoRefreshInterval;
         let sessionsData = [];
@@ -486,9 +310,9 @@
                 title.innerText = 'Remediate: Check-in duplicate';
                 preview.innerHTML = `
                     <div><strong>${person}</strong></div>
-                    <div style="margin-top:6px;">Existing check-in: <strong>${originalCheckIn}</strong></div>
+                    <div class="preview-spacer">Existing check-in: <strong>${originalCheckIn}</strong></div>
                     <div>Incoming mistaken scan time: <strong>${eventTs}</strong></div>
-                    <div style="margin-top:8px;">If changed to check-out, session becomes:</div>
+                    <div class="preview-spacer preview-note">If changed to check-out, session becomes:</div>
                     <div>Check-in: ${originalCheckIn}</div>
                     <div>Check-out: ${proposedCheckOut}</div>
                     <div>Duration: ${duration}</div>
@@ -503,9 +327,9 @@
                 title.innerText = 'Remediate: Check-out duplicate';
                 preview.innerHTML = `
                     <div><strong>${person}</strong></div>
-                    <div style="margin-top:6px;">Latest previous check-out: <strong>${previousCheckout}</strong></div>
+                    <div class="preview-spacer">Latest previous check-out: <strong>${previousCheckout}</strong></div>
                     <div>Incoming mistaken scan time: <strong>${eventTs}</strong></div>
-                    <div style="margin-top:8px;">If changed to check-in, a new open session starts at:</div>
+                    <div class="preview-spacer preview-note">If changed to check-in, a new open session starts at:</div>
                     <div>Check-in: ${proposedCheckIn}</div>
                 `;
                 convertBtn.innerText = 'Change to check-in';
@@ -513,7 +337,7 @@
                 convertBtn.style.display = 'inline-block';
             } else {
                 title.innerText = 'Remediate Session Flag';
-                preview.innerHTML = `<div><strong>${person}</strong></div><div style="margin-top:6px;">${getFriendlyFlagReason(flag)}</div>`;
+                preview.innerHTML = `<div><strong>${person}</strong></div><div class="preview-spacer">${getFriendlyFlagReason(flag)}</div>`;
                 convertBtn.style.display = 'none';
                 convertBtn.dataset.action = '';
             }
@@ -732,6 +556,59 @@
                 });
             });
             renderSessions(filtered);
+            updateSessionActiveFilters();
+        }
+
+        function updateSessionActiveFilters() {
+            const host = document.getElementById('taActiveFiltersHost');
+            if (!host) return;
+            host.innerHTML = '';
+
+            const labels = {
+                name: 'Name',
+                company: 'Company',
+                site: 'Site',
+                division: 'Division',
+                check_in: 'Check-in',
+                check_out: 'Check-out',
+                duration: 'Duration'
+            };
+
+            const activeEntries = Object.entries(sessionColumnFilters).filter(([, value]) => value);
+            if (!activeEntries.length) {
+                const empty = document.createElement('span');
+                empty.className = 'ta-table-filter-badge ta-table-filter-badge--empty';
+                empty.textContent = 'None';
+                host.appendChild(empty);
+                return;
+            }
+
+            activeEntries.forEach(([col, value]) => {
+                const badge = document.createElement('span');
+                badge.className = 'ta-table-filter-badge';
+                badge.textContent = `${labels[col] || col}: ${value}`;
+
+                const close = document.createElement('span');
+                close.className = 'material-symbols-outlined';
+                close.textContent = 'close';
+                close.title = 'Clear';
+                close.addEventListener('click', () => {
+                    sessionColumnFilters[col] = '';
+                    const input = document.querySelector(`#sessionsTable .header-filter[data-col="${col}"]`);
+                    const toggle = document.querySelector(`#sessionsTable .filter-toggle[data-col="${col}"]`);
+                    if (input) {
+                        input.value = '';
+                        input.style.display = 'none';
+                    }
+                    if (toggle) {
+                        toggle.style.display = 'inline-block';
+                    }
+                    applySessionFilters();
+                });
+
+                badge.appendChild(close);
+                host.appendChild(badge);
+            });
         }
 
         function bindSessionColumnFilters() {
@@ -796,6 +673,18 @@
             startInput.value = today;
             endInput.value = today;
             bindSessionColumnFilters();
+            updateSessionActiveFilters();
+
+            document.getElementById('taFilterToolbarBtn')?.addEventListener('click', () => {
+                const firstHidden = Array.from(document.querySelectorAll('#sessionsTable .header-filter')).find((el) => {
+                    return el.style.display === 'none' || getComputedStyle(el).display === 'none';
+                });
+                const firstToggle = firstHidden
+                    ? firstHidden.closest('th')?.querySelector('.filter-toggle')
+                    : document.querySelector('#sessionsTable .filter-toggle');
+                firstToggle?.click();
+            });
+
             startInput.addEventListener('change', refreshSessions);
             endInput.addEventListener('change', refreshSessions);
             refreshSessions();
@@ -828,14 +717,6 @@
                 if (!row) return;
                 row.classList.toggle('row-expanded');
             });
-
-            // Sidebar toggle
-            const handle = document.getElementById("sidebarHandle");
-            function toggleSidebar() {
-                document.body.classList.toggle("sidebar-collapsed");
-                handle?.setAttribute("aria-pressed", String(document.body.classList.contains("sidebar-collapsed")));
-            }
-            handle?.addEventListener("click", toggleSidebar);
 
             // Logout handler
             const logoutLink = document.getElementById("logoutLink");

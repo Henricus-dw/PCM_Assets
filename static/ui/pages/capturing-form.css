@@ -1,0 +1,500 @@
+﻿body.capture-form {
+    --sidebar-width-home: 220px;
+    --sidebar-collapsed-peek: 2.3rem;
+    --sidebar-motion-duration: 280ms;
+    --sidebar-motion-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+    --sidebar-bg: #2f3032;
+    --surface-base: #f2f3f2;
+    --surface-card: #eceeed;
+    --surface-field: #e4e6e5;
+    --ink-strong: #2f3032;
+    --ink-body: #4b5563;
+    --ink-muted: #6a6f75;
+    --line-soft: #e2e5e4;
+    margin: 0;
+    min-height: 100vh;
+    background: #ffffff;
+    color: var(--ink-body);
+    font-family: "Inter", "Segoe UI", sans-serif;
+    overflow: hidden;
+}
+
+body.capture-form .capture-main {
+    margin-left: var(--sidebar-width-home);
+    height: 100vh;
+    padding: 1.25rem 1.5rem 1.75rem;
+    transition: margin-left var(--sidebar-motion-duration) var(--sidebar-motion-ease);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+body.capture-form .sidebar {
+    transition: transform var(--sidebar-motion-duration) var(--sidebar-motion-ease);
+    will-change: transform;
+}
+
+body.capture-form .capture-topbar {
+    min-height: 64px;
+    border-bottom: 1px solid #eff2f1;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.8rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 1rem;
+}
+
+body.capture-form .capture-topbar__titles {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    min-width: 0;
+}
+
+body.capture-form .capture-topbar__titles h1 {
+    margin: 0;
+    font-family: "Manrope", "Segoe UI", sans-serif;
+    font-size: 1.75rem;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    color: var(--ink-strong);
+}
+
+body.capture-form .capture-topbar__titles h2 {
+    margin: 0;
+    color: var(--ink-muted);
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+body.capture-form .archive-divider {
+    width: 1px;
+    height: 18px;
+    background: #dde2e0;
+}
+
+body.capture-form .archive-tools {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    color: #73797f;
+}
+
+body.capture-form .capture-export {
+    display: inline-flex;
+    align-items: center;
+    height: 32px;
+    padding: 0 0.8rem;
+    border-radius: 0.125rem;
+    background: #2f3032;
+    color: #f6f7f8;
+    font-family: "Manrope", "Segoe UI", sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+}
+
+body.capture-form .capture-content {
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    align-items: stretch;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+body.capture-form #formGroupWrapper {
+    display: contents;
+}
+
+body.capture-form .contentInner {
+    background: var(--surface-base);
+    border: 1px solid #e7ebea;
+    border-radius: 0.125rem;
+    box-shadow: 0 8px 18px rgba(24, 31, 30, 0.05);
+    min-height: 0;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin: 0;
+    padding-bottom: 1rem;
+    scrollbar-width: thin;
+    scrollbar-color: #b4bbb9 transparent;
+}
+
+body.capture-form .contentInner::-webkit-scrollbar {
+    width: 5px;
+}
+
+body.capture-form .contentInner::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+body.capture-form .contentInner::-webkit-scrollbar-button {
+    width: 0;
+    height: 0;
+    display: none;
+}
+
+body.capture-form .contentInner::-webkit-scrollbar-thumb {
+    background: #afb7b5;
+    border-radius: 999px;
+}
+
+body.capture-form .contentInner::-webkit-scrollbar-thumb:hover {
+    background: #9aa3a1;
+}
+
+body.capture-form .boxTopHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    margin: 0;
+    padding: 1.1rem 1.1rem 0.85rem;
+    border-bottom: 0;
+    color: #385f60;
+    font-family: "Manrope", "Segoe UI", sans-serif;
+    font-size: 1.02rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    background: #eef0ef;
+    border-top-left-radius: 0.9rem;
+    border-top-right-radius: 0.9rem;
+}
+
+body.capture-form .boxTopHeader::after {
+    display: none;
+}
+
+body.capture-form .link-pill {
+    display: none;
+    padding: 0.2rem 0.45rem;
+    border-radius: 999px;
+    background: #d7ebe8;
+    border: 1px solid #b2cfca;
+    color: #2f5a59;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+body.capture-form .form-linked .link-pill {
+    display: inline-flex;
+}
+
+body.capture-form form {
+    padding: 1rem 1.1rem;
+}
+
+body.capture-form .vodacom-form-wrapper,
+body.capture-form .device-form-wrapper {
+    background: var(--surface-card) !important;
+    border: 1px solid #e9eceb !important;
+    border-radius: 0.125rem;
+    margin-bottom: 0.9rem;
+    padding: 0.9rem !important;
+}
+
+body.capture-form .device-form-wrapper h3 {
+    margin: 0 0 0.5rem;
+    color: #365d5d;
+    font-family: "Manrope", "Segoe UI", sans-serif;
+    font-size: 0.95rem;
+}
+
+body.capture-form label {
+    display: block;
+    margin: 0.45rem 0 0.25rem;
+    color: var(--ink-muted);
+    font-size: 0.66rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+body.capture-form input,
+body.capture-form select,
+body.capture-form textarea {
+    width: 100%;
+    border: 1px solid #e3e6e8;
+    background: var(--surface-field);
+    color: var(--ink-strong);
+    border-radius: 0.125rem;
+    min-height: 2.05rem;
+    padding: 0.4rem 0.58rem;
+    box-sizing: border-box;
+    font: 500 0.82rem/1.2 "Inter", "Segoe UI", sans-serif;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+body.capture-form input[type="checkbox"] {
+    width: auto;
+    min-height: auto;
+    margin-left: 0.45rem;
+}
+
+body.capture-form input[type="radio"] {
+    width: auto;
+    margin-left: 0.4rem;
+}
+
+body.capture-form input:focus,
+body.capture-form select:focus,
+body.capture-form textarea:focus {
+    outline: 2px solid rgba(139, 165, 165, 0.23);
+    border-color: #8ba5a5;
+    background: #e8eceb;
+}
+
+body.capture-form .deviceCheckContainer {
+    margin-bottom: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    flex-wrap: wrap;
+}
+
+body.capture-form .deviceCheckContainer label {
+    margin: 0;
+}
+
+body.capture-form #deviceCountContainer {
+    margin: 0 0 0 0.55rem !important;
+    font-size: 0.72rem !important;
+}
+
+body.capture-form #deviceCountContainer label {
+    font-size: 0.6rem !important;
+}
+
+body.capture-form .radioDiv {
+    display: inline-flex;
+    align-items: center;
+    margin: 0.25rem 0.7rem 0.35rem 0;
+}
+
+body.capture-form .radioDiv label {
+    margin: 0;
+    font-size: 0.62rem;
+}
+
+body.capture-form .button-group {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.45rem;
+    margin-bottom: 0.65rem;
+}
+
+body.capture-form .transfer-btn {
+    min-height: 2.2rem;
+    border: 1px solid #d1d5d9;
+    background: #f2f4f3;
+    color: #4d555d;
+    border-radius: 0.125rem;
+    font: 700 0.72rem "Manrope", "Segoe UI", sans-serif;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+body.capture-form .transfer-btn.selected {
+    background: #2f3032;
+    border-color: #2f3032;
+    color: #f7f8f7;
+}
+
+body.capture-form .transfer-box {
+    margin-bottom: 0.6rem;
+}
+
+body.capture-form .hidden {
+    display: none;
+}
+
+body.capture-form .search-input {
+    margin-bottom: 0.5rem;
+}
+
+body.capture-form .result-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.74rem;
+}
+
+body.capture-form .result-table thead th {
+    color: #6f757b;
+    font-size: 0.61rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-align: left;
+    padding: 0.42rem;
+    border-bottom: 1px solid #e7ebea;
+}
+
+body.capture-form .result-table td {
+    padding: 0.42rem;
+    border-bottom: 1px solid #ecefee;
+}
+
+body.capture-form tr.selectable {
+    cursor: pointer;
+}
+
+body.capture-form tr.selectable:hover {
+    background: #e8eceb;
+}
+
+body.capture-form tr.selectable.selected {
+    background: #dce5e3;
+}
+
+body.capture-form .selection-msg {
+    margin: 0.4rem 0 0.55rem;
+    border-left: 3px solid #6b8e8e;
+    padding: 0.45rem 0.55rem;
+    color: #355d5d;
+    background: #e7f0ef;
+    font-size: 0.72rem;
+}
+
+body.capture-form .formSubmitButton,
+body.capture-form .submitbothbutton {
+    width: 100%;
+    min-height: 2.45rem;
+    border: 0;
+    border-radius: 0.125rem;
+    font: 800 0.74rem "Manrope", "Segoe UI", sans-serif;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-top: 0.5rem;
+}
+
+body.capture-form .formSubmitButton {
+    background: #2f3032;
+    color: #f8f9f8;
+    box-shadow: 0 7px 16px rgba(47, 48, 50, 0.15);
+}
+
+body.capture-form .submitbothbutton {
+    background: #6b8e8e;
+    color: #f7fbfb;
+    box-shadow: 0 7px 16px rgba(74, 105, 105, 0.16);
+}
+
+body.capture-form .submitbothbutton {
+    display: none;
+}
+
+html.is-linked body.capture-form #deviceSubmitBtn {
+    display: none;
+}
+
+html.is-linked body.capture-form .submitbothbutton {
+    display: block;
+}
+
+body.capture-form .formSubmitButton:hover,
+body.capture-form .submitbothbutton:hover {
+    filter: brightness(1.03);
+}
+
+body.capture-form .form-linked {
+    box-shadow: 0 0 0 2px rgba(107, 142, 142, 0.16), 0 8px 18px rgba(37, 43, 45, 0.09);
+}
+
+body.capture-form p[style*="color: green"] {
+    margin: 0.8rem 1.1rem 0;
+    color: #237a41 !important;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+body.capture-form .sort-overlay,
+body.capture-form #sidebarScrim,
+body.capture-form #universalSubmitWrapper {
+    display: none;
+}
+
+body.capture-form.sidebar-collapsed .sidebar {
+    transform: translateX(calc(-1 * (var(--sidebar-width-home) - var(--sidebar-collapsed-peek))));
+}
+
+body.capture-form.sidebar-collapsed .capture-main {
+    margin-left: var(--sidebar-collapsed-peek);
+}
+
+@media (max-width: 1450px) {
+    body.capture-form .capture-content {
+        grid-template-columns: 1fr;
+        overflow: auto;
+    }
+
+    body.capture-form .contentInner {
+        height: auto;
+        max-height: 72vh;
+        min-height: 420px;
+    }
+}
+
+@media (max-width: 980px) {
+    body.capture-form .capture-main {
+        margin-left: 0;
+        padding: 1rem;
+        height: 100vh;
+    }
+
+    body.capture-form .sidebar {
+        transform: translateX(-100%);
+    }
+
+    body.capture-form .capture-topbar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    body.capture-form .capture-topbar__titles {
+        flex-wrap: wrap;
+    }
+}
+
+body.capture-form .form-success-msg {
+    color: #166534;
+    background: #f0fdf4;
+    border: 1px solid rgba(22, 101, 52, 0.2);
+    border-radius: 0.125rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.75rem;
+}
+
+
+body.capture-form .device-count-container {
+    margin-top: 0.5rem;
+    margin-right: 0.5rem;
+    font-size: 0.75rem;
+}
+
+body.capture-form .device-count-label {
+    font-weight: 400;
+}
+
+body.capture-form .termination-auto-link {
+    font-weight: 400;
+    font-size: 0.8em;
+    color: #406262;
+    cursor: pointer;
+    text-decoration: underline;
+    margin-left: 6px;
+}

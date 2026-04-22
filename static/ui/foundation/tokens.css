@@ -1,0 +1,42 @@
+/* Design tokens only. No component selectors in this file. */
+
+:root {
+    --color-bg-app: #f5f5f4;
+    --color-bg-surface: #ffffff;
+    --color-text-primary: #1f242b;
+    --color-text-muted: #5f6670;
+    --color-border: rgba(63, 74, 88, 0.15);
+    --color-primary: #3e4a59;
+    --color-primary-strong: #2f3945;
+    --color-accent: #6b8e8e;
+    --color-danger: #b91c1c;
+    --color-success: #166534;
+
+    --color-secondary: #393939;
+    --color-tertiary: #6b8e8e;
+    --color-surface: #f5f5f4;
+    --color-surface-container: #ececec;
+    --color-surface-container-low: #e3e6ea;
+    --color-surface-container-high: #dfe3e7;
+    --color-surface-container-highest: #d7dce2;
+    --color-surface-container-lowest: #ffffff;
+    --color-outline-ghost: rgba(63, 74, 88, 0.15);
+
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.25rem;
+    --space-6: 1.5rem;
+
+    --radius-sm: 0.375rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.875rem;
+
+    --shadow-sm: 0 12px 32px rgba(31, 36, 43, 0.04);
+    --shadow-md: 0 18px 42px rgba(31, 36, 43, 0.06);
+
+    --sidebar-width: 220px;
+    --content-gap: 20px;
+    --content-offset: calc(var(--sidebar-width) + var(--content-gap));
+}

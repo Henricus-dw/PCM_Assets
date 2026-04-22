@@ -1,0 +1,289 @@
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap");
+
+body.landing-page {
+    min-height: 100vh;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    background: #f9f9f8;
+    color: #2d3433;
+    font-family: "Inter", "Segoe UI", sans-serif;
+}
+
+body.landing-page .material-symbols-outlined {
+    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+    line-height: 1;
+}
+
+body.landing-page .landing-topbar {
+    position: fixed;
+    top: 0;
+    z-index: 50;
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 1rem 2rem;
+    background: #fafaf9;
+}
+
+body.landing-page .landing-topbar__actions {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+body.landing-page .landing-user-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.125rem;
+    background: #f2f4f3;
+}
+
+body.landing-page .landing-user-badge .material-symbols-outlined {
+    color: #334155;
+    font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;
+}
+
+body.landing-page .landing-user-badge span:last-child {
+    color: #334155;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+body.landing-page .landing-logout-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.125rem;
+    color: #64748b;
+    text-decoration: none;
+    transition: background-color 200ms ease, color 200ms ease, transform 120ms ease;
+}
+
+body.landing-page .landing-logout-link:hover {
+    background: #e7e5e4;
+}
+
+body.landing-page .landing-logout-link:active {
+    opacity: 0.8;
+    transform: scale(0.95);
+}
+
+body.landing-page .landing-logout-link .material-symbols-outlined {
+    font-size: 20px;
+}
+
+body.landing-page .landing-logout-link span:last-child {
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+body.landing-page .landing-main {
+    width: 100%;
+    max-width: 80rem;
+    margin: 0 auto;
+    flex: 1 1 auto;
+    padding: 6rem 2rem 3rem;
+}
+
+body.landing-page .landing-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+body.landing-page .landing-hero__logo {
+    width: 5rem;
+    height: 5rem;
+    margin-bottom: 1rem;
+    object-fit: contain;
+}
+
+body.landing-page .landing-hero h1 {
+    margin: 0 0 0.5rem;
+    font-family: "Manrope", "Segoe UI", sans-serif;
+    font-size: 2.25rem;
+    line-height: 2.5rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #2d3433;
+}
+
+body.landing-page .landing-hero p {
+    margin: 0;
+    color: #5a6060;
+    font-size: 1rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+}
+
+body.landing-page .landing-module-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+}
+
+body.landing-page .landing-module-card {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 2rem;
+    text-decoration: none;
+    color: inherit;
+    background: #ffffff;
+    border: 1px solid rgba(173, 179, 178, 0.3);
+    border-radius: 0.125rem;
+    transition: border-color 300ms ease, transform 300ms ease;
+}
+
+body.landing-page .landing-module-card:hover {
+    border-color: #535f6f;
+}
+
+body.landing-page .landing-module-card__icon {
+    width: 3rem;
+    height: 3rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.125rem;
+}
+
+body.landing-page .landing-module-card__icon .material-symbols-outlined {
+    font-size: 1.875rem;
+    font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;
+}
+
+body.landing-page .landing-module-card__icon.tone-error {
+    background: rgba(159, 64, 61, 0.1);
+    color: #9f403d;
+}
+
+body.landing-page .landing-module-card__icon.tone-primary {
+    background: rgba(83, 95, 111, 0.1);
+    color: #535f6f;
+}
+
+body.landing-page .landing-module-card__icon.tone-tertiary {
+    background: rgba(67, 101, 101, 0.1);
+    color: #436565;
+}
+
+body.landing-page .landing-module-card__icon.tone-secondary {
+    background: rgba(96, 95, 92, 0.1);
+    color: #605f5c;
+}
+
+body.landing-page .landing-module-card__content h3 {
+    margin: 0 0 0.5rem;
+    font-family: "Manrope", "Segoe UI", sans-serif;
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+    font-weight: 700;
+    color: #2d3433;
+}
+
+body.landing-page .landing-module-card__content p {
+    margin: 0;
+    color: #5a6060;
+    font-size: 0.875rem;
+    line-height: 1.6;
+}
+
+body.landing-page .landing-module-card__arrow {
+    margin-top: auto;
+    padding-top: 1rem;
+    display: flex;
+    justify-content: flex-end;
+}
+
+body.landing-page .landing-module-card__arrow .material-symbols-outlined {
+    color: #535f6f;
+    transition: transform 200ms ease;
+}
+
+body.landing-page .landing-module-card:hover .landing-module-card__arrow .material-symbols-outlined {
+    transform: translateX(0.25rem);
+}
+
+body.landing-page .landing-footer {
+    margin-top: auto;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1.5rem 2rem;
+    text-align: center;
+    background: #f5f5f4;
+    color: #475569;
+    font-size: 0.75rem;
+    letter-spacing: 0.02em;
+}
+
+body.landing-page .landing-footer__links {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+body.landing-page .landing-footer__links a {
+    color: #64748b;
+    text-decoration: none;
+    transition: color 200ms ease;
+}
+
+body.landing-page .landing-footer__links a:hover {
+    color: #0f172a;
+}
+
+@media (min-width: 768px) {
+    body.landing-page .landing-module-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1024px) {
+    body.landing-page .landing-module-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 720px) {
+    body.landing-page .landing-topbar {
+        padding: 0.75rem 1rem;
+    }
+
+    body.landing-page .landing-topbar__actions {
+        gap: 0.75rem;
+    }
+
+    body.landing-page .landing-user-badge span:last-child {
+        max-width: 130px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    body.landing-page .landing-main {
+        padding: 6rem 1rem 2rem;
+    }
+
+    body.landing-page .landing-hero h1 {
+        font-size: 1.875rem;
+        line-height: 2.25rem;
+    }
+
+    body.landing-page .landing-footer__links {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}

@@ -2,403 +2,168 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8" />
-    <title>PCM Dashboard - Select Module</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PCM Dashboard</title>
     <link rel="icon" href="/static/pcm-lockup-goldc-final.svg" type="image/svg+xml" />
-    <link href="/static/styles.css" rel="stylesheet" />
-    <style>
-        body {
-            background: linear-gradient(135deg, #fefaf5 0%, #f5ede3 100%);
-            font-family: 'Inter', 'Segoe UI', sans-serif;
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .landing-container {
-            display: grid;
-            grid-template-rows: auto 1fr;
-            align-items: stretch;
-            justify-items: center;
-            padding: clamp(16px, 2vh, 28px) clamp(20px, 2vw, 40px) clamp(8px, 1vh, 14px);
-            box-sizing: border-box;
-            max-width: 100%;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        .landing-header {
-            text-align: center;
-            margin-bottom: clamp(10px, 1.6vh, 18px);
-            flex-shrink: 0;
-        }
-
-        .logo-section {
-            margin-bottom: clamp(6px, 1.5vh, 12px);
-        }
-
-        .logo-section img {
-            max-width: clamp(100px, 12vh, 150px);
-            height: auto;
-        }
-
-        .landing-header h1 {
-            font-size: clamp(1.1rem, 2.5vh, 1.6rem);
-            font-weight: 700;
-            color: #111827;
-            margin: clamp(4px, 0.8vh, 8px) 0 clamp(2px, 0.3vh, 4px) 0;
-        }
-
-        .landing-header p {
-            font-size: clamp(0.7rem, 1.5vh, 0.9rem);
-            color: #6b7280;
-            margin: 0;
-        }
-
-        .modules-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: clamp(14px, 1.6vh, 20px);
-            width: 100%;
-            max-width: 1300px;
-            padding: 0;
-            box-sizing: border-box;
-            margin: 0 auto;
-            height: 100%;
-            align-content: stretch;
-            grid-auto-rows: 1fr;
-        }
-
-        @media (max-width: 1023px) {
-            .modules-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: clamp(12px, 1.4vh, 16px);
-            }
-        }
-
-        @media (max-width: 639px) {
-            .modules-grid {
-                grid-template-columns: 1fr;
-                gap: clamp(12px, 1.5vh, 16px);
-            }
-        }
-
-        @media (max-height: 800px) {
-            .modules-grid {
-                gap: clamp(10px, 1.1vh, 14px);
-            }
-        }
-
-        .module-card {
-            background: #ffffff;
-            border-radius: 16px;
-            padding: clamp(12px, 1.6vh, 18px) clamp(14px, 1.8vw, 18px);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            transition: all 0.3s ease;
-            cursor: pointer;
-            border: 2px solid transparent;
-            text-decoration: none;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            width: 100%;
-            min-height: 0;
-            height: 100%;
-            justify-content: center;
-            box-sizing: border-box;
-            margin: 0;
-        }
-
-        .module-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
-            border-color: #4b5e70;
-        }
-
-        .module-icon {
-            font-size: clamp(2rem, 3.5vh, 2.5rem);
-            margin-bottom: clamp(8px, 1.2vh, 12px);
-        }
-
-        .module-card h2 {
-            font-size: clamp(0.95rem, 2vh, 1.1rem);
-            font-weight: 700;
-            color: #111827;
-            margin: 0 0 clamp(6px, 1vh, 10px) 0;
-        }
-
-        .module-card p {
-            color: #6b7280;
-            margin: 0;
-            font-size: clamp(0.75rem, 1.7vh, 0.9rem);
-            line-height: 1.5;
-        }
-
-        .module-card.vodacom {
-            border-top: 3px solid #df5d4f;
-        }
-
-        .module-card.vodacom:hover {
-            border-color: #a93226;
-        }
-
-        .module-card.time-attendance {
-            border-top: 3px solid #2563eb;
-        }
-
-        .module-card.time-attendance:hover {
-            border-color: #1e40af;
-        }
-
-        .module-card.personnel {
-            border-top: 3px solid #0f766e;
-        }
-
-        .module-card.personnel:hover {
-            border-color: #0d5f59;
-        }
-
-        .module-card.policies {
-            border-top: 3px solid #7c3aed;
-        }
-
-        .module-card.policies:hover {
-            border-color: #6d28d9;
-        }
-
-        .module-card.training {
-            border-top: 3px solid #ea580c;
-        }
-
-        .module-card.training:hover {
-            border-color: #c2410c;
-        }
-
-        .module-card.ir {
-            border-top: 3px solid #b91c1c;
-        }
-
-        .module-card.ir:hover {
-            border-color: #991b1b;
-        }
-
-        .module-card.medicals {
-            border-top: 3px solid #0ea5e9;
-        }
-
-        .module-card.medicals:hover {
-            border-color: #0284c7;
-        }
-
-        .module-card.assets {
-            border-top: 3px solid #16a34a;
-        }
-
-        .module-card.assets:hover {
-            border-color: #15803d;
-        }
-
-        .module-card.payroll {
-            border-top: 3px solid #f59e0b;
-        }
-
-        .module-card.payroll:hover {
-            border-color: #d97706;
-        }
-
-        .footer {
-            text-align: center;
-            padding: 8px;
-            color: #9ca3af;
-            font-size: 0.85rem;
-        }
-
-        .user-info {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 10px 20px;
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 12px;
-            backdrop-filter: blur(4px);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-
-        .user-info .user-name {
-            font-weight: 600;
-            color: #111827;
-        }
-
-        .user-info .user-role {
-            font-size: 0.85rem;
-            color: #6b7280;
-        }
-
-        .logout-btn {
-            background: #df5d4f;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: background 0.2s ease;
-        }
-
-        .logout-btn:hover {
-            background: #a93226;
-        }
-
-        /* Laptop screens with limited height */
-        @media (max-height: 900px) {
-            .landing-container {
-                padding: clamp(10px, 1.3vh, 16px) clamp(20px, 2vw, 30px) clamp(6px, 0.8vh, 12px);
-            }
-
-            .module-card {
-                padding: clamp(10px, 1.2vh, 14px) clamp(12px, 1.5vw, 16px);
-            }
-
-            .landing-header {
-                margin-bottom: clamp(8px, 1vh, 14px);
-            }
-        }
-
-        /* Very short laptop screens */
-        @media (max-height: 768px) {
-            .landing-container {
-                padding: clamp(8px, 0.9vh, 12px) clamp(18px, 1.8vw, 24px) clamp(4px, 0.6vh, 8px);
-            }
-
-            .module-card {
-                padding: clamp(8px, 0.9vh, 12px) clamp(10px, 1.2vw, 14px);
-            }
-
-            .modules-grid {
-                gap: clamp(8px, 0.9vh, 12px);
-            }
-
-            .landing-header {
-                margin-bottom: clamp(8px, 1vh, 16px);
-            }
-
-            .logo-section img {
-                max-width: clamp(90px, 10vh, 130px);
-            }
-        }
-
-        @media (max-width: 768px) {
-            .modules-grid {
-                grid-template-columns: 1fr;
-                gap: clamp(12px, 1.5vh, 16px);
-            }
-
-            .user-info {
-                flex-direction: column;
-                top: auto;
-                bottom: 20px;
-                left: 20px;
-                right: 20px;
-                align-items: flex-start;
-            }
-        }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <link href="/static/ui/main.css" rel="stylesheet" />
 </head>
 
-<body>
-    <div class="user-info">
-        <div>
-            <div class="user-name">{{ current_user.name or current_user.email }}</div>
-            <div class="user-role">{% if request.session.get('is_admin') %}Admin{% else %}User{% endif %}</div>
-        </div>
-        <a href="/logout" class="logout-btn">Log Out</a>
-    </div>
-
-    <div class="landing-container">
-        <div class="landing-header">
-            <div class="logo-section">
-                <img src="/static/pcm-lockup-goldc-final.svg" alt="PCM logo">
+<body class="landing-page">
+    <header class="landing-topbar">
+        <div class="landing-topbar__actions">
+            <div class="landing-user-badge">
+                <span class="material-symbols-outlined" aria-hidden="true">person</span>
+                <span>{{ current_user.name or current_user.email }}</span>
             </div>
+            <a href="/logout" class="landing-logout-link">
+                <span class="material-symbols-outlined" aria-hidden="true">logout</span>
+                <span>Log Out</span>
+            </a>
+        </div>
+    </header>
+
+    <main class="landing-main">
+        <section class="landing-hero">
+            <img src="/static/pcm-lockup-goldc-final.svg" alt="PCM logo" class="landing-hero__logo" />
             <h1>Welcome to PCM Dashboard</h1>
             <p>Select a module to get started</p>
-        </div>
+        </section>
 
-        <div class="modules-grid">
-            <!-- Vodacom Module -->
+        <div class="landing-module-grid">
             {% if request.session.get('is_admin') or request.session.get('vodacom') %}
-            <a href="/dashboard" class="module-card vodacom">
-                <div class="module-icon">📱</div>
-                <h2>Vodacom</h2>
-                <p>Manage subscriptions, contracts, devices, and SIM cards</p>
+            <a href="/dashboard" class="landing-module-card">
+                <div class="landing-module-card__icon tone-error">
+                    <span class="material-symbols-outlined" aria-hidden="true">cell_tower</span>
+                </div>
+                <div class="landing-module-card__content">
+                    <h3>Vodacom</h3>
+                    <p>Manage telecommunications assets, contracts, devices, and SIM cards.</p>
+                </div>
+                <div class="landing-module-card__arrow">
+                    <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+                </div>
             </a>
             {% endif %}
 
-            <!-- Time & Attendance Module -->
             {% if request.session.get('is_admin') or request.session.get('time_attendance') %}
-            <a href="/time-attendance" class="module-card time-attendance">
-                <div class="module-icon">⏰</div>
-                <h2>Time & Attendance</h2>
-                <p>Employee management, biometric enrollment, and attendance tracking</p>
+            <a href="/time-attendance" class="landing-module-card">
+                <div class="landing-module-card__icon tone-primary">
+                    <span class="material-symbols-outlined" aria-hidden="true">schedule</span>
+                </div>
+                <div class="landing-module-card__content">
+                    <h3>Time &amp; Attendance</h3>
+                    <p>Monitor employee attendance, biometric enrollment, and shift tracking.</p>
+                </div>
+                <div class="landing-module-card__arrow">
+                    <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+                </div>
             </a>
             {% endif %}
 
-            <a href="#" class="module-card personnel">
-                <div class="module-icon">👥</div>
-                <h2>Personnel Hub</h2>
-                <p>Central staff hub for personal info, banking, site allocation, contracts, attendance, leave, IOD,
-                    and staff movements</p>
+            <a href="#" class="landing-module-card">
+                <div class="landing-module-card__icon tone-tertiary">
+                    <span class="material-symbols-outlined" aria-hidden="true">badge</span>
+                </div>
+                <div class="landing-module-card__content">
+                    <h3>Personnel Hub</h3>
+                    <p>Centralized database for employee records and compliance tracking.</p>
+                </div>
+                <div class="landing-module-card__arrow">
+                    <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+                </div>
             </a>
 
-            <a href="/policies" class="module-card policies">
-                <div class="module-icon">📜</div>
-                <h2>Policies and Procedures</h2>
-                <p>Company policies, SOPs, and compliance guidelines in one place</p>
+            <a href="/policies" class="landing-module-card">
+                <div class="landing-module-card__icon tone-secondary">
+                    <span class="material-symbols-outlined" aria-hidden="true">policy</span>
+                </div>
+                <div class="landing-module-card__content">
+                    <h3>Policies and Procedures</h3>
+                    <p>Secure library for policy documents, SOPs, and compliance records.</p>
+                </div>
+                <div class="landing-module-card__arrow">
+                    <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+                </div>
             </a>
 
-            <a href="#" class="module-card training">
-                <div class="module-icon">🎓</div>
-                <h2>Training</h2>
-                <p>In-house and PAS training schedules, records, and certifications</p>
+            <a href="#" class="landing-module-card">
+                <div class="landing-module-card__icon tone-primary">
+                    <span class="material-symbols-outlined" aria-hidden="true">school</span>
+                </div>
+                <div class="landing-module-card__content">
+                    <h3>Training</h3>
+                    <p>Track internal and external training schedules and certifications.</p>
+                </div>
+                <div class="landing-module-card__arrow">
+                    <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+                </div>
             </a>
 
-            <a href="#" class="module-card ir">
-                <div class="module-icon">⚖️</div>
-                <h2>IR</h2>
-                <p>Incident reports, investigations, and disciplinary tracking</p>
+            <a href="#" class="landing-module-card">
+                <div class="landing-module-card__icon tone-tertiary">
+                    <span class="material-symbols-outlined" aria-hidden="true">gavel</span>
+                </div>
+                <div class="landing-module-card__content">
+                    <h3>IR</h3>
+                    <p>Incident reporting, investigations, and disciplinary case tracking.</p>
+                </div>
+                <div class="landing-module-card__arrow">
+                    <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+                </div>
             </a>
 
-            <a href="#" class="module-card medicals">
-                <div class="module-icon">🩺</div>
-                <h2>Medicals</h2>
-                <p>Medical records, fitness status, and appointment tracking</p>
+            <a href="#" class="landing-module-card">
+                <div class="landing-module-card__icon tone-error">
+                    <span class="material-symbols-outlined" aria-hidden="true">medical_services</span>
+                </div>
+                <div class="landing-module-card__content">
+                    <h3>Medicals</h3>
+                    <p>Manage medical records, fitness status, and appointment data.</p>
+                </div>
+                <div class="landing-module-card__arrow">
+                    <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+                </div>
             </a>
 
-            <a href="#" class="module-card assets">
-                <div class="module-icon">🧰</div>
-                <h2>Asset Registration</h2>
-                <p>Register, assign, and track assets across staff and sites</p>
+            <a href="#" class="landing-module-card">
+                <div class="landing-module-card__icon tone-secondary">
+                    <span class="material-symbols-outlined" aria-hidden="true">inventory_2</span>
+                </div>
+                <div class="landing-module-card__content">
+                    <h3>Asset Registration</h3>
+                    <p>Register and track company assets across departments and sites.</p>
+                </div>
+                <div class="landing-module-card__arrow">
+                    <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+                </div>
             </a>
 
-            <a href="#" class="module-card payroll">
-                <div class="module-icon">💰</div>
-                <h2>Payroll Input</h2>
-                <p>Monthly payroll inputs, adjustments, and approvals</p>
+            <a href="#" class="landing-module-card">
+                <div class="landing-module-card__icon tone-primary">
+                    <span class="material-symbols-outlined" aria-hidden="true">payments</span>
+                </div>
+                <div class="landing-module-card__content">
+                    <h3>Payroll Input</h3>
+                    <p>Capture payroll adjustments, validations, and monthly approvals.</p>
+                </div>
+                <div class="landing-module-card__arrow">
+                    <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+                </div>
             </a>
         </div>
-    </div>
+    </main>
 
-    <div class="footer">
+    <footer class="landing-footer">
+        <div class="landing-footer__links">
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Service</a>
+            <a href="#">Contact</a>
+        </div>
         <p>&copy; 2026 PCM. All rights reserved.</p>
-    </div>
-
+    </footer>
 </body>
 
 </html>

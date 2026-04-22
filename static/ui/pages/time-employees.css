@@ -1,0 +1,949 @@
+body.time-employees {
+    background: #ffffff;
+    color: #1a1c1c;
+    font-family: 'Inter', sans-serif;
+}
+
+body.time-employees .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    vertical-align: middle;
+}
+
+body.time-employees .dashboard-content {
+    background: #ffffff;
+    min-height: 100vh;
+    padding: 0;
+}
+
+body.time-employees .employees-shell {
+    padding: 1.15rem 1.7rem;
+    min-height: calc(100vh - 2.3rem);
+    box-sizing: border-box;
+    display: flex;
+}
+
+body.time-employees .employees-layout-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(19rem, 0.9fr);
+    gap: 1.3rem;
+    min-height: 100%;
+    height: 100%;
+    align-items: stretch;
+    flex: 1;
+}
+
+body.time-employees .employees-main-col,
+body.time-employees .employees-side-rail {
+    min-width: 0;
+    min-height: 0;
+}
+
+body.time-employees .employees-main-col {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    min-height: 0;
+}
+
+body.time-employees .employees-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.9rem;
+    margin-bottom: 0.75rem;
+}
+
+body.time-employees .employees-title {
+    margin: 0;
+    font-family: 'Manrope', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #406262;
+}
+
+body.time-employees .employees-vitals {
+    margin-bottom: 0;
+    gap: 0;
+    flex: 0 0 auto;
+}
+
+body.time-employees .employees-vitals .vitals-metrics {
+    width: auto;
+    justify-content: flex-start;
+    padding: 0.55rem 1rem;
+}
+
+body.time-employees .employees-vitals-actions {
+    flex-wrap: wrap;
+}
+
+body.time-employees .employees-subtitle {
+    margin: 0.22rem 0 0;
+    font-size: 0.76rem;
+    color: #656464;
+}
+
+body.time-employees .employees-header-actions {
+    display: inline-flex;
+    gap: 0.45rem;
+}
+
+body.time-employees .table-text-btn {
+    border: 0;
+    border-radius: 0.125rem;
+    background: #e8e8e7;
+    color: #406262;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.45rem 0.68rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.32rem;
+    cursor: pointer;
+    transition: background-color 120ms ease, color 120ms ease;
+}
+
+body.time-employees .table-text-btn:hover {
+    background: #e8e8e7;
+    color: #406262;
+}
+
+body.time-employees .table-text-btn .material-symbols-outlined {
+    font-size: 0.9rem;
+}
+
+body.time-employees .employees-board {
+    background: #f9f9f8;
+    border-radius: 0.125rem;
+    overflow: hidden;
+    border: 1px solid rgba(193, 200, 199, 0.25);
+    min-height: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+body.time-employees .employees-table-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 0.875rem;
+    border-bottom: 1px solid rgba(193, 200, 199, 0.35);
+    background: #f4f4f3;
+}
+
+body.time-employees .employees-table-filters {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 1.75rem;
+    flex-wrap: wrap;
+}
+
+body.time-employees .employees-table-filter-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #717878;
+}
+
+body.time-employees .employees-table-active-badges {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+body.time-employees .employees-table-filter-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #002020;
+    border: none;
+    background: #c5eae9;
+    border-radius: 0.125rem;
+    padding: 0.375rem 0.75rem;
+    line-height: 1;
+}
+
+body.time-employees .employees-table-filter-badge--empty {
+    color: #355454;
+    background: #d7efee;
+}
+
+body.time-employees .employees-table-filter-badge .material-symbols-outlined {
+    font-size: 0.625rem;
+    cursor: pointer;
+}
+
+body.time-employees .employees-table-filter-btn {
+    width: 1.3rem;
+    height: 1.3rem;
+    border: none;
+    border-radius: 0.125rem;
+    background: transparent;
+    color: #5f5e5e;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 120ms ease, color 120ms ease;
+}
+
+body.time-employees .employees-table-filter-btn:hover {
+    background: #d9dfde;
+    color: #244545;
+}
+
+body.time-employees .employees-table-filter-btn .material-symbols-outlined {
+    font-size: 0.95rem;
+}
+
+body.time-employees .table-wrap {
+    max-height: none;
+    overflow: auto;
+    flex: 1;
+    min-height: 16rem;
+}
+
+body.time-employees .no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+body.time-employees .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+body.time-employees #employeeTable {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+body.time-employees .col-pin {
+    width: 4.2rem;
+}
+
+body.time-employees .col-employee-id {
+    width: 7.2rem;
+}
+
+body.time-employees .col-name {
+    width: 9rem;
+}
+
+body.time-employees .col-surname {
+    width: 9rem;
+}
+
+body.time-employees .col-company {
+    width: 7rem;
+}
+
+body.time-employees .col-site {
+    width: 7rem;
+}
+
+body.time-employees .col-division {
+    width: 7rem;
+}
+
+body.time-employees .col-status {
+    width: 6rem;
+}
+
+body.time-employees #employeeTable thead th {
+    background: #f4f4f3;
+    border-bottom: 1px solid rgba(193, 200, 199, 0.3);
+    color: #667070;
+    font-size: 0.64rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.8rem 0.65rem;
+    text-align: left;
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    border-right: 1px solid rgba(193, 200, 199, 0.25);
+}
+
+body.time-employees #employeeTable thead th:last-child {
+    border-right: 0;
+}
+
+body.time-employees #employeeTable thead th[data-col] {
+    position: sticky;
+    top: 0;
+}
+
+body.time-employees .header-label {
+    display: block;
+    padding-right: 1.2rem;
+    min-height: 1.3rem;
+    line-height: 1.3rem;
+}
+
+body.time-employees .header-filter {
+    width: calc(100% - 0.9rem);
+    margin-top: 0.15rem;
+    border: 1px solid #c1c8c7;
+    border-radius: 0.125rem;
+    font-size: 0.62rem;
+    padding: 0.1rem 0.15rem;
+    box-sizing: border-box;
+}
+
+body.time-employees .filter-toggle {
+    position: absolute;
+    right: 0.3rem;
+    top: calc(0.8rem + 0.65rem);
+    transform: translateY(-50%);
+    width: 1.3rem;
+    height: 1.3rem;
+    border: 0;
+    border-radius: 0.125rem;
+    background: transparent;
+    color: #5f5e5e;
+    font-size: 0.5rem;
+    line-height: 1;
+    padding: 0;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 120ms ease, color 120ms ease;
+}
+
+body.time-employees .filter-toggle:hover {
+    background: #d9dfde;
+    color: #244545;
+}
+
+body.time-employees .filter-toggle .material-symbols-outlined {
+    font-size: 0.95rem;
+}
+
+body.time-employees #employeeTable tbody tr {
+    border-bottom: 1px solid rgba(193, 200, 199, 0.2);
+    cursor: pointer;
+}
+
+body.time-employees #employeeTable tbody tr:hover {
+    background: #eef1f1;
+}
+
+body.time-employees #employeeTable tbody tr.selected {
+    background: rgba(64, 98, 98, 0.11);
+}
+
+body.time-employees #employeeTable tbody td {
+    padding: 0.74rem 0.65rem;
+    font-size: 0.78rem;
+    color: #1a1c1c;
+    vertical-align: middle;
+    border-right: 1px solid rgba(193, 200, 199, 0.2);
+}
+
+body.time-employees #employeeTable tbody td:last-child {
+    border-right: 0;
+}
+
+body.time-employees .cell-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+body.time-employees .status-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.125rem;
+    padding: 0.16rem 0.35rem;
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+body.time-employees .status-in {
+    background: rgba(107, 142, 142, 0.14);
+    color: #2f5b5b;
+}
+
+body.time-employees .status-out {
+    background: #e8e5e4;
+    color: #5f5e5e;
+}
+
+body.time-employees .employee-filter-popover {
+    position: fixed;
+    z-index: 1600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: #ffffff;
+    border: 1px solid #c1c8c7;
+    border-radius: 0.125rem;
+    box-shadow: 0 8px 22px rgba(28, 36, 36, 0.14);
+    padding: 0.28rem;
+}
+
+body.time-employees .employee-filter-popover input {
+    border: 1px solid #d5dddc;
+    border-radius: 0.125rem;
+    min-width: 12rem;
+    padding: 0.33rem 0.46rem;
+    font-size: 0.75rem;
+    outline: none;
+}
+
+body.time-employees .employee-filter-popover button {
+    width: 1.5rem;
+    height: 1.5rem;
+    border: 1px solid #d5dddc;
+    border-radius: 0.125rem;
+    background: #f7f8f8;
+    color: #5f5e5e;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+body.time-employees .employee-filter-popover button:hover {
+    background: #e7eceb;
+}
+
+body.time-employees .employee-filter-popover .material-symbols-outlined {
+    font-size: 0.9rem;
+}
+
+body.time-employees .stats-grid {
+    margin-top: 0.95rem;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.62rem;
+    align-self: start;
+    align-items: start;
+}
+
+body.time-employees .stats-card {
+    background: #f4f4f3;
+    border-radius: 0.125rem;
+    padding: 0.78rem;
+    height: auto;
+}
+
+body.time-employees .stats-label {
+    font-size: 0.56rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #717878;
+    font-weight: 700;
+}
+
+body.time-employees .stats-value-row {
+    margin-top: 0.25rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.3rem;
+}
+
+body.time-employees .stats-value-row strong {
+    font-family: 'Manrope', sans-serif;
+    font-size: 1.55rem;
+    line-height: 1;
+}
+
+body.time-employees .stats-value-row span {
+    font-size: 0.66rem;
+    color: #656464;
+}
+
+body.time-employees .stats-up {
+    color: #406262 !important;
+    font-weight: 700;
+}
+
+body.time-employees .stats-high {
+    color: #ba1a1a !important;
+    font-weight: 700;
+}
+
+body.time-employees .stats-bar {
+    margin-top: 0.45rem;
+    height: 0.18rem;
+    border-radius: 999px;
+    background: #e8e8e7;
+    overflow: hidden;
+}
+
+body.time-employees .stats-bar span {
+    display: block;
+    width: 94%;
+    height: 100%;
+    background: #406262;
+}
+
+body.time-employees .employees-side-rail {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0.72rem;
+    min-height: 0;
+    height: 100%;
+}
+
+body.time-employees .employee-detail-card,
+body.time-employees .employee-calendar-card {
+    background: #f4f4f3;
+    border-radius: 0.125rem;
+    padding: 0.85rem;
+    border: 1px solid rgba(193, 200, 199, 0.18);
+    min-height: 0;
+    height: 100%;
+}
+
+body.time-employees .employee-detail-head,
+body.time-employees .employee-calendar-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.6rem;
+}
+
+body.time-employees .employee-detail-head h4,
+body.time-employees .employee-calendar-head h4 {
+    margin: 0;
+    font-family: 'Manrope', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+body.time-employees .icon-btn {
+    border: 0;
+    background: transparent;
+    color: #5f5e5e;
+    width: 1.8rem;
+    height: 1.8rem;
+    border-radius: 999px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+body.time-employees .icon-btn:hover {
+    background: rgba(95, 94, 94, 0.12);
+}
+
+body.time-employees .employee-profile-panel {
+    background: rgba(249, 249, 248, 0.8);
+    border-radius: 0.125rem;
+    padding: 0.75rem;
+    text-align: center;
+    margin-bottom: 0.75rem;
+}
+
+body.time-employees .employee-profile-avatar {
+    width: 3rem;
+    height: 3rem;
+    margin: 0 auto 0.45rem;
+    border-radius: 0.125rem;
+    background: #406262;
+    color: #fff;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+body.time-employees .employee-profile-panel h3 {
+    margin: 0;
+    font-family: 'Manrope', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+body.time-employees .employee-profile-panel p {
+    margin: 0.15rem 0 0;
+    font-size: 0.63rem;
+    color: #656464;
+}
+
+body.time-employees .employee-facts {
+    display: grid;
+    gap: 0.22rem;
+}
+
+body.time-employees .employee-facts div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.28rem 0;
+    border-bottom: 1px solid rgba(193, 200, 199, 0.15);
+    font-size: 0.63rem;
+}
+
+body.time-employees .employee-facts span {
+    color: #656464;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+body.time-employees .employee-facts strong {
+    color: #1a1c1c;
+    font-weight: 600;
+}
+
+body.time-employees .calendar-nav-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+}
+
+body.time-employees .calendar-month-label {
+    min-width: 5rem;
+    text-align: center;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: #406262;
+}
+
+body.time-employees .calendar-nav-btn,
+body.time-employees .export-pdf-btn {
+    border: 0;
+    background: transparent;
+    color: #656464;
+    width: 1.2rem;
+    height: 1.2rem;
+    border-radius: 0.125rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+body.time-employees .calendar-nav-btn:hover,
+body.time-employees .export-pdf-btn:hover {
+    background: rgba(113, 120, 120, 0.14);
+}
+
+body.time-employees #calendarEmployeeLabel {
+    display: block;
+    font-size: 0.63rem;
+    color: #656464;
+    margin-bottom: 0.4rem;
+}
+
+body.time-employees .calendar-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.12rem;
+}
+
+body.time-employees .calendar-weekdays,
+body.time-employees .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0.1rem;
+}
+
+body.time-employees .calendar-grid {
+    grid-template-rows: repeat(6, minmax(1.4rem, 1fr));
+}
+
+body.time-employees .calendar-weekdays div {
+    text-align: center;
+    font-size: 0.5rem;
+    color: #717878;
+    font-weight: 700;
+}
+
+body.time-employees .calendar-day {
+    border: 1px solid rgba(193, 200, 199, 0.2);
+    border-radius: 0.125rem;
+    background: #fff;
+    min-height: 1.4rem;
+    padding: 0.07rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.06rem;
+    position: relative;
+    overflow: hidden;
+}
+
+body.time-employees .calendar-day.empty {
+    background: rgba(232, 232, 231, 0.3);
+}
+
+body.time-employees .calendar-day-num {
+    font-size: 0.5rem;
+    font-weight: 700;
+    color: #717878;
+}
+
+body.time-employees .calendar-time {
+    font-size: 0.45rem;
+    color: #406262;
+    background: rgba(64, 98, 98, 0.14);
+    border-radius: 999px;
+    padding: 0.02rem 0.14rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+body.time-employees .calendar-time--extra {
+    display: none;
+}
+
+body.time-employees .calendar-overflow-indicator,
+body.time-employees .calendar-more {
+    font-size: 0.42rem;
+    color: #717878;
+}
+
+body.time-employees .calendar-day.has-more:hover {
+    z-index: 15;
+    transform: scale(1.25);
+    box-shadow: 0 8px 16px rgba(15, 23, 42, 0.16);
+    overflow: visible;
+}
+
+body.time-employees .calendar-day.has-more:hover .calendar-time--extra {
+    display: block;
+}
+
+body.time-employees .calendar-day.has-more:hover .calendar-more,
+body.time-employees .calendar-day.has-more:hover .calendar-overflow-indicator {
+    display: none;
+}
+
+body.time-employees .calendar-export-surface {
+    position: fixed;
+    left: -10000px;
+    top: 0;
+    width: 760px;
+    background: #ffffff;
+    padding: 0;
+    box-sizing: border-box;
+    z-index: -1;
+}
+
+body.time-employees .calendar-export-mode .calendar-grid {
+    grid-template-rows: repeat(6, minmax(84px, 1fr));
+}
+
+body.time-employees .calendar-export-mode .calendar-day {
+    padding: 0.3rem;
+    overflow: visible;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+body.time-employees .calendar-export-mode .calendar-time {
+    display: block !important;
+    font-size: 0.64rem;
+}
+
+body.time-employees .calendar-export-mode .calendar-overflow-indicator,
+body.time-employees .calendar-export-mode .calendar-more {
+    display: none !important;
+}
+
+body.time-employees .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+@media (max-width: 1280px) {
+    body.time-employees .employees-layout-grid {
+        grid-template-columns: 1fr;
+    }
+
+    body.time-employees .employees-side-rail {
+        grid-template-rows: auto;
+        height: auto;
+    }
+
+    body.time-employees .employee-detail-card,
+    body.time-employees .employee-calendar-card {
+        height: auto;
+    }
+}
+
+@media (max-width: 980px) {
+    body.time-employees .employees-shell {
+        padding: 1rem;
+        min-height: auto;
+        display: block;
+    }
+
+    body.time-employees .employees-page-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    body.time-employees .employees-vitals .vitals-metrics {
+        padding: 0.75rem 1rem;
+        width: 100%;
+    }
+
+    body.time-employees .employees-vitals .vitals-divider {
+        display: none;
+    }
+
+    body.time-employees .employees-vitals-actions {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    body.time-employees .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    body.time-employees .employee-filter-popover input {
+        min-width: 9rem;
+    }
+}
+
+/* -- Employee Modal ---------------------------------------- */
+
+body.time-employees .emp-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+body.time-employees .emp-modal-panel {
+    background: #ffffff;
+    border: 1px solid rgba(193, 200, 199, 0.45);
+    border-radius: 0.125rem;
+    padding: 1.75rem;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+}
+
+body.time-employees .emp-modal-panel h2 {
+    margin: 0 0 1.25rem 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1a1c1c;
+}
+
+body.time-employees .emp-modal-field {
+    margin-bottom: 1rem;
+}
+
+body.time-employees .emp-modal-row {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+body.time-employees .emp-modal-row .emp-modal-field {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+body.time-employees .emp-modal-field label {
+    display: block;
+    font-size: 0.775rem;
+    font-weight: 700;
+    color: #374151;
+    margin-bottom: 0.3rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+body.time-employees .emp-modal-field input,
+body.time-employees .emp-modal-field select {
+    width: 100%;
+    padding: 0.55rem 0.68rem;
+    border: 1px solid rgba(193, 200, 199, 0.6);
+    border-radius: 0.125rem;
+    font-size: 0.875rem;
+    font-family: inherit;
+    background: #ffffff;
+    color: #1a1c1c;
+    box-sizing: border-box;
+}
+
+body.time-employees .emp-modal-field input:focus,
+body.time-employees .emp-modal-field select:focus {
+    outline: none;
+    border-color: #406262;
+    box-shadow: 0 0 0 3px rgba(64, 98, 98, 0.12);
+}
+
+body.time-employees .emp-modal-actions {
+    display: flex;
+    gap: 0.6rem;
+    justify-content: flex-end;
+    margin-top: 1.25rem;
+}
+
+body.time-employees .emp-modal-btn {
+    padding: 0.55rem 1.1rem;
+    border-radius: 0.125rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    transition: background 0.15s;
+}
+
+body.time-employees .emp-modal-btn--cancel {
+    background: #f4f4f3;
+    color: #374151;
+    border: 1px solid rgba(193, 200, 199, 0.6);
+}
+
+body.time-employees .emp-modal-btn--cancel:hover {
+    background: #e8e8e7;
+}
+
+body.time-employees .emp-modal-btn--submit {
+    background: #406262;
+    color: #ffffff;
+    margin-right: auto;
+    order: 3;
+}
+
+body.time-employees .emp-modal-btn--submit:hover {
+    background: #334f4f;
+}
+
+body.time-employees .emp-modal-btn--delete {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid rgba(185, 28, 28, 0.25);
+    margin-right: auto;
+    order: -1;
+}
+
+body.time-employees .emp-modal-btn--delete:hover {
+    background: #fee2e2;
+}

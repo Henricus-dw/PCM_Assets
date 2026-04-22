@@ -1,344 +1,308 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <meta charset="utf-8" />
-    <title>PCM Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Settings | PCM Tracer</title>
     <link rel="icon" href="/static/pcm-lockup-goldc-final.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="/static/styles.css?v={{ time }}">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        .confirm {
-            width: auto;
-            height: auto;
-            color: white;
-            background-color: #4b5e70;
-            border: none;
-            border-radius: 14px;
-            padding: 4px 14px 6px 14px;
-            font: inherit;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            margin: 0 auto;
-            margin-top: 20px;
-            transition: background-color 0.2s ease;
-
-        }
-
-
-
-        .confirm:hover {
-            background-color: #f6efe3;
-
-            color: #333;
-        }
-
-        .confirm2:hover {
-            background-color: #f6efe3;
-
-            color: #333;
-        }
-
-        .confirm2 {
-            width: auto;
-            height: 20px;
-            color: white;
-            background-color: #4b5e70;
-            border: none;
-            border-radius: 14px;
-            padding: 2px 14px 12px 14px;
-            font: inherit;
-            cursor: pointer;
-            display: block;
-            /* no flexbox here */
-            margin-left: auto;
-            /* pushes it to the right */
-            margin-right: 30px;
-            font-size: 12px;
-            margin-bottom: -20px;
-            transition: background-color 0.2s ease;
-        }
-
-
-        /* Confirm buttons reserve their space but start hidden */
-        #confirm1,
-        #confirm2 {
-            visibility: hidden;
-        }
-
-
-
-        .form_settings {
-            height: auto;
-            max-height: 200px;
-            overflow: hidden;
-            background: transparent !important;
-            box-shadow: none !important;
-            border: none !important;
-            padding-left: 0 !important;
-            padding-right: 0 !important;
-        }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="/static/ui/main.css?v={{ time }}">
+    <link rel="stylesheet" href="/static/ui/pages/settings.css?v={{ time }}">
 </head>
 
-<body class="home-dashboard">
-    <!-- Sidebar (220px wide; CSS already handles styling) -->
-    <div class="sidebar">
+<body class="dashboard-page app-with-sidebar settings-page">
+    {% set module = request.query_params.get('module') %}
+    {% set admin_href = '/admin?module=biometric' if module == 'biometric' else '/admin' %}
+    {% set settings_href = '/settings?module=biometric' if module == 'biometric' else '/settings' %}
 
-        <!-- Top navigation -->
-        {% set module = request.query_params.get('module') %}
-        <div class="nav-top">
-            {% if module == 'biometric' %}
-            <a href="/time-attendance"
-                class="{{ 'active' if section == 'time-attendance' else '' }}"><span>Employees</span></a>
-            <a href="/time-attendance-dashboard"
-                class="{{ 'active' if section == 'time-attendance-dashboard' else '' }}"><span>Time and
-                    Attendance</span></a>
-            <a href="/hours-accumulated"
-                class="{{ 'active' if section == 'accumulated-hours' else '' }}"><span>Accumulated Hours</span></a>
-            {% else %}
-            <a href="/dashboard" class="{{ 'active' if section == 'home' else '' }}"><span>Home</span></a>
-            <a href="/form" class="{{ 'active' if section == 'form' else '' }}"><span>Capturing Form</span></a>
-            <a href="/dashboard/vodacom" class="{{ 'active' if section == 'vodacom' else '' }}"><span>Vodacom
-                    Dashboard</span></a>
-            <a href="/dashboard/devices" class="{{ 'active' if section == 'devices' else '' }}"><span>Devices
-                    Dashboard</span></a>
-            {% endif %}
-        </div>
-        <div class="sidebar-mid">
-            <a href="/" class="sidebar-return" title="Return">↺ Return</a>
-        </div>
+    <div class="dashboard-main">
+        <aside class="sidebar">
+            <div class="sidebar-top">
+                <div class="sidebar-brand">
+                    <span class="sidebar-brand-title">Asset Management</span>
+                    <span class="sidebar-brand-sub">Enterprise Portal</span>
+                </div>
+                <nav class="nav-top">
+                    {% if module == 'biometric' %}
+                    <a href="/time-attendance" class="{{ 'active' if section == 'time-attendance' else '' }}">
+                        <span class="material-symbols-outlined">groups</span>
+                        <span>Employees</span>
+                    </a>
+                    <a href="/time-attendance-dashboard"
+                        class="{{ 'active' if section == 'time-attendance-dashboard' else '' }}">
+                        <span class="material-symbols-outlined">calendar_month</span>
+                        <span>Attendance Dashboard</span>
+                    </a>
+                    <a href="/hours-accumulated" class="{{ 'active' if section == 'accumulated-hours' else '' }}">
+                        <span class="material-symbols-outlined">timer</span>
+                        <span>Accumulated Hours</span>
+                    </a>
+                    {% else %}
+                    <a href="/dashboard" class="{{ 'active' if section == 'home' else '' }}">
+                        <span class="material-symbols-outlined">home</span>
+                        <span>Home</span>
+                    </a>
+                    <a href="/form" class="{{ 'active' if section == 'form' else '' }}">
+                        <span class="material-symbols-outlined">edit_document</span>
+                        <span>Capturing Form</span>
+                    </a>
+                    <a href="/dashboard/vodacom" class="{{ 'active' if section == 'vodacom' else '' }}">
+                        <span class="material-symbols-outlined">dashboard</span>
+                        <span>Vodacom Dashboard</span>
+                    </a>
+                    <a href="/dashboard/devices" class="{{ 'active' if section == 'devices' else '' }}">
+                        <span class="material-symbols-outlined">devices</span>
+                        <span>Devices Dashboard</span>
+                    </a>
+                    {% endif %}
+                </nav>
+            </div>
+            <div class="sidebar-mid">
+                <a href="/" class="sidebar-return" title="Return">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                    <span>Return</span>
+                </a>
+            </div>
+            <div class="nav-bottom">
+                {% if request.session.get('is_admin') %}
+                <a href="{{ admin_href }}" class="{{ 'active' if section == 'admin' else '' }}">
+                    <span class="material-symbols-outlined">admin_panel_settings</span>
+                    <span>Admin</span>
+                </a>
+                {% endif %}
+                <a href="{{ settings_href }}" class="{{ 'active' if section == 'settings' else '' }}">
+                    <span class="material-symbols-outlined">settings</span>
+                    <span>Settings</span>
+                </a>
+                <a href="/logout" id="logoutLink" class="{{ 'active' if section == 'logout' else '' }}">
+                    <span class="material-symbols-outlined">logout</span>
+                    <span>Log Out</span>
+                </a>
+            </div>
+        </aside>
 
-        <!-- Bottom navigation -->
-        <div class="nav-bottom">
-            {% if request.session.get('is_admin') %}
-            {% if module == 'biometric' %}
-            <a href="/admin?module=biometric"
-                class="{{ 'active' if section == 'admin' else '' }}"><span>Admin</span></a>
-            {% else %}
-            <a href="/admin" class="{{ 'active' if section == 'admin' else '' }}"><span>Admin</span></a>
-            {% endif %}
-            {% endif %}
+        <div class="dashboard-content">
+            <div class="settings-canvas">
 
-            {% if module == 'biometric' %}
-            <a href="/settings?module=biometric"
-                class="{{ 'active' if section == 'settings' else '' }}"><span>Settings</span></a>
-            {% else %}
-            <a href="/settings" class="{{ 'active' if section == 'settings' else '' }}"><span>Settings</span></a>
-            {% endif %}
-            <a href="/logout" id="logoutLink" class="{{ 'active' if section == 'logout' else '' }}">
-                <span>Log Out</span>
-            </a>
+                <!-- Page header -->
+                <div class="settings-header">
+                    <h2 class="settings-title">Account Settings</h2>
+                    <p class="settings-subtitle">Manage your profile and security preferences.</p>
+                </div>
+
+                <div class="settings-grid">
+
+                    <!-- Left: Profile Information -->
+                    <div class="settings-col settings-col--left">
+
+                        <section class="settings-panel" id="profilePanel">
+                            <div class="settings-panel-header">
+                                <span class="material-symbols-outlined settings-panel-icon">person</span>
+                                <h3 class="settings-panel-title">Profile Information</h3>
+                            </div>
+
+                            <div id="profileMsg"></div>
+
+                            <form id="profileForm" method="POST"
+                                action="/settings/profile{% if module == 'biometric' %}?module=biometric{% endif %}">
+                                <div class="settings-field-row">
+                                    <div class="settings-field">
+                                        <label class="settings-label">First Name</label>
+                                        <input class="settings-input" type="text" name="name"
+                                            value="{{ current_user.name or '' }}" placeholder="(optional)" />
+                                    </div>
+                                    <div class="settings-field">
+                                        <label class="settings-label">Surname</label>
+                                        <input class="settings-input" type="text" name="surname"
+                                            value="{{ current_user.surname or '' }}" placeholder="(optional)" />
+                                    </div>
+                                </div>
+
+                                <div class="settings-field">
+                                    <label class="settings-label">Email Address</label>
+                                    <div class="settings-input-locked">
+                                        <span class="settings-input-locked-value">{{ current_user.email }}</span>
+                                        <span class="material-symbols-outlined settings-lock-icon">lock</span>
+                                    </div>
+                                    <p class="settings-field-hint">Contact your system administrator to change your
+                                        registered email.</p>
+                                </div>
+
+                                <div class="settings-form-footer">
+                                    <button type="submit" id="confirm1" class="settings-btn settings-btn--primary">
+                                        Update Profile
+                                        <span class="material-symbols-outlined">arrow_forward</span>
+                                    </button>
+                                </div>
+                            </form>
+                        </section>
+
+                        <!-- Private & Secure info card -->
+                        <div class="settings-info-card">
+                            <div class="settings-info-icon">
+                                <span class="material-symbols-outlined">shield</span>
+                            </div>
+                            <div>
+                                <h4 class="settings-info-title">Private &amp; Secure</h4>
+                                <p class="settings-info-body">Your data is encrypted with enterprise-grade security
+                                    standards. PCM Tracer never shares your personal information with third parties.</p>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Right: Security -->
+                    <div class="settings-col settings-col--right">
+
+                        <section class="settings-panel" id="securityPanel">
+                            <div class="settings-panel-header">
+                                <span class="material-symbols-outlined settings-panel-icon">security</span>
+                                <h3 class="settings-panel-title">Security</h3>
+                            </div>
+
+                            <div id="passwordMsg"></div>
+
+                            <form id="passwordForm" method="POST"
+                                action="/settings/password{% if module == 'biometric' %}?module=biometric{% endif %}">
+                                <div class="settings-field">
+                                    <label class="settings-label">Current Password</label>
+                                    <input class="settings-input" type="password" name="password"
+                                        placeholder="••••••••••••" required />
+                                </div>
+
+                                <div class="settings-divider"></div>
+
+                                <div class="settings-field">
+                                    <label class="settings-label">New Password</label>
+                                    <input class="settings-input" type="password" name="new_password"
+                                        placeholder="Min. 8 characters" minlength="8" required />
+                                </div>
+                                <div class="settings-field">
+                                    <label class="settings-label">Confirm New Password</label>
+                                    <input class="settings-input" type="password" name="confirm_password"
+                                        placeholder="Repeat new password" required />
+                                </div>
+
+                                <div class="settings-form-footer">
+                                    <button type="submit" id="confirm2" class="settings-btn settings-btn--ghost">
+                                        Change Password
+                                    </button>
+                                </div>
+                            </form>
+
+                            <!-- Account Health -->
+                            <div class="settings-account-health">
+                                <span class="settings-health-label">Account Health</span>
+                                <div class="settings-health-row">
+                                    <div class="settings-health-left">
+                                        <span
+                                            class="material-symbols-outlined settings-health-icon">verified_user</span>
+                                        <span class="settings-health-name">Two-Factor Auth</span>
+                                    </div>
+                                    <span class="settings-health-badge">ACTIVE</span>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Need Assistance card -->
+                        <div class="settings-assist-card">
+                            <span class="material-symbols-outlined settings-assist-icon">support_agent</span>
+                            <h5 class="settings-assist-title">Need Assistance?</h5>
+                            <p class="settings-assist-body">Our team is available to help you with sensitive account
+                                changes or security audits.</p>
+                            <a href="#" class="settings-assist-link">Contact Administrator</a>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
         </div>
-        <button id="sidebarHandle" class="sidebar-handle" aria-label="Collapse sidebar" aria-pressed="false"
-            title="Collapse sidebar"> <span class="handle-icon" aria-hidden="true">⟨</span> </button>
     </div>
 
-    <div class="content">
-        <!-- Block 1: The form -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
 
+            // --- Profile form: show Update Profile button only when name/surname changed ---
+            const profileForm = document.getElementById('profileForm');
+            const nameInput = profileForm?.querySelector('input[name="name"]');
+            const surnameInput = profileForm?.querySelector('input[name="surname"]');
+            const confirm1 = document.getElementById('confirm1');
 
-        <div class="contentInner" style="max-width: 500px; " id="form1">
-            <div class="boxTopHeader">Settings</div>
-            <form id="profileForm" method="POST"
-                action="/settings/profile{% if module == 'biometric' %}?module=biometric{% endif %}"
-                class="form_settings">
-                <button type="button" id="editProfileBtn" class="confirm2">Edit</button>
-
-                <div class="UserDetails">
-                    <span class="field-label">Name:</span>
-                    <span class="field-control">
-                        <input type="text" name="name" value="{{ current_user.name or '' }}" placeholder="(optional)">
-                    </span>
-                </div>
-
-                <div class="UserDetails">
-                    <span class="field-label">Surname:</span>
-                    <span class="field-control">
-                        <input type="text" name="surname" value="{{ current_user.surname or '' }}"
-                            placeholder="(optional)">
-                    </span>
-                </div>
-
-                <div class="UserDetails">
-                    <span class="field-label">Email address:</span>
-                    <span class="field-control">
-                        <span class="readonly-value">{{ current_user.email }}</span>
-                    </span>
-                </div>
-
-                <button type="submit" id="confirm1" class="confirm">Confirm</button>
-            </form>
-
-
-
-            <div class="form_line"></div>
-
-            <form id="passwordForm" method="POST"
-                action="/settings/password{% if module == 'biometric' %}?module=biometric{% endif %}"
-                class="form_settings">
-                <div class="UserDetails">
-                    <span class="field-label">Password:</span>
-                    <span class="field-control">
-                        <input type="password" name="password" placeholder="Password" required>
-                    </span>
-                </div>
-
-                <div class="UserDetails">
-                    <span class="field-label">New Password:</span>
-                    <span class="field-control">
-                        <input type="password" name="new_password" placeholder="New Password" minlength="8" required>
-                    </span>
-                </div>
-
-                <div class="UserDetails">
-                    <span class="field-label">Confirm new password:</span>
-                    <span class="field-control">
-                        <input type="password" name="confirm_password" placeholder="New Password" required>
-                    </span>
-                </div>
-
-                <button type="submit" id="confirm2" class="confirm">Confirm</button>
-            </form>
-
-        </div>
-
-
-        <script>
-            document.addEventListener("DOMContentLoaded", () => {
-                // --- Sidebar toggle ---
-                const handle = document.getElementById("sidebarHandle");
-                const collapseBtn = document.getElementById("sidebarCollapse");
-                const scrim = document.getElementById("sidebarScrim");
-                function toggleSidebar() {
-                    const collapsed = document.body.classList.toggle("sidebar-collapsed");
-                    handle?.setAttribute("aria-pressed", String(!collapsed));
-                    handle?.setAttribute("aria-label", collapsed ? "Expand sidebar" : "Collapse sidebar");
-                    handle.title = collapsed ? "Expand sidebar" : "Collapse sidebar";
+            if (profileForm && confirm1) {
+                confirm1.style.visibility = 'hidden';
+                const initialName = (nameInput?.defaultValue ?? '').trim();
+                const initialSurname = (surnameInput?.defaultValue ?? '').trim();
+                function checkProfileChanged() {
+                    const nameChanged = !!nameInput && nameInput.value.trim() !== initialName;
+                    const surnameChanged = !!surnameInput && surnameInput.value.trim() !== initialSurname;
+                    confirm1.style.visibility = (nameChanged || surnameChanged) ? 'visible' : 'hidden';
                 }
-                handle?.addEventListener("click", toggleSidebar);
-                collapseBtn?.addEventListener("click", toggleSidebar);
-                scrim?.addEventListener("click", () => document.body.classList.remove("sidebar-open"));
+                nameInput?.addEventListener('input', checkProfileChanged);
+                surnameInput?.addEventListener('input', checkProfileChanged);
+                nameInput?.addEventListener('change', checkProfileChanged);
+                surnameInput?.addEventListener('change', checkProfileChanged);
+                checkProfileChanged();
+                setTimeout(checkProfileChanged, 200);
+            }
 
-                // --- Profile form: show Confirm if NAME or SURNAME changed ---
-                const profileForm = document.getElementById('profileForm');
-                const nameInput = profileForm?.querySelector('input[name="name"]');
-                const surnameInput = profileForm?.querySelector('input[name="surname"]');
-                const confirm1 = document.getElementById('confirm1');
-
-                const editBtn = document.getElementById('editProfileBtn');
-                if (editBtn && nameInput && surnameInput) {
-                    // focus
-                    editBtn.addEventListener('click', () => {
-                        nameInput.focus();
-                        const length = nameInput.value.length;
-                        nameInput.setSelectionRange(length, length);
-                        // optional highlight toggle
-                        [nameInput, surnameInput].forEach(input => {
-                            const row = input.closest('.UserDetails');
-                            row?.classList.toggle('highlight-input');
-                        });
-                    });
+            // --- Password form: show Change Password button only when a field has text ---
+            const passwordForm = document.getElementById('passwordForm');
+            const currPwd = passwordForm?.querySelector('input[name="password"]');
+            const newPwd = passwordForm?.querySelector('input[name="new_password"]');
+            const confPwd = passwordForm?.querySelector('input[name="confirm_password"]');
+            const confirm2 = document.getElementById('confirm2');
+            if (passwordForm && confirm2) {
+                confirm2.style.visibility = 'hidden';
+                function checkPwdTyped() {
+                    const anyTyped = (currPwd?.value || newPwd?.value || confPwd?.value || '').length > 0;
+                    confirm2.style.visibility = anyTyped ? 'visible' : 'hidden';
                 }
+                [currPwd, newPwd, confPwd].forEach(el => el && el.addEventListener('input', checkPwdTyped));
+                checkPwdTyped();
+            }
 
-                if (profileForm && confirm1) {
-                    const initialName = (nameInput?.defaultValue ?? '').trim();
-                    const initialSurname = (surnameInput?.defaultValue ?? '').trim();
-                    function checkProfileChanged() {
-                        const nameChanged = !!nameInput && nameInput.value.trim() !== initialName;
-                        const surnameChanged = !!surnameInput && surnameInput.value.trim() !== initialSurname;
-                        confirm1.style.visibility = (nameChanged || surnameChanged) ? 'visible' : 'hidden';
+            // --- Messages + error indicators from query params ---
+            const params = new URLSearchParams(window.location.search);
+            const ok = params.get('ok');
+            const err = params.get('err');
+
+            function showMsg(elemId, text, isError) {
+                const el = document.getElementById(elemId);
+                if (!el) return;
+                el.textContent = text;
+                el.className = 'settings-form-msg ' + (isError ? 'settings-form-msg--error' : 'settings-form-msg--ok');
+            }
+            function redBorder(input) {
+                if (input) input.classList.add('settings-input--error');
+            }
+
+            if (ok === 'profile') showMsg('profileMsg', 'Profile updated successfully.', false);
+            else if (ok === 'pwd') showMsg('passwordMsg', 'Password changed successfully.', false);
+            if (err === 'badpwd') { showMsg('passwordMsg', 'Incorrect current password.', true); redBorder(currPwd); }
+            else if (err === 'nomatch') { showMsg('passwordMsg', 'Passwords do not match.', true); redBorder(newPwd); redBorder(confPwd); }
+
+            if (ok || err) {
+                const url = new URL(window.location.href);
+                url.searchParams.delete('ok');
+                url.searchParams.delete('err');
+                window.history.replaceState({}, '', url.toString());
+            }
+
+            // --- Logout confirm ---
+            const logoutLink = document.getElementById("logoutLink");
+            if (logoutLink) {
+                logoutLink.addEventListener("click", function (e) {
+                    e.preventDefault();
+                    if (confirm("Are you sure you want to log out?")) {
+                        window.location.href = this.href;
                     }
-                    nameInput?.addEventListener('input', checkProfileChanged);
-                    surnameInput?.addEventListener('input', checkProfileChanged);
-                    nameInput?.addEventListener('change', checkProfileChanged);
-                    surnameInput?.addEventListener('change', checkProfileChanged);
-                    checkProfileChanged();
-                    setTimeout(checkProfileChanged, 200); // handle autofill
-                }
-
-                // --- Password form: show Confirm if any password field has text ---
-                const passwordForm = document.getElementById('passwordForm');
-                const currPwd = passwordForm?.querySelector('input[name="password"]');
-                const newPwd = passwordForm?.querySelector('input[name="new_password"]');
-                const confPwd = passwordForm?.querySelector('input[name="confirm_password"]');
-                const confirm2 = document.getElementById('confirm2');
-                if (passwordForm && confirm2) {
-                    function checkPwdTyped() {
-                        const anyTyped = (currPwd?.value || newPwd?.value || confPwd?.value || '').length > 0;
-                        confirm2.style.visibility = anyTyped ? 'visible' : 'hidden';
-                    }
-                    [currPwd, newPwd, confPwd].forEach(el => el && el.addEventListener('input', checkPwdTyped));
-                    checkPwdTyped();
-                }
-
-                // --- Messages + error borders from query params ---
-                const params = new URLSearchParams(window.location.search);
-                const ok = params.get('ok');   // 'profile' | 'pwd'
-                const err = params.get('err'); // 'badpwd' | 'nomatch'
-                function showMessageAbove(formElem, text, isError) {
-                    if (!formElem) return;
-                    const msg = document.createElement('div');
-                    msg.textContent = text;
-                    msg.style.margin = '10px 30px 0 30px';
-                    msg.style.fontSize = '14px';
-                    msg.style.fontWeight = '600';
-                    msg.style.color = isError ? '#b00020' : '#0a7a3c';
-                    formElem.parentElement.insertBefore(msg, formElem);
-                }
-                function redBorderForInput(input) {
-                    const row = input?.closest('.UserDetails');
-                    if (row) {
-                        row.style.boxShadow = '0 0 0 2px #d9534f inset';
-                        row.style.borderRadius = '14px';
-                    }
-                }
-                if (ok === 'profile') showMessageAbove(profileForm, 'Profile details updated successfully', false);
-                else if (ok === 'pwd') showMessageAbove(passwordForm, 'Password changed successfully', false);
-                if (err === 'badpwd') { showMessageAbove(passwordForm, 'Incorrect password', true); redBorderForInput(currPwd); }
-                else if (err === 'nomatch') { showMessageAbove(passwordForm, 'Password does not match', true); redBorderForInput(newPwd); redBorderForInput(confPwd); }
-                if (ok || err) {
-                    const url = new URL(window.location.href);
-                    url.searchParams.delete('ok');
-                    url.searchParams.delete('err');
-                    window.history.replaceState({}, '', url.toString());
-                }
-
-                // --- Logout confirm (now runs because no ReferenceError) ---
-                const logoutLink = document.getElementById("logoutLink");
-                if (logoutLink) {
-                    logoutLink.addEventListener("click", function (e) {
-                        e.preventDefault();
-                        if (confirm("Are you sure you want to log out?")) {
-                            window.location.href = this.href;
-                        }
-                    });
-                }
-            });
-            document.addEventListener("DOMContentLoaded", () => {
-                /* … your existing sidebar JS … */
-
-                // === NEW: play the active-link intro animation on page load (skip Log Out) ===
-                const activeLinks = Array.from(document.querySelectorAll(".sidebar a.active"))
-                    .filter(a => a.id !== "logoutLink");
-
-                // Start them in “hover” pose and animate into “active”
-                activeLinks.forEach(a => a.classList.add("just-activated"));
-
-                // After 1s (box-shadow fade done), clean up the temp class
-                setTimeout(() => {
-                    activeLinks.forEach(a => a.classList.remove("just-activated"));
-                }, 1050);
-            });
-        </script>
-
-
-
-
-
+                });
+            }
+        });
+    </script>
 
 </body>
 

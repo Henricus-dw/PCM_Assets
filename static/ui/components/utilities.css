@@ -1,0 +1,13 @@
+/* Utility classes only. Keep these low-level and generic. */
+
+.u-hidden {
+    display: none !important;
+}
+
+.is-hidden {
+    display: none;
+}
+
+.u-text-muted {
+    color: var(--color-text-muted);
+}

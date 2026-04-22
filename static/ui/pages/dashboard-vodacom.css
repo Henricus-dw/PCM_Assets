@@ -1,0 +1,26 @@
+/* Vodacom Dashboard Page Styles */
+
+body.dashboard-vodacom {
+    --sidebar-width: 220px;
+    --background: #ffffff;
+    background: #ffffff;
+}
+
+body.dashboard-vodacom .dashboard-main,
+body.dashboard-vodacom .dashboard-content {
+    background: #ffffff;
+}
+
+.vodacom-dashboard {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+}
+
+body.dashboard-vodacom .sidebar {
+    width: var(--sidebar-width);
+}
+
+body.dashboard-vodacom .dashboard-content-scroll {
+    max-height: 100vh;
+}

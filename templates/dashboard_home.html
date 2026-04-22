@@ -5,136 +5,188 @@
     <meta charset="utf-8" />
     <title>PCM Dashboard</title>
     <link rel="icon" href="/static/pcm-lockup-goldc-final.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="/static/styles.css?v={{ time }}">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="/static/ui/main.css?v={{ time }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
-<body class="home-dashboard">
-    <!-- Sidebar (220px wide; CSS already handles styling) -->
-    <div class="sidebar">
+<body class="home-dashboard app-with-sidebar">
+    <aside class="sidebar">
+        <div class="sidebar-top">
+            <div class="sidebar-brand">
+                <span class="sidebar-brand-title">Asset Management</span>
+                <span class="sidebar-brand-sub">Enterprise Portal</span>
+            </div>
 
-        <!-- Top navigation -->
-        <div class="nav-top">
-            <a href="/dashboard" class="{{ 'active' if section == 'home' else '' }}"><span>Home</span></a>
-            <a href="/form" class="{{ 'active' if section == 'form' else '' }}"><span>Capturing Form</span></a>
-            <a href="/dashboard/vodacom" class="{{ 'active' if section == 'vodacom' else '' }}"><span>Vodacom
-                    Dashboard</span></a>
-            <a href="/dashboard/devices" class="{{ 'active' if section == 'devices' else '' }}"><span>Devices
-                    Dashboard</span></a>
+            <nav class="nav-top">
+                <a href="/dashboard" class="{{ 'active' if section == 'home' else '' }}">
+                    <span class="material-symbols-outlined" aria-hidden="true">home</span>
+                    <span>Home</span>
+                </a>
+                <a href="/form" class="{{ 'active' if section == 'form' else '' }}">
+                    <span class="material-symbols-outlined" aria-hidden="true">edit_document</span>
+                    <span>Capturing Form</span>
+                </a>
+                <a href="/dashboard/vodacom" class="{{ 'active' if section == 'vodacom' else '' }}">
+                    <span class="material-symbols-outlined" aria-hidden="true">dashboard</span>
+                    <span>Vodacom Dashboard</span>
+                </a>
+                <a href="/dashboard/devices" class="{{ 'active' if section == 'devices' else '' }}">
+                    <span class="material-symbols-outlined" aria-hidden="true">devices</span>
+                    <span>Devices Dashboard</span>
+                </a>
+            </nav>
         </div>
+
         <div class="sidebar-mid">
-            <a href="/" class="sidebar-return" title="Return">↺ Return</a>
+            <a href="/" class="sidebar-return" title="Return">
+                <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+                <span>Return</span>
+            </a>
         </div>
 
-        <!-- Bottom navigation -->
         <div class="nav-bottom">
             {% if request.session.get('is_admin') %}
-            <a href="/admin" class="{{ 'active' if section == 'admin' else '' }}"><span>Admin</span></a>
+            <a href="/admin" class="{{ 'active' if section == 'admin' else '' }}">
+                <span class="material-symbols-outlined" aria-hidden="true">admin_panel_settings</span>
+                <span>Admin</span>
+            </a>
             {% endif %}
 
-
-            <a href="/settings" class="{{ 'active' if section == 'settings' else '' }}"><span>Settings</span></a>
+            <a href="/settings" class="{{ 'active' if section == 'settings' else '' }}">
+                <span class="material-symbols-outlined" aria-hidden="true">settings</span>
+                <span>Settings</span>
+            </a>
             <a href="/logout" id="logoutLink" class="{{ 'active' if section == 'logout' else '' }}">
+                <span class="material-symbols-outlined" aria-hidden="true">logout</span>
                 <span>Log Out</span>
             </a>
         </div>
+
         <button id="sidebarHandle" class="sidebar-handle" aria-label="Collapse sidebar" aria-pressed="false"
             title="Collapse sidebar"> <span class="handle-icon" aria-hidden="true">⟨</span> </button>
-    </div>
+    </aside>
 
-    <!-- Main content (uses the 240px left margin defined in styles.css to clear the sidebar) -->
-    <div class="content4">
-        <div class="contentInner4">
-            <div class="dash-grid">
-                <!-- Card 1: Monthly Costs -->
-                <section class="card card--tall">
-                    <header class="card-head">
-                        <h2>Vodacom Monthly Costs</h2>
+    <main class="content4 archive-main">
+        <header class="archive-topbar">
+            <div class="archive-titles">
+                <h1>The Archive</h1>
+                <div class="archive-divider"></div>
+                <h2>Executive Overview</h2>
+            </div>
+            <div class="archive-tools">
+                <span class="material-symbols-outlined" aria-hidden="true">notifications</span>
+                <span class="material-symbols-outlined" aria-hidden="true">help_outline</span>
+                <div class="archive-avatar" aria-hidden="true"></div>
+            </div>
+        </header>
+
+        <div class="contentInner4 archive-content">
+            <section class="kpi-row">
+                <article class="kpi-card">
+                    <span class="kpi-card__label">Total Devices</span>
+                    <div class="kpi-card__value-wrap">
+                        <span class="kpi-card__value" id="kpiTotal">-</span>
+                    </div>
+                    <div class="kpi-card__meter">
+                        <span class="meter-w74"></span>
+                    </div>
+                </article>
+                <article class="kpi-card">
+                    <span class="kpi-card__label">Pending Transfers</span>
+                    <div class="kpi-card__value-wrap">
+                        <span class="kpi-card__value" id="kpiTransfers">-</span>
+                    </div>
+                    <div class="kpi-card__meter">
+                        <span class="meter-danger meter-w24"></span>
+                    </div>
+                </article>
+                <article class="kpi-card">
+                    <span class="kpi-card__label">No Insurance</span>
+                    <div class="kpi-card__value-wrap">
+                        <span class="kpi-card__value" id="kpiNoIns">-</span>
+                    </div>
+                    <div class="kpi-card__meter">
+                        <span class="meter-muted meter-w16"></span>
+                    </div>
+                </article>
+                <article class="kpi-card">
+                    <span class="kpi-card__label">Linked to Contracts</span>
+                    <div class="kpi-card__value-wrap">
+                        <span class="kpi-card__value" id="kpiLinked">-</span>
+                    </div>
+                    <div class="kpi-card__meter">
+                        <span class="meter-tertiary meter-w94"></span>
+                    </div>
+                </article>
+            </section>
+
+            <section class="viz-row">
+                <article class="panel panel-wide">
+                    <header class="panel-head">
+                        <h3>Monthly Vodacom Costs</h3>
                         <span id="monthPill" class="pill">This month</span>
                     </header>
-                    <div class="big-number" id="monthlyCost">R 0</div>
-                    <div class="chart-wrap">
+                    <div class="panel-total" id="monthlyCost">R 0</div>
+                    <div class="chart-wrap chart-wrap--line">
                         <canvas id="costChart"></canvas>
                     </div>
-                    <p class="muted">Sum of Monthly_Costs for active contracts in the selected month.</p>
-                </section>
+                </article>
 
-                <!-- Card 2: Upcoming Terminations -->
-                <section class="card card--tall">
-                    <header class="card-head">
-                        <h2>Upcoming Terminations (next 3 months)</h2>
-                        <span class="pill pill-warn" id="termCount">0</span>
+                <article class="panel panel-dark">
+                    <header class="panel-head panel-head--dark">
+                        <h3>Contract Type Breakdown</h3>
                     </header>
-
-                    <div class="table-tools">
-                        <input id="termSearch" class="input" placeholder="Search name/company…" />
-                        <select id="termFilter" class="input">
-                            <option value="all">All</option>
-                            <option value="30">≤ 30 days</option>
-                            <option value="60">31–60 days</option>
-                            <option value="ok">> 60 days</option>
-                            <option value="past">Past</option>
-                        </select>
-                    </div>
-
-                    <div class="table-wrap">
-                        <table class="small-table" id="termTable">
-                            <thead>
-                                <tr>
-                                    <th data-sort="name">Name</th>
-                                    <th data-sort="company">Company</th>
-                                    <th data-sort="termination">Termination</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="terminationBody">
-                                <tr>
-                                    <td colspan="4" class="muted">Loading…</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <!-- Card 3: Devices Overview -->
-                <section class="card">
-                    <header class="card-head">
-                        <h2>Devices Overview</h2>
-                    </header>
-                    <div class="kpi-grid">
-                        <div class="kpi">
-                            <div class="kpi-label">Total devices</div>
-                            <div class="kpi-value" id="kpiTotal">-</div>
-                        </div>
-                        <div class="kpi">
-                            <div class="kpi-label">Transfers this month</div>
-                            <div class="kpi-value" id="kpiTransfers">-</div>
-                        </div>
-                        <div class="kpi">
-                            <div class="kpi-label">No insurance</div>
-                            <div class="kpi-value" id="kpiNoIns">-</div>
-                        </div>
-                        <div class="kpi">
-                            <div class="kpi-label">Linked to contracts</div>
-                            <div class="kpi-value" id="kpiLinked">-</div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Card 4: Contract Type Breakdown -->
-                <section class="card">
-                    <header class="card-head">
-                        <h2>Contract Type Breakdown</h2>
-                    </header>
-                    <div class="chart-wrap">
+                    <div class="chart-wrap chart-wrap--pie">
                         <canvas id="typePie"></canvas>
                     </div>
-                </section>
-            </div>
+                </article>
+            </section>
+
+            <section class="panel table-panel">
+                <header class="table-panel__head">
+                    <h3>Upcoming Contract Terminations</h3>
+                    <div class="table-panel__head-right">
+                        <span class="pill pill-warn" id="termCount">0</span>
+                        <button class="table-export" type="button">Export Report</button>
+                    </div>
+                </header>
+
+                <div class="table-tools">
+                    <input id="termSearch" class="input" placeholder="Search name/company..." />
+                    <select id="termFilter" class="input">
+                        <option value="all">All</option>
+                        <option value="30">≤ 30 days</option>
+                        <option value="60">31-60 days</option>
+                        <option value="ok">&gt; 60 days</option>
+                        <option value="past">Past</option>
+                    </select>
+                </div>
+
+                <div class="table-wrap">
+                    <table class="small-table" id="termTable">
+                        <thead>
+                            <tr>
+                                <th data-sort="name">Contract Holder</th>
+                                <th data-sort="company">Company</th>
+                                <th data-sort="termination">Expiry Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="terminationBody">
+                            <tr>
+                                <td colspan="4" class="muted">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
         </div>
-    </div>
+    </main>
 
 
+    <script src="/static/ui/components/sidebar.js"></script>
     <script>
         (function () {
             // ---------- Tiny DOM helpers ----------
@@ -162,7 +214,7 @@
 
             // ---------- Chart helpers ----------
             // Guard against chartArea being undefined on first render
-            function lineGradient(ctx, area, colorTop = "rgba(37,99,235,0.18)", colorBottom = "rgba(37,99,235,0.02)") {
+            function lineGradient(ctx, area, colorTop = "rgba(107,142,142,0.22)", colorBottom = "rgba(107,142,142,0.04)") {
                 if (!area) return colorTop; // first layout: return flat color so Chart.js doesn't crash
                 const g = ctx.createLinearGradient(0, area.top, 0, area.bottom);
                 g.addColorStop(0, colorTop);
@@ -309,7 +361,7 @@
                                     label: "Monthly Cost (R)",
                                     data: values,
                                     borderWidth: 2,
-                                    borderColor: "rgba(37,99,235,1)",
+                                    borderColor: "#6B8E8E",
                                     pointRadius: 2,
                                     tension: 0.35,
                                     fill: true,
@@ -359,16 +411,41 @@
                     const pieEl = $("#typePie");
                     if (pieEl && window.Chart) {
                         const pieData = breakdown || { labels: [], data: [] };
+                        const piePalette = [
+                            "#6B8E8E",
+                            "#7C7F84",
+                            "#9A7A72",
+                            "#A1A5AA",
+                            "#5F6368",
+                            "#8E9499"
+                        ];
                         new Chart(pieEl, {
                             type: "pie",
                             data: {
                                 labels: pieData.labels,
-                                datasets: [{ data: pieData.data }]
+                                datasets: [{
+                                    data: pieData.data,
+                                    backgroundColor: pieData.data.map((_, i) => piePalette[i % piePalette.length]),
+                                    borderColor: "#252628",
+                                    borderWidth: 2,
+                                    hoverOffset: 4
+                                }]
                             },
                             options: {
                                 responsive: true,
                                 maintainAspectRatio: false,
-                                plugins: { legend: { position: "bottom" } }
+                                plugins: {
+                                    legend: {
+                                        position: "bottom",
+                                        labels: {
+                                            color: "#e6e7ea",
+                                            boxWidth: 10,
+                                            boxHeight: 10,
+                                            padding: 14,
+                                            font: { size: 11, weight: "600" }
+                                        }
+                                    }
+                                }
                             }
                         });
                     }
@@ -383,29 +460,6 @@
             document.addEventListener("DOMContentLoaded", loadDashboard);
         })();
 
-        document.addEventListener("DOMContentLoaded", () => {
-            const handle = document.getElementById("sidebarHandle");
-            const collapseBtn = document.getElementById("sidebarCollapse"); // optional header button
-            const scrim = document.getElementById("sidebarScrim");
-
-            function toggleSidebar() {
-                const collapsed = document.body.classList.toggle("sidebar-collapsed");
-
-                handle?.setAttribute("aria-pressed", String(!collapsed ? true : false));
-                handle?.setAttribute(
-                    "aria-label",
-                    collapsed ? "Expand sidebar" : "Collapse sidebar"
-                );
-                handle.title = collapsed ? "Expand sidebar" : "Collapse sidebar";
-            }
-
-            handle?.addEventListener("click", toggleSidebar);
-            collapseBtn?.addEventListener("click", toggleSidebar);
-
-            scrim?.addEventListener("click", () => {
-                document.body.classList.remove("sidebar-open");
-            });
-        });
         document.addEventListener("DOMContentLoaded", () => {
             const logoutLink = document.getElementById("logoutLink");
             if (logoutLink) {

@@ -3,96 +3,186 @@
 
 <head>
     <meta charset="utf-8" />
-    <title>Accumulated Hours</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Accumulated Hours | PCM Tracer</title>
     <link rel="icon" href="/static/pcm-lockup-goldc-final.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="/static/styles.css?v={{ time }}">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="/static/ui/main.css?v={{ time }}">
+    <link rel="stylesheet" href="/static/ui/pages/time-accumulated-hours.css?v={{ time }}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-    <style>
-        .no-data {
-            padding: 40px;
-            text-align: center;
-            color: #9ca3af;
-        }
-
-        .card-head .export-button,
-        .card-head #export-pdf-btn {
-            top: 0;
-        }
-    </style>
 </head>
 
-<body class="home-dashboard">
-    <div class="sidebar">
-        <div class="nav-top">
-            <a href="/time-attendance"
-                class="{{ 'active' if section == 'time-attendance' else '' }}"><span>Employees</span></a>
-            <a href="/time-attendance-dashboard"
-                class="{{ 'active' if section == 'time-attendance-dashboard' else '' }}"><span>Time and
-                    Attendance</span></a>
-            <a href="/hours-accumulated"
-                class="{{ 'active' if section == 'accumulated-hours' else '' }}"><span>Accumulated Hours</span></a>
-        </div>
-        <div class="sidebar-mid">
-            <a href="/" class="sidebar-return" title="Return">↺ Return</a>
-        </div>
-        <div class="nav-bottom">
-            {% if request.session.get('is_admin') %}
-            <a href="/admin?module=biometric"
-                class="{{ 'active' if section == 'admin' else '' }}"><span>Admin</span></a>
-            {% endif %}
+<body class="dashboard-page app-with-sidebar accumulated-hours-dashboard">
+    {% set admin_href = '/admin?module=biometric' %}
+    {% set settings_href = '/settings?module=biometric' %}
 
-            <a href="/settings?module=biometric"
-                class="{{ 'active' if section == 'settings' else '' }}"><span>Settings</span></a>
-            <a href="/logout" id="logoutLink" class="{{ 'active' if section == 'logout' else '' }}">
-                <span>Log Out</span>
-            </a>
-        </div>
-        <button id="sidebarHandle" class="sidebar-handle" aria-label="Collapse sidebar" aria-pressed="false"
-            title="Collapse sidebar"> <span class="handle-icon" aria-hidden="true">⟨</span> </button>
-    </div>
+    <div class="dashboard-main">
+        <aside class="sidebar">
+            <div class="sidebar-top">
+                <div class="sidebar-brand">
+                    <span class="sidebar-brand-title">Asset Management</span>
+                    <span class="sidebar-brand-sub">Enterprise Portal</span>
+                </div>
+                <nav class="nav-top">
+                    <a href="/time-attendance" class="{{ 'active' if section == 'time-attendance' else '' }}">
+                        <span class="material-symbols-outlined">groups</span>
+                        <span>Employees</span>
+                    </a>
+                    <a href="/time-attendance-dashboard"
+                        class="{{ 'active' if section == 'time-attendance-dashboard' else '' }}">
+                        <span class="material-symbols-outlined">calendar_month</span>
+                        <span>Attendance Dashboard</span>
+                    </a>
+                    <a href="/hours-accumulated" class="{{ 'active' if section == 'accumulated-hours' else '' }}">
+                        <span class="material-symbols-outlined">timer</span>
+                        <span>Accumulated Hours</span>
+                    </a>
+                </nav>
+            </div>
+            <div class="sidebar-mid">
+                <a href="/" class="sidebar-return" title="Return">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                    <span>Return</span>
+                </a>
+            </div>
+            <div class="nav-bottom">
+                {% if request.session.get('is_admin') %}
+                <a href="{{ admin_href }}" class="{{ 'active' if section == 'admin' else '' }}">
+                    <span class="material-symbols-outlined">admin_panel_settings</span>
+                    <span>Admin</span>
+                </a>
+                {% endif %}
+                <a href="{{ settings_href }}" class="{{ 'active' if section == 'settings' else '' }}">
+                    <span class="material-symbols-outlined">settings</span>
+                    <span>Settings</span>
+                </a>
+                <a href="/logout" id="logoutLink" class="{{ 'active' if section == 'logout' else '' }}">
+                    <span class="material-symbols-outlined">logout</span>
+                    <span>Log Out</span>
+                </a>
+            </div>
+            <button id="sidebarHandle" class="sidebar-handle" aria-label="Collapse sidebar" aria-pressed="false"
+                title="Collapse sidebar">
+                <span class="handle-icon" aria-hidden="true">⟨</span>
+            </button>
+        </aside>
 
-    <div class="content4">
-        <div class="contentInner4">
-            <div class="dash-grid biometric-grid">
-                <section class="card card--tall sessions-card">
-                    <header class="card-head">
-                        <select id="viewMode" class="input" style="height:32px;">
-                            <option value="employee">Employees</option>
-                            <option value="company">Company</option>
-                            <option value="site">Site</option>
-                            <option value="division">Division</option>
-                        </select>
-                        <div style="display:flex; gap:10px; align-items:center;">
-                            <span class="muted" style="font-size:12px;">Export:</span>
-                            <button id="export-btn" class="export-button" type="button" aria-label="Export Excel">
-                                <img src="/static/excel-document.svg" alt="Excel" class="excel-icon">
-                            </button>
-                            <button id="export-pdf-btn" type="button" aria-label="Export PDF">
-                                <img src="/static/download.svg" alt="PDF Icon" class="pdf-icon">
-                            </button>
-                            <input id="filterStartDate" type="date" class="input" style="height:32px;" />
-                            <input id="filterEndDate" type="date" class="input" style="height:32px;" />
+        <main class="dashboard-content">
+            <div class="ah-shell">
+                <section class="ah-main-col">
+                    <div class="ah-page-header">
+                        <h2 class="ah-title">Accumulated Hours</h2>
+                        <div class="dashboard-vitals ah-vitals">
+                            <div class="vitals-metrics">
+                                <div class="vitals-metric-group">
+                                    <div class="vitals-metric-label">View</div>
+                                    <select id="viewMode" class="ah-input ah-select">
+                                        <option value="employee">Employees</option>
+                                        <option value="company">Company</option>
+                                        <option value="site">Site</option>
+                                        <option value="division">Division</option>
+                                    </select>
+                                </div>
+                                <div class="vitals-divider"></div>
+                                <div class="vitals-metric-group">
+                                    <div class="vitals-metric-label">Date Range</div>
+                                    <div class="ah-date-range">
+                                        <input id="filterStartDate" type="date" class="ah-input ah-date-input" />
+                                        <span>to</span>
+                                        <input id="filterEndDate" type="date" class="ah-input ah-date-input" />
+                                    </div>
+                                </div>
+                                <div class="vitals-divider"></div>
+                                <div class="vitals-actions ah-vitals-actions">
+                                    <button id="export-btn" class="vitals-action-btn" type="button"
+                                        aria-label="Export Excel">
+                                        <span class="material-symbols-outlined">file_download</span>
+                                        Excel
+                                    </button>
+                                    <button id="export-pdf-btn" class="vitals-action-btn" type="button"
+                                        aria-label="Export PDF">
+                                        <span class="material-symbols-outlined">picture_as_pdf</span>
+                                        PDF
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                    </header>
-                    <div class="table-wrap">
-                        <table class="small-table accumulated-table" id="accumulatedTable">
-                            <colgroup id="accumulatedCols"></colgroup>
-                            <thead id="accumulatedHead"></thead>
-                            <tbody id="accumulatedBody">
-                                <tr>
-                                    <td colspan="6" class="muted">Loading accumulated hours...</td>
-                                </tr>
-                            </tbody>
-                        </table>
                     </div>
+
+                    <section class="ah-board">
+                        <div class="ah-table-toolbar">
+                            <div class="ah-table-filters">
+                                <button id="ahFilterToolbarBtn" type="button" class="ah-table-filter-btn"
+                                    aria-label="Search filters">
+                                    <span class="material-symbols-outlined">search</span>
+                                </button>
+                                <span class="ah-table-filter-label">ACTIVE FILTERS:</span>
+                                <span id="ahActiveFiltersHost" class="ah-table-active-badges"></span>
+                            </div>
+                        </div>
+                        <div class="table-wrap no-scrollbar">
+                            <table class="accumulated-table" id="accumulatedTable">
+                                <colgroup id="accumulatedCols"></colgroup>
+                                <thead id="accumulatedHead"></thead>
+                                <tbody id="accumulatedBody">
+                                    <tr>
+                                        <td colspan="6" class="muted">Loading accumulated hours...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
                 </section>
             </div>
-        </div>
+        </main>
     </div>
-
+    <script src="/static/ui/components/sidebar.js"></script>
     <script>
         let autoRefreshInterval;
+        let accumulatedRowsData = [];
+        const accumulatedColumnFilters = {};
+
+        function getAccumulatedColumnConfig(mode) {
+            if (mode === 'employee') {
+                return [
+                    { key: 'name', label: 'Name & Surname' },
+                    { key: 'company', label: 'Company' },
+                    { key: 'site', label: 'Site' },
+                    { key: 'division', label: 'Division' },
+                    { key: 'accumulated', label: 'Accumulated Hours' }
+                ];
+            }
+            const firstLabel = mode.charAt(0).toUpperCase() + mode.slice(1);
+            return [
+                { key: 'group', label: firstLabel },
+                { key: 'accumulated', label: 'Accumulated Hours' }
+            ];
+        }
+
+        function ensureAccumulatedFilterState(mode) {
+            const keys = getAccumulatedColumnConfig(mode).map((c) => c.key);
+            Object.keys(accumulatedColumnFilters).forEach((key) => {
+                if (!keys.includes(key)) delete accumulatedColumnFilters[key];
+            });
+            keys.forEach((key) => {
+                if (!(key in accumulatedColumnFilters)) accumulatedColumnFilters[key] = '';
+            });
+        }
+
+        function getAccumulatedColumnValue(row, colKey) {
+            if (colKey === 'name') return (row.full_name || '').toLowerCase();
+            if (colKey === 'company') return (row.company || '').toLowerCase();
+            if (colKey === 'site') return (row.site || '').toLowerCase();
+            if (colKey === 'division') return (row.division || '').toLowerCase();
+            if (colKey === 'group') return (row.group || '').toLowerCase();
+            if (colKey === 'accumulated') return fmtHours(row.accumulated_seconds).toLowerCase();
+            return '';
+        }
 
         function fmtHours(seconds) {
             if (seconds === null || seconds === undefined) return '-';
@@ -139,6 +229,8 @@
         function setHeader(mode) {
             const head = document.getElementById('accumulatedHead');
             const cols = document.getElementById('accumulatedCols');
+            const config = getAccumulatedColumnConfig(mode);
+
             if (mode === 'employee') {
                 cols.innerHTML = `
                     <col class="col-name" />
@@ -147,28 +239,156 @@
                     <col class="col-division" />
                     <col class="col-accum" />
                 `;
-                head.innerHTML = `
-                    <tr>
-                        <th>Name &amp; Surname</th>
-                        <th>Company</th>
-                        <th>Site</th>
-                        <th>Division</th>
-                        <th>Accumulated Hours</th>
-                    </tr>
+            } else {
+                cols.innerHTML = `
+                    <col class="col-group" />
+                    <col class="col-accum" />
                 `;
-                return;
             }
-            const label = mode.charAt(0).toUpperCase() + mode.slice(1);
-            cols.innerHTML = `
-                <col class="col-group" />
-                <col class="col-accum" />
-            `;
+
             head.innerHTML = `
                 <tr>
-                    <th>${label}</th>
-                    <th>Accumulated Hours</th>
+                    ${config.map((col) => `
+                        <th data-col="${col.key}">
+                            <div class="header-label">${col.label}</div>
+                            <input type="text" class="header-filter is-hidden" data-col="${col.key}"  />
+                            <button class="filter-toggle" data-col="${col.key}" aria-label="Filter"><span class="material-symbols-outlined">search</span></button>
+                        </th>
+                    `).join('')}
                 </tr>
             `;
+        }
+
+        function renderAccumulatedRows(rows, mode) {
+            const body = document.getElementById('accumulatedBody');
+            const emptyColspan = mode === 'employee' ? 5 : 2;
+
+            if (!rows.length) {
+                body.innerHTML = `<tr><td colspan="${emptyColspan}" class="muted">No records found</td></tr>`;
+                return;
+            }
+
+            if (mode === 'employee') {
+                body.innerHTML = rows.map((r) => {
+                    const name = r.full_name || '-';
+                    const company = r.company || '-';
+                    const site = r.site || '-';
+                    const division = r.division || '-';
+                    const hours = fmtHours(r.accumulated_seconds);
+                    return `
+                        <tr>
+                            <td>${name}</td>
+                            <td>${company}</td>
+                            <td>${site}</td>
+                            <td>${division}</td>
+                            <td>${hours}</td>
+                        </tr>
+                    `;
+                }).join('');
+                return;
+            }
+
+            body.innerHTML = rows.map((r) => {
+                const label = r.group || '-';
+                const hours = fmtHours(r.accumulated_seconds);
+                return `
+                    <tr>
+                        <td>${label}</td>
+                        <td>${hours}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function updateAccumulatedActiveFilters(mode) {
+            const host = document.getElementById('ahActiveFiltersHost');
+            if (!host) return;
+            host.innerHTML = '';
+
+            const labels = Object.fromEntries(getAccumulatedColumnConfig(mode).map((c) => [c.key, c.label]));
+            const activeEntries = Object.entries(accumulatedColumnFilters).filter(([, value]) => value);
+
+            if (!activeEntries.length) {
+                const empty = document.createElement('span');
+                empty.className = 'ah-table-filter-badge ah-table-filter-badge--empty';
+                empty.textContent = 'None';
+                host.appendChild(empty);
+                return;
+            }
+
+            activeEntries.forEach(([col, value]) => {
+                const badge = document.createElement('span');
+                badge.className = 'ah-table-filter-badge';
+                badge.textContent = `${labels[col] || col}: ${value}`;
+
+                const close = document.createElement('span');
+                close.className = 'material-symbols-outlined';
+                close.textContent = 'close';
+                close.title = 'Clear';
+                close.addEventListener('click', () => {
+                    accumulatedColumnFilters[col] = '';
+                    const input = document.querySelector(`#accumulatedTable .header-filter[data-col="${col}"]`);
+                    const toggle = document.querySelector(`#accumulatedTable .filter-toggle[data-col="${col}"]`);
+                    if (input) {
+                        input.value = '';
+                        input.style.display = 'none';
+                    }
+                    if (toggle) toggle.style.display = 'inline-block';
+                    applyAccumulatedFilters(mode);
+                });
+
+                badge.appendChild(close);
+                host.appendChild(badge);
+            });
+        }
+
+        function applyAccumulatedFilters(mode) {
+            const filtered = accumulatedRowsData.filter((row) => {
+                return Object.entries(accumulatedColumnFilters).every(([colKey, filterVal]) => {
+                    if (!filterVal) return true;
+                    return getAccumulatedColumnValue(row, colKey).includes(filterVal);
+                });
+            });
+
+            renderAccumulatedRows(filtered, mode);
+            updateAccumulatedActiveFilters(mode);
+        }
+
+        function bindAccumulatedColumnFilters(mode) {
+            document.querySelectorAll('#accumulatedTable .filter-toggle').forEach((btn) => {
+                const col = btn.dataset.col;
+                const th = btn.closest('th');
+                const input = th?.querySelector('.header-filter');
+                if (!input) return;
+
+                btn.addEventListener('click', () => {
+                    btn.style.display = 'none';
+                    input.style.display = 'inline-block';
+                    input.focus();
+                });
+
+                input.addEventListener('input', () => {
+                    accumulatedColumnFilters[col] = input.value.trim().toLowerCase();
+                    applyAccumulatedFilters(mode);
+                });
+
+                input.addEventListener('blur', () => {
+                    if (!input.value.trim()) {
+                        input.style.display = 'none';
+                        btn.style.display = 'inline-block';
+                    }
+                });
+
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        input.value = '';
+                        accumulatedColumnFilters[col] = '';
+                        applyAccumulatedFilters(mode);
+                        input.style.display = 'none';
+                        btn.style.display = 'inline-block';
+                    }
+                });
+            });
         }
 
         function getAccumulatedTableData() {
@@ -245,6 +465,9 @@
         async function refreshAccumulated() {
             const mode = document.getElementById('viewMode').value;
             setHeader(mode);
+            ensureAccumulatedFilterState(mode);
+            bindAccumulatedColumnFilters(mode);
+            updateAccumulatedActiveFilters(mode);
 
             const startInput = document.getElementById('filterStartDate');
             const endInput = document.getElementById('filterEndDate');
@@ -255,44 +478,8 @@
             const res = await fetch(url);
             if (!res.ok) return;
             const rows = await res.json();
-            const body = document.getElementById('accumulatedBody');
-
-            const emptyColspan = mode === 'employee' ? 5 : 2;
-            if (!rows.length) {
-                body.innerHTML = `<tr><td colspan="${emptyColspan}" class="muted">No records found</td></tr>`;
-                return;
-            }
-
-            if (mode === 'employee') {
-                body.innerHTML = rows.map(r => {
-                    const name = r.full_name || '-';
-                    const company = r.company || '-';
-                    const site = r.site || '-';
-                    const division = r.division || '-';
-                    const hours = fmtHours(r.accumulated_seconds);
-                    return `
-                        <tr>
-                            <td>${name}</td>
-                            <td>${company}</td>
-                            <td>${site}</td>
-                            <td>${division}</td>
-                            <td>${hours}</td>
-                        </tr>
-                    `;
-                }).join('');
-                return;
-            }
-
-            body.innerHTML = rows.map(r => {
-                const label = r.group || '-';
-                const hours = fmtHours(r.accumulated_seconds);
-                return `
-                    <tr>
-                        <td>${label}</td>
-                        <td>${hours}</td>
-                    </tr>
-                `;
-            }).join('');
+            accumulatedRowsData = Array.isArray(rows) ? rows : [];
+            applyAccumulatedFilters(mode);
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -308,15 +495,18 @@
             document.getElementById('export-btn')?.addEventListener('click', exportAccumulatedCsv);
             document.getElementById('export-pdf-btn')?.addEventListener('click', exportAccumulatedPdf);
 
+            document.getElementById('ahFilterToolbarBtn')?.addEventListener('click', () => {
+                const firstHidden = Array.from(document.querySelectorAll('#accumulatedTable .header-filter')).find((el) => {
+                    return el.style.display === 'none' || getComputedStyle(el).display === 'none';
+                });
+                const firstToggle = firstHidden
+                    ? firstHidden.closest('th')?.querySelector('.filter-toggle')
+                    : document.querySelector('#accumulatedTable .filter-toggle');
+                firstToggle?.click();
+            });
+
             refreshAccumulated();
             autoRefreshInterval = setInterval(() => { refreshAccumulated(); }, 5000);
-
-            const handle = document.getElementById("sidebarHandle");
-            function toggleSidebar() {
-                document.body.classList.toggle("sidebar-collapsed");
-                handle?.setAttribute("aria-pressed", String(document.body.classList.contains("sidebar-collapsed")));
-            }
-            handle?.addEventListener("click", toggleSidebar);
 
             const logoutLink = document.getElementById("logoutLink");
             if (logoutLink) {

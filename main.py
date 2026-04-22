@@ -1478,7 +1478,8 @@ def dashboard_vodacom(request: Request):
 
     return templates.TemplateResponse(
         "dashboard_vodacom.html",
-        {"request": request, "records": records, "section": "vodacom"}
+        {"request": request, "records": records,
+            "section": "vodacom", "now": datetime.now}
     )
 
 # 5) DASHBOARD DEVICES
@@ -1520,7 +1521,8 @@ def dashboard_devices(request: Request, db: Session = Depends(get_db)):
 
     return templates.TemplateResponse(
         "dashboard_devices.html",
-        {"request": request, "devices": devices, "section": "devices"}
+        {"request": request, "devices": devices, "section": "devices",
+            "time": datetime.utcnow().timestamp()}
     )
 
 

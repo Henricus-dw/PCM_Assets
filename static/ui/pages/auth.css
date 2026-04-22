@@ -1,0 +1,145 @@
+/* ============================================================
+   AUTH PAGES — login + register
+   body.auth-login / body.auth-register
+   ============================================================ */
+
+body.auth-login,
+body.auth-register {
+    background: #ffffff;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ── Card ───────────────────────────────────────────────── */
+
+.auth-card {
+    width: 100%;
+    max-width: 420px;
+    padding: 2.5rem 2rem;
+    background: #ffffff;
+    border: 1px solid rgba(193, 200, 199, 0.45);
+    border-radius: 0.125rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    margin: 2rem 1rem;
+}
+
+/* ── Logo ───────────────────────────────────────────────── */
+
+.auth-logo {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1.75rem;
+}
+
+.auth-logo img {
+    max-width: 240px;
+    height: auto;
+    display: block;
+}
+
+/* ── Heading ────────────────────────────────────────────── */
+
+.auth-card h1 {
+    margin: 0 0 1.5rem 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    text-align: center;
+}
+
+/* ── Error ──────────────────────────────────────────────── */
+
+.auth-error {
+    background: #fef2f2;
+    border: 1px solid rgba(185, 28, 28, 0.25);
+    border-radius: 0.125rem;
+    color: #b91c1c;
+    padding: 0.6rem 0.75rem;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* ── Form ───────────────────────────────────────────────── */
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.auth-field {
+    margin-bottom: 1rem;
+}
+
+.auth-field label {
+    display: block;
+    font-size: 0.825rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.35rem;
+}
+
+.auth-field input {
+    width: 100%;
+    padding: 0.55rem 0.68rem;
+    border: 1px solid rgba(193, 200, 199, 0.6);
+    border-radius: 0.125rem;
+    font-size: 0.9rem;
+    font-family: inherit;
+    background: #ffffff;
+    color: #1a1a1a;
+    box-sizing: border-box;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.auth-field input:focus {
+    outline: none;
+    border-color: #406262;
+    box-shadow: 0 0 0 3px rgba(64, 98, 98, 0.12);
+}
+
+/* ── Submit button ──────────────────────────────────────── */
+
+.auth-submit {
+    width: 100%;
+    padding: 0.65rem 1rem;
+    border: none;
+    border-radius: 0.125rem;
+    font-weight: 700;
+    font-size: 0.9rem;
+    font-family: inherit;
+    cursor: pointer;
+    background: #406262;
+    color: #ffffff;
+    margin-top: 0.5rem;
+    transition: background 0.15s;
+}
+
+.auth-submit:hover {
+    background: #334f4f;
+}
+
+/* ── Footer link ────────────────────────────────────────── */
+
+.auth-footer {
+    text-align: center;
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+
+.auth-footer a {
+    color: #406262;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.auth-footer a:hover {
+    text-decoration: underline;
+}

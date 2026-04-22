@@ -1,0 +1,70 @@
+﻿/* Modal component styles only. */
+
+.modal {
+    position: fixed;
+    inset: 0;
+    display: none;
+    z-index: 5000;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.45);
+}
+
+.modal.is-open {
+    display: flex;
+}
+
+.modal-content {
+    width: min(42rem, 92vw);
+    max-height: 82vh;
+    overflow: auto;
+    background: #ffffff;
+    color: #1a1c1c;
+    border: 1px solid #c1c8c7;
+    border-radius: 0.125rem;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.2);
+    padding: 1rem 1rem 0.875rem;
+    position: relative;
+}
+
+.modal-content h2 {
+    margin: 0 1.8rem 0.75rem 0;
+    color: #406262;
+    font-size: 1.125rem;
+}
+
+.modal .close {
+    position: absolute;
+    right: 0.75rem;
+    top: 0.5rem;
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #5f5e5e;
+    font-size: 1.25rem;
+    line-height: 1;
+}
+
+.modal .close:hover {
+    background: #f4f4f3;
+    color: #1a1c1c;
+}
+
+#deviceModalBody,
+#contractModalBody {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    color: #1a1c1c;
+    font-size: 0.875rem;
+}
+
+.modal-body-text {
+    color: #1a1c1c;
+    font-size: 0.875rem;
+    line-height: 1.5;
+}

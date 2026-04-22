@@ -1,632 +1,466 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <meta charset="utf-8" />
-    <title>PCM Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The Archive | Admin Governance</title>
     <link rel="icon" href="/static/pcm-lockup-goldc-final.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="/static/styles.css?v={{ time }}">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        .admin-card {
-            margin-inline-start: 30px;
-            padding: 20px;
-
-            background: #fff;
-            border-radius: 14px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, .08);
-            width: 50%;
-            max-height: 40vh;
-            overflow: auto;
-            transition: background 160ms ease, transform 160ms ease, box-shadow 160ms ease;
-            will-change: transform;
-        }
-
-        .admin-card:hover {
-            background: #fff;
-            transform: translateY(-1px);
-            /* same lift as .home-dashboard .card:hover */
-            box-shadow: 0 14px 34px rgba(0, 0, 0, 0.10);
-            /* same shadow depth */
-        }
-
-        .admin-card:active {
-            transform: translateY(0);
-        }
-
-        .admin-card.expanded {
-            max-height: 80vh;
-        }
-
-        .admin-head {
-            display: flex;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-
-        .admin-title {
-            font-weight: 800;
-            font-size: 1.05rem;
-            color: #111827;
-            margin: 0;
-        }
-
-        ._spacer {
-            flex: 1 1 auto;
-        }
-
-        .size-toggle {
-            background: #f3f4f6;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: .45rem .9rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background .2s ease;
-        }
-
-        .size-toggle:hover {
-            background: #e5e7eb;
-        }
-
-        .req-list {
-            display: grid;
-            gap: 10px;
-        }
-
-        .req-row {
-            display: flex;
-            align-items: center;
-            background: #fafafa;
-            border: 1px solid #f1f5f9;
-            border-radius: 12px;
-            padding: 10px 12px;
-            max-height: 50px;
-        }
-
-        .req-info {
-            display: flex;
-            gap: 16px;
-        }
-
-        .req-info span {
-            font-size: .95rem;
-            font-weight: 600;
-            color: #111827;
-        }
-
-        .req-info .muted {
-            color: #6b7280;
-            font-weight: 500;
-        }
-
-        .req-actions {
-            margin-left: auto;
-            display: inline-flex;
-            gap: 0;
-        }
-
-        /* Modern solid buttons */
-        .btn {
-            border: none;
-            outline: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0.6rem 1.2rem;
-            font-weight: 600;
-            font-size: .8rem;
-            color: #fff;
-            cursor: pointer;
-            border-radius: 8px;
-            transition: background 0.25s ease, transform 0.15s ease, box-shadow 0.25s ease;
-            line-height: 1.2;
-        }
-
-        /* Forest green */
-        .btn-approve {
-            background: #1b5e20;
-        }
-
-        .btn-approve:hover {
-            background: #145214;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(27, 94, 32, 0.35);
-        }
-
-        /* Darker red */
-        .btn-deny {
-            background: #8b0000;
-        }
-
-        .btn-deny:hover {
-            background: #6e0000;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(139, 0, 0, 0.35);
-        }
-
-        /* Pressed state */
-        .btn:active {
-            transform: translateY(0);
-            box-shadow: none;
-            filter: brightness(0.95);
-        }
-
-        /* Kill form defaults */
-        .req-actions form {
-            margin: 0;
-            padding: 0;
-            border: none;
-            background: transparent;
-            display: inline;
-        }
-
-        .empty {
-            color: #6b7280;
-            font-weight: 600;
-            background: #fafafa;
-            border: 1px dashed #e5e7eb;
-            border-radius: 12px;
-            padding: 16px;
-            text-align: center;
-        }
-
-        /* 🔹 Blue variant — exact same shape/size/behavior as .btn-deny */
-        .btn-admin {
-            background: #878da0a2;
-        }
-
-        .btn-admin:hover {
-            background: #878da0d1;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(30, 58, 138, 0.35);
-        }
-
-        .btn {
-            white-space: nowrap;
-            /* prevents wrapping */
-            width: 100px;
-            /* adjust this to match Delete button size */
-            text-align: center;
-        }
-
-        .modules-modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(17, 24, 39, 0.45);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1100;
-        }
-
-        .modules-modal.open {
-            display: flex;
-        }
-
-        .modules-modal-card {
-            width: min(420px, 92vw);
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
-            padding: 18px;
-        }
-
-        .modules-modal-title {
-            margin: 0 0 8px 0;
-            font-size: 1rem;
-            font-weight: 800;
-            color: #111827;
-        }
-
-        .modules-modal-user {
-            margin: 0 0 14px 0;
-            color: #6b7280;
-            font-size: 0.9rem;
-            word-break: break-word;
-        }
-
-        .module-check {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-            font-weight: 600;
-            color: #111827;
-        }
-
-        .modules-modal-actions {
-            margin-top: 16px;
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-
-        .btn-secondary {
-            border: 1px solid #d1d5db;
-            background: #fff;
-            color: #111827;
-            border-radius: 8px;
-            padding: 0.6rem 1rem;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        .btn-secondary:hover {
-            background: #f9fafb;
-        }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="/static/ui/main.css?v={{ time }}">
+    <link rel="stylesheet" href="/static/ui/pages/admin-governance.css?v={{ time }}">
 </head>
 
-<body>
-    <!-- Sidebar (220px wide; CSS already handles styling) -->
-    <div class="sidebar">
-
-        <!-- Top navigation -->
-        {% set module = request.query_params.get('module') %}
-        <div class="nav-top">
-            {% if module == 'biometric' %}
-            <a href="/time-attendance"
-                class="{{ 'active' if section == 'time-attendance' else '' }}"><span>Employees</span></a>
-            <a href="/time-attendance-dashboard"
-                class="{{ 'active' if section == 'time-attendance-dashboard' else '' }}"><span>Time and
-                    Attendance</span></a>
-            <a href="/hours-accumulated"
-                class="{{ 'active' if section == 'accumulated-hours' else '' }}"><span>Accumulated Hours</span></a>
-            {% else %}
-            <a href="/dashboard" class="{{ 'active' if section == 'home' else '' }}"><span>Home</span></a>
-            <a href="/form" class="{{ 'active' if section == 'form' else '' }}"><span>Capturing Form</span></a>
-            <a href="/dashboard/vodacom" class="{{ 'active' if section == 'vodacom' else '' }}"><span>Vodacom
-                    Dashboard</span></a>
-            <a href="/dashboard/devices" class="{{ 'active' if section == 'devices' else '' }}"><span>Devices
-                    Dashboard</span></a>
-            {% endif %}
-        </div>
-        <div class="sidebar-mid">
-            <a href="/" class="sidebar-return" title="Return">↺ Return</a>
-        </div>
-
-        <!-- Bottom navigation -->
-        <div class="nav-bottom">
-            {% if request.session.get('is_admin') %}
-            {% if module == 'biometric' %}
-            <a href="/admin?module=biometric"
-                class="{{ 'active' if section == 'admin' else '' }}"><span>Admin</span></a>
-            {% else %}
-            <a href="/admin" class="{{ 'active' if section == 'admin' else '' }}"><span>Admin</span></a>
-            {% endif %}
-            {% endif %}
-
-            {% if module == 'biometric' %}
-            <a href="/settings?module=biometric"
-                class="{{ 'active' if section == 'settings' else '' }}"><span>Settings</span></a>
-            {% else %}
-            <a href="/settings" class="{{ 'active' if section == 'settings' else '' }}"><span>Settings</span></a>
-            {% endif %}
-            <a href="/logout" id="logoutLink" class="{{ 'active' if section == 'logout' else '' }}">
-                <span>Log Out</span>
-            </a>
-        </div>
-        <button id="sidebarHandle" class="sidebar-handle" aria-label="Collapse sidebar" aria-pressed="false"
-            title="Collapse sidebar"> <span class="handle-icon" aria-hidden="true">⟨</span> </button>
-    </div>
-
-
-
-
-
-    <!-- Left-aligned content space; not centered -->
-    <div class="content" style="margin:20px var(--content-gap) 20px var(--sidebar-space);">
-        <div id="adminCard" class="admin-card">
-            <div class="admin-head">
-                <h2 class="admin-title">Pending account requests</h2>
-                <div class="_spacer"></div>
-                <button class="size-toggle" type="button" onclick="toggleAdminCard()">Expand</button>
-            </div>
-
-            {% if not pending %}
-            <div class="empty">No pending requests.</div>
-            {% else %}
-            <div class="req-list">
-                {% for p in pending %}
-                <div class="req-row">
-                    <div class="req-info">
-                        <span>{{ p.name }}</span>
-                        <span>{{ p.surname }}</span>
-                        <span class="muted">{{ p.email }}</span>
-                    </div>
-
-                    <div class="req-actions">
-                        <form method="post" action="/admin/approve/{{ p.id }}">
-                            <button class="btn btn-approve" type="submit">Approve</button>
-                        </form>
-                        <form method="post" action="/admin/deny/{{ p.id }}">
-                            <button class="btn btn-deny" type="submit">Deny</button>
-                        </form>
-                    </div>
+<body class="dashboard-page admin-governance app-with-sidebar">
+    {% set module = request.query_params.get('module') %}
+    {% set admin_href = '/admin?module=biometric' if module == 'biometric' else '/admin' %}
+    {% set settings_href = '/settings?module=biometric' if module == 'biometric' else '/settings' %}
+    {% set ns = namespace(admins=0, policy_admins=0, vodacom_users=0, time_users=0) %}
+    {% for user in users or [] %}
+    {% if user.is_admin %}
+    {% set ns.admins = ns.admins + 1 %}
+    {% endif %}
+    {% if user.can_manage_policies %}
+    {% set ns.policy_admins = ns.policy_admins + 1 %}
+    {% endif %}
+    {% if user.vodacom %}
+    {% set ns.vodacom_users = ns.vodacom_users + 1 %}
+    {% endif %}
+    {% if user.time_attendance %}
+    {% set ns.time_users = ns.time_users + 1 %}
+    {% endif %}
+    {% endfor %}
+    <div class="dashboard-main">
+        <aside class="sidebar">
+            <div class="sidebar-top">
+                <div class="sidebar-brand">
+                    <span class="sidebar-brand-title">Asset Management</span>
+                    <span class="sidebar-brand-sub">Enterprise Portal</span>
                 </div>
-                {% endfor %}
+                <nav class="nav-top">
+                    {% if module == 'biometric' %}
+                    <a href="/time-attendance" class="{{ 'active' if section == 'time-attendance' else '' }}">
+                        <span class="material-symbols-outlined">groups</span>
+                        <span>Employees</span>
+                    </a>
+                    <a href="/time-attendance-dashboard"
+                        class="{{ 'active' if section == 'time-attendance-dashboard' else '' }}">
+                        <span class="material-symbols-outlined">calendar_month</span>
+                        <span>Attendance Dashboard</span>
+                    </a>
+                    <a href="/hours-accumulated" class="{{ 'active' if section == 'accumulated-hours' else '' }}">
+                        <span class="material-symbols-outlined">timer</span>
+                        <span>Accumulated Hours</span>
+                    </a>
+                    {% else %}
+                    <a href="/dashboard" class="{{ 'active' if section == 'home' else '' }}">
+                        <span class="material-symbols-outlined">home</span>
+                        <span>Home</span>
+                    </a>
+                    <a href="/form" class="{{ 'active' if section == 'form' else '' }}">
+                        <span class="material-symbols-outlined">edit_document</span>
+                        <span>Capturing Form</span>
+                    </a>
+                    <a href="/dashboard/vodacom" class="{{ 'active' if section == 'vodacom' else '' }}">
+                        <span class="material-symbols-outlined">dashboard</span>
+                        <span>Vodacom Dashboard</span>
+                    </a>
+                    <a href="/dashboard/devices" class="{{ 'active' if section == 'devices' else '' }}">
+                        <span class="material-symbols-outlined">devices</span>
+                        <span>Devices Dashboard</span>
+                    </a>
+                    {% endif %}
+                </nav>
             </div>
-            {% endif %}
-        </div>
-
-        <div id="adminUsersCard" class="admin-card">
-            <div class="admin-head">
-                <h2 class="admin-title">Active user accounts</h2>
-                <div class="_spacer"></div>
-                <button class="size-toggle" type="button" onclick="toggleCard('adminUsersCard', this)">Expand</button>
+            <div class="sidebar-mid">
+                <a href="/" class="sidebar-return" title="Return">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                    <span>Return</span>
+                </a>
             </div>
-
-            {% if not users %}
-            <div class="empty">No active users.</div>
-            {% else %}
-            <div class="req-list">
-                {% for u in users %}
-                <div class="req-row">
-                    <div class="req-info">
-                        <span>{{ u.name or '—' }}</span>
-                        <span>{{ u.surname or '—' }}</span>
-                        <span class="muted">{{ u.email }}</span>
-
-                        <!-- ⬇️ add a small role badge inline (keeps layout) -->
-                        {% if u.is_admin %}
-                        <span class="badge badge-admin">Admin</span>
-                        {% else %}
-                        <span class="badge badge-user">User</span>
-                        {% endif %}
-                    </div>
-
-                    <div class="req-actions">
-                        <!-- existing delete -->
-                        <form method="post" action="/admin/users/delete/{{ u.id }}"
-                            onsubmit="return confirm('Are you sure you want to delete this user?');"
-                            style="display:inline;">
-                            <button class="btn btn-deny" type="submit">Delete</button>
-                        </form>
-
-                        <button class="btn btn-admin" type="button" style="margin-left:8px;" data-user-id="{{ u.id }}"
-                            data-email="{{ u.email }}" data-vodacom="{{ 1 if u.vodacom else 0 }}"
-                            data-time-attendance="{{ 1 if u.time_attendance else 0 }}"
-                            data-can-manage-policies="{{ 1 if u.can_manage_policies else 0 }}"
-                            onclick="openModulesModal(this)">
-                            Modules
-                        </button>
-
-                        <!-- ⬇️ add make/revoke buttons inline (no new layout wrappers) -->
-                        {% if not u.is_admin %}
-                        <form method="post" action="/admin/users/{{ u.id }}/make-admin"
-                            style="display:inline; margin-left:8px;">
-                            <button class="btn btn-admin" type="submit">Make admin</button>
-                        </form>
-                        {% else %}
-                        <form method="post" action="/admin/users/{{ u.id }}/revoke-admin"
-                            style="display:inline; margin-left:8px;">
-                            <button class="btn btn-admin" type="submit">Revoke admin</button>
-                        </form>
-                        {% endif %}
-                    </div>
-                </div>
-                {% endfor %}
+            <div class="nav-bottom">
+                {% if request.session.get('is_admin') %}
+                <a href="{{ admin_href }}" class="{{ 'active' if section == 'admin' else '' }}">
+                    <span class="material-symbols-outlined">admin_panel_settings</span>
+                    <span>Admin</span>
+                </a>
+                {% endif %}
+                <a href="{{ settings_href }}" class="{{ 'active' if section == 'settings' else '' }}">
+                    <span class="material-symbols-outlined">settings</span>
+                    <span>Settings</span>
+                </a>
+                <a href="/logout" id="logoutLink" class="{{ 'active' if section == 'logout' else '' }}">
+                    <span class="material-symbols-outlined">logout</span>
+                    <span>Log Out</span>
+                </a>
             </div>
-            {% endif %}
-        </div>
+            <button id="sidebarHandle" class="sidebar-handle" aria-label="Collapse sidebar" aria-pressed="false"
+                title="Collapse sidebar">
+                <span class="handle-icon">⟨</span>
+            </button>
+        </aside>
 
+        <main class="dashboard-content">
+            <div class="dashboard-content-scroll admin-governance-scroll">
+                <section class="admin-hero">
+                    <h1>System Governance</h1>
+                    <p>Manage administrative access, review pending onboarding requests, and audit current user
+                        privileges within the Executive Portal.</p>
+                </section>
 
+                <div class="admin-governance-grid">
+                    <section class="admin-panel" id="pendingPanel">
+                        <div class="admin-panel-header">
+                            <div class="admin-panel-title-wrap">
+                                <div class="admin-panel-icon">
+                                    <span class="material-symbols-outlined">person_add</span>
+                                </div>
+                                <div>
+                                    <h2>Pending account requests</h2>
+                                    <p>{{ pending|length }} New Submission{% if pending|length != 1 %}s{% endif %}</p>
+                                </div>
+                            </div>
+                            <button class="admin-section-toggle" type="button" data-target="pendingPanelBody"
+                                data-expand-label="Expand" data-collapse-label="Collapse">
+                                <span>Expand</span>
+                                <span class="material-symbols-outlined">unfold_more</span>
+                            </button>
+                        </div>
+                        <div class="admin-panel-body" id="pendingPanelBody">
+                            {% if pending %}
+                            <div class="admin-list admin-request-list">
+                                {% for p in pending %}
+                                <div class="admin-request-row"
+                                    data-search="{{ (p.name or '') ~ ' ' ~ (p.surname or '') ~ ' ' ~ (p.email or '') }}">
+                                    <div class="admin-request-grid">
+                                        <div>
+                                            <p class="admin-meta-label">Name</p>
+                                            <p class="admin-meta-value">{{ p.name or '—' }}</p>
+                                        </div>
+                                        <div>
+                                            <p class="admin-meta-label">Surname</p>
+                                            <p class="admin-meta-value">{{ p.surname or '—' }}</p>
+                                        </div>
+                                        <div>
+                                            <p class="admin-meta-label">Email</p>
+                                            <p class="admin-meta-value admin-meta-value--muted">{{ p.email }}</p>
+                                        </div>
+                                        <div>
+                                            <span class="admin-chip admin-chip--neutral">Pending</span>
+                                        </div>
+                                    </div>
+                                    <div class="admin-inline-actions">
+                                        <form method="post" action="/admin/approve/{{ p.id }}">
+                                            <button class="admin-btn admin-btn--primary" type="submit">Approve</button>
+                                        </form>
+                                        <form method="post" action="/admin/deny/{{ p.id }}">
+                                            <button class="admin-btn admin-btn--danger" type="submit">Deny</button>
+                                        </form>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <div class="admin-empty-state">No pending requests.</div>
+                            {% endif %}
+                        </div>
+                    </section>
 
+                    <section class="admin-panel" id="usersPanel">
+                        <div class="admin-panel-header">
+                            <div class="admin-panel-title-wrap">
+                                <div class="admin-panel-icon">
+                                    <span class="material-symbols-outlined">verified_user</span>
+                                </div>
+                                <div>
+                                    <h2>Active user accounts</h2>
+                                    <p>{{ users|length }} Total Personnel</p>
+                                </div>
+                            </div>
+                            <button class="admin-section-toggle" type="button" data-target="usersPanelBody"
+                                data-expand-label="Expand" data-collapse-label="Collapse">
+                                <span>Collapse</span>
+                                <span class="material-symbols-outlined">unfold_less</span>
+                            </button>
+                        </div>
+                        <div class="admin-panel-body" id="usersPanelBody">
+                            {% if users %}
+                            <div class="admin-list admin-user-list">
+                                {% for u in users %}
+                                {% set user_initials = ((u.name or u.email[:1] or 'U')[:1] ~ (u.surname or u.email[1:2]
+                                or 'S')[:1]).upper() %}
+                                {% set role_label = 'Admin' if u.is_admin else 'User' %}
+                                {% set role_class = 'admin-chip--primary' if u.is_admin else 'admin-chip--neutral' %}
+                                <div class="admin-user-row"
+                                    data-search="{{ (u.name or '') ~ ' ' ~ (u.surname or '') ~ ' ' ~ (u.email or '') }}">
+                                    <div class="admin-user-main">
+                                        <div class="admin-user-block admin-user-block--identity">
+                                            <p class="admin-meta-label">Full Identity</p>
+                                            <div class="admin-identity-wrap">
+                                                <div class="admin-user-mark">{{ user_initials }}</div>
+                                                <div>
+                                                    <p class="admin-user-name">{{ (u.name or '—') ~ ' ' ~ (u.surname or
+                                                        '—') }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="admin-user-block admin-user-block--email">
+                                            <p class="admin-meta-label">Email Reference</p>
+                                            <p class="admin-meta-value admin-meta-value--muted">{{ u.email }}</p>
+                                        </div>
+                                        <div class="admin-user-block admin-user-block--role">
+                                            <p class="admin-meta-label">Authorization</p>
+                                            <span class="admin-chip {{ role_class }}">{{ role_label }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="admin-row-tools">
+                                        <button class="admin-icon-btn" type="button" title="Edit modules"
+                                            data-user-id="{{ u.id }}" data-email="{{ u.email }}"
+                                            data-vodacom="{{ 1 if u.vodacom else 0 }}"
+                                            data-time-attendance="{{ 1 if u.time_attendance else 0 }}"
+                                            data-can-manage-policies="{{ 1 if u.can_manage_policies else 0 }}"
+                                            onclick="openModulesModal(this)">
+                                            <span class="material-symbols-outlined">dataset</span>
+                                        </button>
+                                        {% if not u.is_admin %}
+                                        <form method="post" action="/admin/users/{{ u.id }}/make-admin">
+                                            <button class="admin-icon-btn" type="submit" title="Make admin">
+                                                <span class="material-symbols-outlined">admin_panel_settings</span>
+                                            </button>
+                                        </form>
+                                        {% else %}
+                                        <form method="post" action="/admin/users/{{ u.id }}/revoke-admin">
+                                            <button class="admin-icon-btn" type="submit" title="Revoke admin">
+                                                <span class="material-symbols-outlined">shield_lock</span>
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                        <form method="post" action="/admin/users/delete/{{ u.id }}"
+                                            onsubmit="return confirm('Are you sure you want to delete this user?');">
+                                            <button class="admin-icon-btn admin-icon-btn--danger" type="submit"
+                                                title="Delete user">
+                                                <span class="material-symbols-outlined">delete</span>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <div class="admin-empty-state">No active users.</div>
+                            {% endif %}
+                        </div>
+                    </section>
 
-    </div>
-
-
-    <div class="content" style="margin:20px var(--content-gap) 20px var(--sidebar-space);">
-        <div id="adminEditsCard" class="admin-card">
-            <div class="admin-head">
-                <h2 class="admin-title">Edit requests</h2>
-                <div class="_spacer"></div>
-                <button class="size-toggle" type="button" onclick="toggleCard('adminEditsCard', this)">Expand</button>
-            </div>
-
-            {% if not edit_requests %}
-            <div class="empty">No edit requests.</div>
-            {% else %}
-            <div class="req-list">
-                {% for r in edit_requests %}
-                <div class="req-row">
-                    <div class="req-info" style="gap:16px; flex-wrap:wrap">
-                        <span class="muted">{{ r.requester_email }}</span>
-                        {% if r.kind == 'contract' %}
-                        <span>Contract #{{ r.ref_id }}</span>
-                        {% else %}
-                        <span>Device #{{ r.ref_id }}</span>
-                        {% endif %}
-
-                        {% if r.changes %}
-                        <span class="muted">
-                            {% set parts = [] %}
-                            {% for k, v in r.changes.items() %}
-                            {% set _ = parts.append(k ~ ' → ' ~ v) %}
+                    <section class="admin-panel admin-panel--side" id="editsPanel">
+                        <div class="admin-panel-header">
+                            <div class="admin-panel-title-wrap">
+                                <div class="admin-panel-icon admin-panel-icon--tertiary">
+                                    <span class="material-symbols-outlined">edit_note</span>
+                                </div>
+                                <div>
+                                    <h2>Edit requests</h2>
+                                    <p>{{ edit_requests|length }} Open Reviews</p>
+                                </div>
+                            </div>
+                            <span class="admin-counter">{{ edit_requests|length }}</span>
+                        </div>
+                        <div class="admin-panel-body admin-edit-feed" id="editsPanelBody">
+                            {% if edit_requests %}
+                            {% for r in edit_requests[:6] %}
+                            {% set change_keys = r.changes.keys()|list if r.changes else [] %}
+                            <article class="admin-edit-card"
+                                data-search="{{ (r.requester_email or '') ~ ' ' ~ (r.kind or '') ~ ' ' ~ (change_keys|join(' ')) }}">
+                                <div class="admin-edit-card-head">
+                                    <span class="admin-edit-type">{{ 'Contract Update' if r.kind == 'contract' else
+                                        'Device Update' }}</span>
+                                    <span class="admin-edit-time">{{ r.created_at.strftime('%d/%m/%Y') if r.created_at
+                                        else '' }}</span>
+                                </div>
+                                <p class="admin-edit-summary">
+                                    {{ r.requester_email }} requested changes for
+                                    {{ 'contract' if r.kind == 'contract' else 'device' }} #{{ r.ref_id }}.
+                                    {% if change_keys %}
+                                    Fields: {{ change_keys|join(', ') }}.
+                                    {% endif %}
+                                </p>
+                                <div class="admin-edit-actions">
+                                    {% if r.kind == 'contract' %}
+                                    <form method="post" action="/admin/contract-edit-requests/{{ r.id }}/approve">
+                                        <button class="admin-link-btn" type="submit">Approve</button>
+                                    </form>
+                                    <form method="post" action="/admin/contract-edit-requests/{{ r.id }}/deny">
+                                        <button class="admin-icon-btn admin-icon-btn--danger" type="submit"
+                                            title="Deny request">
+                                            <span class="material-symbols-outlined">delete</span>
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <form method="post" action="/admin/edit-requests/{{ r.id }}/approve">
+                                        <button class="admin-link-btn" type="submit">Approve</button>
+                                    </form>
+                                    <form method="post" action="/admin/edit-requests/{{ r.id }}/deny">
+                                        <button class="admin-icon-btn admin-icon-btn--danger" type="submit"
+                                            title="Deny request">
+                                            <span class="material-symbols-outlined">delete</span>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </article>
                             {% endfor %}
-                            {{ parts|join(', ') }}
-                        </span>
-                        {% endif %}
-                    </div>
-
-                    <div class="req-actions">
-                        {% if r.kind == 'contract' %}
-                        <form method="post" action="/admin/contract-edit-requests/{{ r.id }}/approve">
-                            <button class="btn btn-approve" type="submit">Approve</button>
-                        </form>
-                        <form method="post" action="/admin/contract-edit-requests/{{ r.id }}/deny">
-                            <button class="btn btn-deny" type="submit">Deny</button>
-                        </form>
-                        {% else %}
-                        <form method="post" action="/admin/edit-requests/{{ r.id }}/approve">
-                            <button class="btn btn-approve" type="submit">Approve</button>
-                        </form>
-                        <form method="post" action="/admin/edit-requests/{{ r.id }}/deny">
-                            <button class="btn btn-deny" type="submit">Deny</button>
-                        </form>
-                        {% endif %}
-                    </div>
+                            {% else %}
+                            <div class="admin-empty-state">No edit requests.</div>
+                            {% endif %}
+                        </div>
+                        <div class="admin-panel-footer">
+                            <button class="admin-footer-link" type="button">View all change logs</button>
+                        </div>
+                    </section>
                 </div>
-                {% endfor %}
-            </div>
-            {% endif %}
-        </div>
-        <!-- Invisible spacer to maintain vertical rhythm -->
-        <div class="admin-card" style="opacity:0; pointer-events:none; visibility:hidden;">
-            <div class="admin-head">
-                <h2 class="admin-title">Placeholder</h2>
-            </div>
-            <div class="empty">Spacer</div>
-        </div>
 
+                {% set pending_bar = pending|length * 12 %}
+                {% if pending_bar > 100 %}
+                {% set pending_bar = 100 %}
+                {% endif %}
+                {% set admin_bar = ns.admins * 18 %}
+                {% if admin_bar > 100 %}
+                {% set admin_bar = 100 %}
+                {% endif %}
+                <footer class="admin-summary-grid">
+                    <div class="admin-summary-card">
+                        <span class="admin-summary-label">Pending Queue</span>
+                        <strong>{{ pending|length }}</strong>
+                        <div class="admin-summary-bar"><span data-width="{{ pending_bar }}"></span></div>
+                    </div>
+                    <div class="admin-summary-card">
+                        <span class="admin-summary-label">Admin Accounts</span>
+                        <strong>{{ ns.admins }}</strong>
+                        <div class="admin-summary-bar"><span data-width="{{ admin_bar }}"></span></div>
+                    </div>
+                    <div class="admin-summary-card">
+                        <span class="admin-summary-label">Module Grants</span>
+                        <strong>{{ ns.vodacom_users + ns.time_users + ns.policy_admins }}</strong>
+                        <div class="admin-summary-inline">
+                            <span class="admin-inline-dot"></span>
+                            <span>Live monitoring</span>
+                        </div>
+                    </div>
+                </footer>
+            </div>
+        </main>
     </div>
 
-    <div id="modulesModal" class="modules-modal" aria-hidden="true">
-        <div class="modules-modal-card" role="dialog" aria-modal="true" aria-labelledby="modulesModalTitle">
-            <h3 id="modulesModalTitle" class="modules-modal-title">Assign Modules</h3>
-            <p class="modules-modal-user" id="modulesModalUser">-</p>
+    <div id="modulesModal" class="modal is-hidden" aria-hidden="true" >
+        <div class="modal-content admin-modal-panel" role="dialog" aria-modal="true"
+            aria-labelledby="modulesModalTitle">
+            <span class="close" onclick="closeModulesModal()">&times;</span>
+            <h2 id="modulesModalTitle">Assign Modules</h2>
+            <p class="admin-modal-user" id="modulesModalUser">-</p>
 
-            <form id="modulesForm" method="post" action="/admin/users/0/modules">
+            <form id="modulesForm" method="post" action="/admin/users/0/modules" class="admin-modal-form">
                 <input type="hidden" name="module_ctx" value="{{ module or '' }}" />
 
-                <label class="module-check">
+                <label class="admin-check-row">
                     <input type="checkbox" id="moduleVodacom" name="vodacom" />
                     <span>Vodacom</span>
                 </label>
-
-                <label class="module-check">
+                <label class="admin-check-row">
                     <input type="checkbox" id="moduleTimeAttendance" name="time_attendance" />
-                    <span>Time & Attendance</span>
+                    <span>Time &amp; Attendance</span>
                 </label>
-
-                <label class="module-check">
+                <label class="admin-check-row">
                     <input type="checkbox" id="modulePoliciesAdmin" name="can_manage_policies" />
                     <span>Rules and Policies administrator</span>
                 </label>
 
-                <div class="modules-modal-actions">
-                    <button type="button" class="btn-secondary" onclick="closeModulesModal()">Cancel</button>
-                    <button type="submit" class="btn btn-approve">Save</button>
+                <div class="admin-modal-actions">
+                    <button type="button" class="admin-btn admin-btn--ghost"
+                        onclick="closeModulesModal()">Cancel</button>
+                    <button type="submit" class="admin-btn admin-btn--primary">Save</button>
                 </div>
             </form>
         </div>
     </div>
 
-
+    <script src="/static/ui/components/sidebar.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-            const handle = document.getElementById("sidebarHandle");
-            const collapseBtn = document.getElementById("sidebarCollapse"); // optional header button
-            const scrim = document.getElementById("sidebarScrim");
+            document.querySelectorAll(".admin-section-toggle").forEach((button) => {
+                const targetId = button.getAttribute("data-target");
+                const target = targetId ? document.getElementById(targetId) : null;
+                if (!target) return;
 
-            function toggleSidebar() {
-                const collapsed = document.body.classList.toggle("sidebar-collapsed");
+                const icon = button.querySelector(".material-symbols-outlined");
+                const label = button.querySelector("span:first-child");
+                const expandLabel = button.getAttribute("data-expand-label") || "Expand";
+                const collapseLabel = button.getAttribute("data-collapse-label") || "Collapse";
 
-                handle?.setAttribute("aria-pressed", String(!collapsed ? true : false));
-                handle?.setAttribute(
-                    "aria-label",
-                    collapsed ? "Expand sidebar" : "Collapse sidebar"
-                );
-                handle.title = collapsed ? "Expand sidebar" : "Collapse sidebar";
-            }
-
-            handle?.addEventListener("click", toggleSidebar);
-            collapseBtn?.addEventListener("click", toggleSidebar);
-
-            scrim?.addEventListener("click", () => {
-                document.body.classList.remove("sidebar-open");
-            });
-        });
-
-        function toggleAdminCard() {
-            const el = document.getElementById('adminCard');
-            el.classList.toggle('expanded');
-            const btn = document.querySelector('.size-toggle');
-            btn.textContent = el.classList.contains('expanded') ? 'Shrink' : 'Expand';
-        }
-        document.addEventListener("DOMContentLoaded", () => {
-            const logoutLink = document.getElementById("logoutLink");
-            if (logoutLink) {
-                logoutLink.addEventListener("click", function (e) {
-                    e.preventDefault(); // stop direct navigation
-                    const confirmed = confirm("Are you sure you want to log out?");
-                    if (confirmed) {
-                        window.location.href = this.href; // proceed to /logout
-                    }
+                button.addEventListener("click", () => {
+                    const collapsed = target.hidden = !target.hidden;
+                    if (label) label.textContent = collapsed ? expandLabel : collapseLabel;
+                    if (icon) icon.textContent = collapsed ? "unfold_more" : "unfold_less";
                 });
-            }
-        });
+            });
 
-        function toggleCard(id, btnEl) {
-            const el = document.getElementById(id);
-            if (!el) return;
-            el.classList.toggle('expanded');
-            if (btnEl) {
-                btnEl.textContent = el.classList.contains('expanded') ? 'Shrink' : 'Expand';
-            }
-        }
+            document.querySelectorAll(".admin-summary-bar span[data-width]").forEach((bar) => {
+                const width = Number(bar.getAttribute("data-width") || 0);
+                bar.style.width = Math.max(0, Math.min(width, 100)) + "%";
+            });
 
-        function openModulesModal(btn) {
-            const modal = document.getElementById('modulesModal');
-            const form = document.getElementById('modulesForm');
-            const userLabel = document.getElementById('modulesModalUser');
-            const vodacom = document.getElementById('moduleVodacom');
-            const timeAttendance = document.getElementById('moduleTimeAttendance');
-            const policiesAdmin = document.getElementById('modulePoliciesAdmin');
-            if (!modal || !form || !vodacom || !timeAttendance || !policiesAdmin) return;
+            const logoutLink = document.getElementById("logoutLink");
+            logoutLink?.addEventListener("click", function (e) {
+                e.preventDefault();
+                if (confirm("Are you sure you want to log out?")) {
+                    window.location.href = this.href;
+                }
+            });
 
-            const userId = btn?.dataset?.userId;
-            const email = btn?.dataset?.email || '';
-            const hasVodacom = String(btn?.dataset?.vodacom || '0') === '1';
-            const hasTimeAttendance = String(btn?.dataset?.timeAttendance || '0') === '1';
-            const hasPoliciesAdmin = String(btn?.dataset?.canManagePolicies || '0') === '1';
-
-            form.action = `/admin/users/${userId}/modules`;
-            userLabel.textContent = email;
-            vodacom.checked = hasVodacom;
-            timeAttendance.checked = hasTimeAttendance;
-            policiesAdmin.checked = hasPoliciesAdmin;
-
-            modal.classList.add('open');
-            modal.setAttribute('aria-hidden', 'false');
-        }
-
-        function closeModulesModal() {
-            const modal = document.getElementById('modulesModal');
-            if (!modal) return;
-            modal.classList.remove('open');
-            modal.setAttribute('aria-hidden', 'true');
-        }
-
-        document.addEventListener('click', (e) => {
-            const modal = document.getElementById('modulesModal');
-            if (!modal || !modal.classList.contains('open')) return;
-            if (e.target === modal) {
-                closeModulesModal();
-            }
-        });
-
-
-        document.addEventListener("DOMContentLoaded", () => {
-            /* … your existing sidebar JS … */
-
-            // === NEW: play the active-link intro animation on page load (skip Log Out) ===
             const activeLinks = Array.from(document.querySelectorAll(".sidebar a.active"))
-                .filter(a => a.id !== "logoutLink");
-
-            // Start them in “hover” pose and animate into “active”
-            activeLinks.forEach(a => a.classList.add("just-activated"));
-
-            // After 1s (box-shadow fade done), clean up the temp class
+                .filter((a) => a.id !== "logoutLink");
+            activeLinks.forEach((a) => a.classList.add("just-activated"));
             setTimeout(() => {
-                activeLinks.forEach(a => a.classList.remove("just-activated"));
+                activeLinks.forEach((a) => a.classList.remove("just-activated"));
             }, 1050);
         });
 
+        function openModulesModal(btn) {
+            const modal = document.getElementById("modulesModal");
+            const form = document.getElementById("modulesForm");
+            const userLabel = document.getElementById("modulesModalUser");
+            const vodacom = document.getElementById("moduleVodacom");
+            const timeAttendance = document.getElementById("moduleTimeAttendance");
+            const policiesAdmin = document.getElementById("modulePoliciesAdmin");
+            if (!modal || !form || !vodacom || !timeAttendance || !policiesAdmin) return;
 
+            const userId = btn?.dataset?.userId;
+            const email = btn?.dataset?.email || "";
+            form.action = "/admin/users/" + userId + "/modules";
+            userLabel.textContent = email;
+            vodacom.checked = String(btn?.dataset?.vodacom || "0") === "1";
+            timeAttendance.checked = String(btn?.dataset?.timeAttendance || "0") === "1";
+            policiesAdmin.checked = String(btn?.dataset?.canManagePolicies || "0") === "1";
+
+            modal.style.display = "flex";
+            modal.classList.add("is-open");
+            modal.setAttribute("aria-hidden", "false");
+        }
+
+        function closeModulesModal() {
+            const modal = document.getElementById("modulesModal");
+            if (!modal) return;
+            modal.style.display = "none";
+            modal.classList.remove("is-open");
+            modal.setAttribute("aria-hidden", "true");
+        }
+
+        document.getElementById("modulesModal")?.addEventListener("click", (e) => {
+            if (e.target === e.currentTarget) {
+                closeModulesModal();
+            }
+        });
     </script>
-
 </body>
 
 </html>

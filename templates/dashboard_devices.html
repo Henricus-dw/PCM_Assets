@@ -1,879 +1,795 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-    <link rel="stylesheet" href="/static/styles.css?v={{ time }}">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The Archive | Devices Dashboard</title>
     <link rel="icon" href="/static/pcm-lockup-goldc-final.svg" type="image/svg+xml" />
-
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="/static/ui/main.css?v={{ time }}">
+    <link rel="stylesheet" href="/static/ui/pages/dashboard-devices.css?v={{ time }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 </head>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
-<body>
-    <div class="sidebar">
+<body class="dashboard-page dashboard-devices app-with-sidebar">
+    <div class="dashboard-main">
+        <aside class="sidebar">
+            <div class="sidebar-top">
+                <div class="sidebar-brand">
+                    <span class="sidebar-brand-title">Asset Management</span>
+                    <span class="sidebar-brand-sub">Enterprise Portal</span>
+                </div>
+                <nav class="nav-top">
+                    <a href="/dashboard" class="{{ 'active' if section == 'home' else '' }}">
+                        <span class="material-symbols-outlined">home</span>
+                        <span>Home</span>
+                    </a>
+                    <a href="/form" class="{{ 'active' if section == 'form' else '' }}">
+                        <span class="material-symbols-outlined">edit_document</span>
+                        <span>Capturing Form</span>
+                    </a>
+                    <a href="/dashboard/vodacom" class="{{ 'active' if section == 'vodacom' else '' }}">
+                        <span class="material-symbols-outlined">dashboard</span>
+                        <span>Vodacom Dashboard</span>
+                    </a>
+                    <a href="/dashboard/devices" class="{{ 'active' if section == 'devices' else '' }}">
+                        <span class="material-symbols-outlined">devices</span>
+                        <span>Devices Dashboard</span>
+                    </a>
+                </nav>
+            </div>
+            <div class="sidebar-mid">
+                <a href="/" class="sidebar-return" title="Return">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                    <span>Return</span>
+                </a>
+            </div>
+            <div class="nav-bottom">
+                {% if request.session.get('is_admin') %}
+                <a href="/admin" class="{{ 'active' if section == 'admin' else '' }}">
+                    <span class="material-symbols-outlined">admin_panel_settings</span>
+                    <span>Admin</span>
+                </a>
+                {% endif %}
+                <a href="/settings" class="{{ 'active' if section == 'settings' else '' }}">
+                    <span class="material-symbols-outlined">settings</span>
+                    <span>Settings</span>
+                </a>
+                <a href="/logout" id="logoutLink" class="{{ 'active' if section == 'logout' else '' }}">
+                    <span class="material-symbols-outlined">logout</span>
+                    <span>Log Out</span>
+                </a>
+            </div>
+            <button id="sidebarHandle" class="sidebar-handle" aria-label="Collapse sidebar" aria-pressed="false"
+                title="Collapse sidebar">
+                <span class="handle-icon">⟨</span>
+            </button>
+        </aside>
 
-        <!-- Top navigation -->
-        <div class="nav-top">
-            <a href="/dashboard" class="{{ 'active' if section == 'home' else '' }}"><span>Home</span></a>
-            <a href="/form" class="{{ 'active' if section == 'form' else '' }}"><span>Capturing Form</span></a>
-
-            <a href="/dashboard/vodacom" class="{{ 'active' if section == 'vodacom' else '' }}"><span>Vodacom
-                    Dashboard</span></a>
-            <a href="/dashboard/devices" class="{{ 'active' if section == 'devices' else '' }}"><span>Devices
-                    Dashboard</span></a>
-        </div>
-        <div class="sidebar-mid">
-            <a href="/" class="sidebar-return" title="Return">↺ Return</a>
-        </div>
-
-        <!-- Bottom navigation -->
-        <!-- Bottom navigation -->
-        <div class="nav-bottom">
-            {% if request.session.get('is_admin') %}
-            <a href="/admin" class="{{ 'active' if section == 'admin' else '' }}"><span>Admin</span></a>
-            {% endif %}
-
-
-            <a href="/settings" class="{{ 'active' if section == 'settings' else '' }}"><span>Settings</span></a>
-            <a href="/logout" id="logoutLink" class="{{ 'active' if section == 'logout' else '' }}">
-                <span>Log Out</span>
-            </a>
-
-        </div>
-        <button id="sidebarHandle" class="sidebar-handle" aria-label="Collapse sidebar" aria-pressed="false"
-            title="Collapse sidebar"> <span class="handle-icon" aria-hidden="true">⟨</span> </button>
-    </div>
-
-
-    <!-- Main content -->
-    <div class="content3">
-
-        <div class="boxTopHeader2">Devices Dashboard</div>
-
-    </div>
-    <div class="sort-overlay">
-        <label for="sortSelect">Sort by:</label>
-        <select id="sort-select">
-            <option value="">Latest Entry</option>
-            <option value="inception_date">Inception Date</option>
-            <option value="termination_date">Termination Date</option>
-            <option value="monthly_costs">Monthly Costs</option>
-        </select>
-    </div>
-    <div class="sort-overlay2"><label>Export:</label>
-        <button id="export-btn" class="export-button">
-            <img src="/static/excel-document.svg" alt="Excel" class="excel-icon">
-        </button>
-        <button id="export-pdf-btn">
-            <img src="/static/download.svg" alt="PDF Icon" class="pdf-icon">
-
-        </button>
-
-    </div>
-    <div class="content2">
-        <div class="contentInner2">
-            {% if devices %}
-            <div class="table-mask"></div>
-            <table class="sticky">
-                <thead>
-                    <tr class="header-row">
-                        <th data-col="0">
-                            <div class="header-label">Name</div><br>
-                            <input type="text" class="header-filter" data-col="0" style="display:none;" />
-                            <button class="filter-toggle" data-col="0" aria-label="Search"> ⌕ </button>
-                        </th>
-                        <th data-col="1">
-                            <div class="header-label">Surname</div><br>
-                            <input type="text" class="header-filter" data-col="1" style="display:none;" />
-                            <button class="filter-toggle" data-col="1" aria-label="Search"> ⌕ </button>
-                        </th>
-                        <th data-col="2">
-                            <div class="header-label">Personnel Number</div><br>
-                            <input type="text" class="header-filter" data-col="2" style="display:none;" />
-                            <button class="filter-toggle" data-col="2" aria-label="Search"> ⌕ </button>
-                        </th>
-                        <th data-col="3">
-                            <div class="header-label">Company</div><br>
-                            <input type="text" class="header-filter" data-col="3" style="display:none;" />
-                            <button class="filter-toggle" data-col="3" aria-label="Search"> ⌕ </button>
-                        </th>
-                        <th data-col="4">
-                            <div class="header-label">Client Division</div><br>
-                            <input type="text" class="header-filter" data-col="4" style="display:none;" />
-                            <button class="filter-toggle" data-col="4" aria-label="Search"> ⌕ </button>
-                        </th>
-                        <th data-col="5">
-                            <div class="header-label">Vodacom Contract</div><br>
-                            <input type="text" class="header-filter" data-col="5" style="display:none;" />
-                            <button class="filter-toggle" data-col="5" aria-label="Search">⌕</button>
-                        </th>
-
-                        <th data-col="6">
-                            <div class="header-label">Device Name</div><br>
-                            <input type="text" class="header-filter" data-col="6" style="display:none;" />
-                            <button class="filter-toggle" data-col="6" aria-label="Search"> ⌕ </button>
-                        </th>
-                        <th data-col="7">
-                            <div class="header-label">Device Make</div><br>
-                            <input type="text" class="header-filter" data-col="7" style="display:none;" />
-                            <button class="filter-toggle" data-col="7" aria-label="Search"> ⌕ </button>
-                        </th>
-                        <th data-col="8">
-                            <div class="header-label">Device Model</div><br>
-                            <input type="text" class="header-filter" data-col="8" style="display:none;" />
-                            <button class="filter-toggle" data-col="8" aria-label="Search"> ⌕ </button>
-                        </th>
-                        <th data-col="9">
-                            <div class="header-label">Serial Number</div><br>
-                            <input type="text" class="header-filter" data-col="9" style="display:none;" />
-                            <button class="filter-toggle" data-col="9" aria-label="Search"> ⌕ </button>
-                        </th>
-                        <th data-col="10">
-                            <div class="header-label">Description</div><br>
-                            <input type="text" class="header-filter" data-col="10" style="display:none;" />
-                            <button class="filter-toggle" data-col="10" aria-label="Search"> ⌕ </button>
-                        </th>
-                        <th data-col="11">
-                            <div class="header-label">Insurance</div><br>
-                            <input type="text" class="header-filter" data-col="11" style="display:none;" />
-                            <button class="filter-toggle" data-col="11" aria-label="Search"> ⌕ </button>
-                        </th>
-                        <th data-col="12">
-                            <div class="header-label">Past Device Owners</div><br>
-                            <input type="text" class="header-filter" data-col="12" style="display:none;" />
-                            <button class="filter-toggle" data-col="12" aria-label="Search"> ⌕ </button>
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for device in devices %}
-                    <tr data-device-id="{{ device.id }}">
-                        <td>{{ device.Name_ }}</td>
-                        <td>{{ device.Surname_ }}</td>
-                        <td>{{ device.Personnel_nr }}</td>
-                        <td>{{ device.Company }}</td>
-                        <td>{{ device.Client_Division }}</td>
-                        <td>
-                            {% if device.vd_id %}
-                            <button class="view-contracts-btn" onclick="showContractsModal('{{ device.id }}')">View
-                                Contracts</button>
-                            {% else %}
-                            No contract linked to this device
-                            {% endif %}
-                        </td>
-
-                        <td>{{ device.Device_Name }}</td>
-                        <td>{{ device.device_make or '' }}</td>
-                        <td>{{ device.device_model or '' }}</td>
-                        <td>{{ device.Serial_Number }}</td>
-                        <td>{{ device.Device_Description }}</td>
-                        <td>{{ device.insurance }}</td>
-                        <td>
-                            {% if device.past_owners_display %}
-                            {{ device.past_owners_display.replace('\n', '<br>') | safe }}
-                            {% else %}
-                            No past owners
-                            {% endif %}
-                        </td>
-                    </tr>
+        <main class="dashboard-content">
+            <div class="dashboard-content-scroll">
+                <div class="dashboard-vitals">
+                    {% set ns = namespace(linked=0, insured=0, prior=0) %}
+                    {% for device in devices or [] %}
+                    {% if device.vd_id %}
+                    {% set ns.linked = ns.linked + 1 %}
+                    {% endif %}
+                    {% if device.insurance %}
+                    {% set ns.insured = ns.insured + 1 %}
+                    {% endif %}
+                    {% if device.past_owners_display %}
+                    {% set ns.prior = ns.prior + 1 %}
+                    {% endif %}
                     {% endfor %}
-                </tbody>
-            </table>
-            {% else %}
-            <p>No devices found.</p>
-            {% endif %}
-        </div>
+                    <div class="vitals-metrics">
+                        <div class="vitals-metric-group">
+                            <div class="vitals-metric-label">Total Devices</div>
+                            <div class="vitals-metric-value">{{ (devices or []) | length }} <span
+                                    class="vitals-metric-subtext">Live</span></div>
+                        </div>
+                        <div class="vitals-divider"></div>
+                        <div class="vitals-metric-group">
+                            <div class="vitals-metric-label">Linked Contracts</div>
+                            <div class="vitals-metric-value">{{ ns.linked }} <span
+                                    class="vitals-metric-subtext">Attached</span></div>
+                        </div>
+                        <div class="vitals-divider"></div>
+                        <div class="vitals-metric-group">
+                            <div class="vitals-metric-label">Prior Owner Records</div>
+                            <div class="vitals-metric-value">{{ ns.prior }} <span
+                                    class="vitals-metric-subtext">Archived</span></div>
+                        </div>
+                        <div class="vitals-actions">
+                            <button class="vitals-action-btn" id="export-excel-btn">
+                                <span class="material-symbols-outlined">file_download</span>
+                                Excel
+                            </button>
+                            <button class="vitals-action-btn" id="export-pdf-btn">
+                                <span class="material-symbols-outlined">picture_as_pdf</span>
+                                PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
+                <div class="dashboard-table-wrapper">
+                    <div class="dashboard-table-container">
+                        <div class="dashboard-table-toolbar">
+                            <div class="dashboard-table-filters">
+                                <button id="sortMenuBtn" type="button" class="dashboard-table-filter-btn"
+                                    aria-label="Sort by">
+                                    <span class="material-symbols-outlined">filter_list</span>
+                                </button>
+                                <span class="dashboard-table-filter-label">ACTIVE FILTERS:</span>
+                                <span id="activeFiltersHost" class="dashboard-table-active-badges"></span>
+                            </div>
+                            <p class="dashboard-table-info">Showing 1-15 of 0 entries</p>
+                        </div>
 
+                        <div class="dashboard-table-scroll">
+                            <table class="dashboard-table">
+                                <thead>
+                                    <tr>
+                                        <th data-col="0">
+                                            <div class="dashboard-table-header-cell"><span>Device ID</span></div>
+                                        </th>
+                                        <th data-col="1">
+                                            <div class="dashboard-table-header-cell"><span>Holder Name</span></div>
+                                        </th>
+                                        <th data-col="2">
+                                            <div class="dashboard-table-header-cell"><span>Personnel Number</span></div>
+                                        </th>
+                                        <th data-col="3">
+                                            <div class="dashboard-table-header-cell"><span>Company</span></div>
+                                        </th>
+                                        <th data-col="4">
+                                            <div class="dashboard-table-header-cell"><span>Client Division</span></div>
+                                        </th>
+                                        <th data-col="5">
+                                            <div class="dashboard-table-header-cell"><span>Device Name</span></div>
+                                        </th>
+                                        <th data-col="6">
+                                            <div class="dashboard-table-header-cell"><span>Device Make</span></div>
+                                        </th>
+                                        <th data-col="7">
+                                            <div class="dashboard-table-header-cell"><span>Device Model</span></div>
+                                        </th>
+                                        <th data-col="8">
+                                            <div class="dashboard-table-header-cell"><span>Serial Number</span></div>
+                                        </th>
+                                        <th data-col="9">
+                                            <div class="dashboard-table-header-cell"><span>Description</span></div>
+                                        </th>
+                                        <th data-col="10">
+                                            <div class="dashboard-table-header-cell"><span>Insurance</span></div>
+                                        </th>
+                                        <th data-col="11">
+                                            <div class="dashboard-table-header-cell"><span>Past Device Owners</span>
+                                            </div>
+                                        </th>
+                                        <th data-col="12">
+                                            <div class="dashboard-table-header-cell"><span>Status</span></div>
+                                        </th>
+                                        <th data-col="13" data-filterable="false" data-export="false">
+                                            <div class="dashboard-table-header-cell"><span>Actions</span></div>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% if devices %}
+                                    {% for device in devices %}
+                                    <tr data-device-id="{{ device.id }}">
+                                        <td class="dashboard-table-cell-primary">{{ device.id }}</td>
+                                        <td class="dashboard-table-cell-secondary">{{ device.Name_ or '' }} {{
+                                            device.Surname_ or '' }}</td>
+                                        <td class="dashboard-table-cell-muted">{{ device.Personnel_nr or '' }}</td>
+                                        <td>{{ device.Company or '' }}</td>
+                                        <td>{{ device.Client_Division or '' }}</td>
+                                        <td class="dashboard-table-cell-primary">{{ device.Device_Name or '' }}</td>
+                                        <td>{{ device.device_make or '' }}</td>
+                                        <td>{{ device.device_model or '' }}</td>
+                                        <td>{{ device.Serial_Number or '' }}</td>
+                                        <td class="dashboard-table-cell-stack">{{ device.Device_Description or '' }}
+                                        </td>
+                                        <td>{{ device.insurance or '' }}</td>
+                                        <td class="dashboard-table-cell-muted dashboard-table-cell-stack">
+                                            {% if device.past_owners_display %}
+                                            {{ device.past_owners_display.replace('\n', '<br>') | safe }}
+                                            {% else %}
+                                            No past owners
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if device.vd_id %}
+                                            <span
+                                                class="dashboard-table-badge dashboard-table-badge--active">Linked</span>
+                                            {% else %}
+                                            <span
+                                                class="dashboard-table-badge dashboard-table-badge--renewal">Unlinked</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="dashboard-table-actions">
+                                                {% if device.vd_id %}
+                                                <button class="dashboard-table-button" data-view-contract="1"
+                                                    data-device-id="{{ device.id }}">View Contracts</button>
+                                                {% else %}
+                                                <button class="dashboard-table-button" disabled
+                                                    aria-disabled="true">View Contracts</button>
+                                                {% endif %}
+                                                <button class="dashboard-table-action-icon" data-edit-device="1"
+                                                    data-device-id="{{ device.id }}"><span
+                                                        class="material-symbols-outlined">more_vert</span></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="14" class="table-empty-cell">No devices found.
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="dashboard-table-footer">
+                            <div class="dashboard-table-pagination">
+                                <span class="dashboard-table-pagination-info">Page 1 of 1</span>
+                                <div class="dashboard-table-pagination-controls">
+                                    <button id="paginationPrevBtn" type="button"
+                                        class="dashboard-table-pagination-btn"><span
+                                            class="material-symbols-outlined">chevron_left</span></button>
+                                    <button id="paginationNextBtn" type="button"
+                                        class="dashboard-table-pagination-btn"><span
+                                            class="material-symbols-outlined">chevron_right</span></button>
+                                </div>
+                            </div>
+                            <div class="dashboard-table-pagination-select">
+                                <span>Items per page:</span>
+                                <select id="itemsPerPageSelect">
+                                    <option value="15" selected>15</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
     </div>
-    <div id="deviceModal" class="modal" style="display:none;">
+
+    <div id="contractModal" class="modal is-hidden">
         <div class="modal-content">
-            <span class="close" onclick="closeDevicesModal()">&times;</span>
-            <h2>Linked Devices</h2>
-            <div id="deviceModalBody">
-                <!-- device list will go here -->
-            </div>
-        </div>
-    </div>
-    <div id="editRowModal" class="modal" style="display:none;">
-        <div class="modal-content" style="max-width:800px;">
-            <span class="close" onclick="closeEditRowModal()">&times;</span>
-            <h2>Edit Device</h2>
-            <div id="editRowBody"></div>
-            <div id="editSubmitWrap" style="text-align:center; margin-top:16px; display:none;">
-                <button id="submitChangesBtn" class="confirm">Submit Changes</button>
-            </div>
+            <span class="close" onclick="closeContractsModal()">&times;</span>
+            <h2>Linked Contract</h2>
+            <div id="contractModalBody"></div>
         </div>
     </div>
 
-    <style>
-        .modal {
-            position: fixed;
-            z-index: 999;
-            padding-top: 100px;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.4);
-        }
+    <div id="filterPopover" class="dashboard-filter-popover">
+        <input id="filterPopoverInput" type="text" placeholder="Filter column" />
+        <button id="filterPopoverClear" type="button" title="Clear">
+            <span class="material-symbols-outlined">close</span>
+        </button>
+    </div>
 
-        .modal-content {
-            background-color: white;
-            padding: 20px;
-            margin: auto;
-            width: 60%;
-            border-radius: 6px;
-        }
+    <div id="sortMenuPopover" class="dashboard-filter-popover dashboard-filter-popover--sort">
+        <button type="button" data-sort="latest">Latest Entry</button>
+        <button type="button" data-sort="holder_name">Holder Name</button>
+        <button type="button" data-sort="company">Company</button>
+        <button type="button" data-sort="device_name">Device Name</button>
+    </div>
 
-        .close {
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-    </style>
+    <div id="deviceEditModal" class="dashboard-edit-modal">
+        <div class="dashboard-edit-modal__panel">
+            <h3 class="dashboard-edit-modal__title">Request Device Edit</h3>
+            <div class="dashboard-edit-grid" id="deviceEditGrid"></div>
+            <div class="dashboard-edit-actions">
+                <button type="button" class="vitals-action-btn" id="deviceEditCancel">Cancel</button>
+                <button type="button" class="vitals-action-btn" id="deviceEditSubmit">Submit Request</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/ui/components/sidebar.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-            // ------------------------------------
-            // Restore scroll + highlight after a save/reload
-            // ------------------------------------
-            try {
-                const saved = JSON.parse(sessionStorage.getItem("devices_restore") || "null");
-                if (saved) {
-                    const container = document.querySelector(".contentInner2");
-                    if (saved.scroll?.type === "element" && container) {
-                        container.scrollTop = saved.scroll.top || 0;
-                        container.scrollLeft = saved.scroll.left || 0;
-                    } else {
-                        window.scrollTo(saved.scroll?.left || 0, saved.scroll?.top || 0);
-                    }
-                    if (saved.highlightId) {
-                        const r = document.querySelector(
-                            `table.sticky tbody tr[data-device-id="${saved.highlightId}"]`
-                        );
-                        if (r) {
-                            r.classList.add("just-updated");
-                            setTimeout(() => r.classList.remove("just-updated"), 2400);
-                        }
-                    }
-                    sessionStorage.removeItem("devices_restore");
-                }
-            } catch (_) { }
+            initDashboardTableInteractions();
+        });
 
-            // ------------------------------------
-            // Base table refs
-            // ------------------------------------
-            const table = document.querySelector("table.sticky");
+        function formatDate(value) {
+            if (!value) return "";
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return String(value);
+            const day = String(date.getDate()).padStart(2, "0");
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const year = date.getFullYear();
+            return day + "/" + month + "/" + year;
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/\"/g, "&quot;")
+                .replace(/'/g, "&#39;");
+        }
+
+        function initDashboardTableInteractions() {
+            const table = document.querySelector(".dashboard-table");
             if (!table) return;
-            const tbody = table.tBodies[0];
-            const rows = Array.from(tbody.querySelectorAll("tr"));
 
-            // ------------------------------------
-            // Filtering (header search toggles)
-            // ------------------------------------
+            const tbody = table.querySelector("tbody");
+            if (!tbody) return;
+
+            const rows = Array.from(tbody.querySelectorAll("tr[data-device-id]"));
+            const headers = Array.from(table.querySelectorAll("thead th"));
             const filters = {};
-            document.querySelectorAll(".filter-toggle").forEach(btn => {
-                const col = btn.dataset.col;
-                const th = btn.closest("th");
-                const input = th.querySelector(".header-filter");
 
-                btn.addEventListener("click", () => {
-                    btn.style.display = "none";
-                    input.style.display = "inline-block";
-                    input.focus();
+            const activeFiltersHost = document.getElementById("activeFiltersHost");
+            const tableInfo = document.querySelector(".dashboard-table-info");
+            const paginationInfo = document.querySelector(".dashboard-table-pagination-info");
+            const paginationPrevBtn = document.getElementById("paginationPrevBtn");
+            const paginationNextBtn = document.getElementById("paginationNextBtn");
+            const itemsPerPageSelect = document.getElementById("itemsPerPageSelect");
+
+            const labels = headers.map((th, idx) => {
+                const labelEl = th.querySelector(".dashboard-table-header-cell span");
+                const label = (labelEl ? labelEl.textContent : th.textContent).trim();
+                if (th.getAttribute("data-filterable") === "false") return label;
+
+                const headerCell = th.querySelector(".dashboard-table-header-cell") || th;
+                const filterBtn = document.createElement("button");
+                filterBtn.type = "button";
+                filterBtn.className = "dashboard-table-filter-btn";
+                filterBtn.setAttribute("aria-label", "Search " + label);
+                filterBtn.innerHTML = '<span class="material-symbols-outlined">search</span>';
+
+                headerCell.appendChild(filterBtn);
+
+                filterBtn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    openFilterPopover(idx, filterBtn);
                 });
 
-                input.addEventListener("input", () => {
-                    filters[col] = input.value.toLowerCase().trim();
-                    applyFilters();
+                return label;
+            });
+
+            const popover = document.getElementById("filterPopover");
+            const popoverInput = document.getElementById("filterPopoverInput");
+            const popoverClear = document.getElementById("filterPopoverClear");
+            const sortMenuBtn = document.getElementById("sortMenuBtn");
+            const sortMenuPopover = document.getElementById("sortMenuPopover");
+            const exportColumnIndexes = headers
+                .map((th, index) => ({ th, index }))
+                .filter(({ th }) => th.getAttribute("data-export") !== "false")
+                .map(({ index }) => index);
+
+            let activeFilterCol = null;
+            let activeSort = "latest";
+            let currentPage = 1;
+            let itemsPerPage = Number(itemsPerPageSelect?.value || 15);
+            const sortLabels = {
+                latest: "Latest Entry",
+                holder_name: "Holder Name",
+                company: "Company",
+                device_name: "Device Name"
+            };
+
+            function rowMatchesFilters(row) {
+                return Object.entries(filters).every(([colIndex, query]) => {
+                    if (!query) return true;
+                    const cell = row.cells[Number(colIndex)];
+                    const text = (cell ? cell.textContent : "").trim().toLowerCase();
+                    return text.includes(query);
+                });
+            }
+
+            function updatePaginationState(filteredRows) {
+                const totalFiltered = filteredRows.length;
+                const totalPages = Math.max(1, Math.ceil(totalFiltered / itemsPerPage));
+                currentPage = Math.min(currentPage, totalPages);
+
+                const startIndex = totalFiltered ? (currentPage - 1) * itemsPerPage : 0;
+                const endIndex = Math.min(startIndex + itemsPerPage, totalFiltered);
+
+                rows.forEach((row) => {
+                    row.style.display = "none";
                 });
 
-                input.addEventListener("blur", () => {
-                    if (!input.value.trim()) {
-                        input.style.display = "none";
-                        btn.style.display = "inline-block";
-                    }
+                filteredRows.slice(startIndex, endIndex).forEach((row) => {
+                    row.style.display = "";
                 });
 
-                input.addEventListener("keydown", (e) => {
-                    if (e.key === "Escape") {
-                        input.value = "";
-                        filters[col] = "";
-                        input.style.display = "none";
-                        btn.style.display = "inline-block";
-                        applyFilters();
-                    }
-                });
+                if (tableInfo) {
+                    tableInfo.textContent = totalFiltered
+                        ? "Showing " + (startIndex + 1) + "-" + endIndex + " of " + totalFiltered + " entries"
+                        : "Showing 0 of 0 entries";
+                }
+
+                if (paginationInfo) paginationInfo.textContent = "Page " + currentPage + " of " + totalPages;
+                if (paginationPrevBtn) paginationPrevBtn.disabled = currentPage <= 1;
+                if (paginationNextBtn) paginationNextBtn.disabled = currentPage >= totalPages || totalFiltered === 0;
+            }
+
+            function openFilterPopover(colIndex, anchor) {
+                if (!popover || !popoverInput) return;
+                activeFilterCol = colIndex;
+                popoverInput.value = filters[colIndex] || "";
+
+                const rect = anchor.getBoundingClientRect();
+                popover.style.display = "inline-flex";
+                popover.style.left = Math.max(8, rect.left - 40) + "px";
+                popover.style.top = Math.min(window.innerHeight - 46, rect.bottom + 6) + "px";
+                popoverInput.focus();
+            }
+
+            function closeFilterPopover() {
+                if (popover) popover.style.display = "none";
+                activeFilterCol = null;
+            }
+
+            function openSortMenu(anchor) {
+                if (!sortMenuPopover) return;
+                const rect = anchor.getBoundingClientRect();
+                sortMenuPopover.style.display = "inline-flex";
+                sortMenuPopover.style.flexDirection = "column";
+                sortMenuPopover.style.left = Math.max(8, rect.left - 10) + "px";
+                sortMenuPopover.style.top = Math.min(window.innerHeight - 160, rect.bottom + 6) + "px";
+            }
+
+            function closeSortMenu() {
+                if (sortMenuPopover) sortMenuPopover.style.display = "none";
+            }
+
+            popoverInput?.addEventListener("input", () => {
+                if (activeFilterCol == null) return;
+                filters[activeFilterCol] = popoverInput.value.trim().toLowerCase();
+                currentPage = 1;
+                applyFilters();
+            });
+
+            popoverInput?.addEventListener("keydown", (e) => {
+                if (e.key === "Escape") closeFilterPopover();
+            });
+
+            popoverClear?.addEventListener("click", () => {
+                if (activeFilterCol == null || !popoverInput) return;
+                popoverInput.value = "";
+                filters[activeFilterCol] = "";
+                currentPage = 1;
+                applyFilters();
+            });
+
+            document.addEventListener("click", (e) => {
+                if (popover && popover.style.display !== "none" && !popover.contains(e.target)) {
+                    closeFilterPopover();
+                }
+
+                if (!sortMenuPopover || sortMenuPopover.style.display === "none") return;
+                if (sortMenuPopover.contains(e.target) || e.target === sortMenuBtn || sortMenuBtn?.contains(e.target)) return;
+                closeSortMenu();
+            });
+
+            sortMenuBtn?.addEventListener("click", (e) => {
+                e.stopPropagation();
+                openSortMenu(sortMenuBtn);
             });
 
             function applyFilters() {
-                rows.forEach(row => {
-                    let visible = true;
-                    for (let col in filters) {
-                        const val = filters[col];
-                        const cellText = row.cells[col].textContent.toLowerCase().trim();
-                        if (val && !cellText.includes(val)) {
-                            visible = false;
-                            break;
-                        }
-                    }
-                    row.style.display = visible ? "" : "none";
+                const filteredRows = rows.filter((row) => rowMatchesFilters(row));
+                updateActiveFilters();
+                updatePaginationState(filteredRows);
+            }
+
+            function updateActiveFilters() {
+                if (!activeFiltersHost) return;
+                activeFiltersHost.innerHTML = "";
+
+                const sortBadge = document.createElement("span");
+                sortBadge.className = "dashboard-table-filter-badge";
+                sortBadge.textContent = "SORT BY: " + (sortLabels[activeSort] || "Latest Entry");
+                activeFiltersHost.appendChild(sortBadge);
+
+                const activeEntries = Object.entries(filters).filter(([, value]) => value);
+                if (!activeEntries.length) return;
+
+                activeEntries.forEach(([colIndex, value]) => {
+                    const badge = document.createElement("span");
+                    badge.className = "dashboard-table-filter-badge";
+
+                    const close = document.createElement("span");
+                    close.className = "material-symbols-outlined";
+                    close.textContent = "close";
+                    close.title = "Clear";
+                    close.addEventListener("click", () => {
+                        filters[colIndex] = "";
+                        if (activeFilterCol === Number(colIndex) && popoverInput) popoverInput.value = "";
+                        currentPage = 1;
+                        applyFilters();
+                    });
+
+                    badge.textContent = labels[Number(colIndex)] + ": " + value;
+                    badge.appendChild(close);
+                    activeFiltersHost.appendChild(badge);
                 });
             }
 
-            // ------------------------------------
-            // Sorting (kept as in your original; no-op unless you use those headers)
-            // ------------------------------------
-            const sortSelect = document.getElementById("sort-select");
-            if (sortSelect) {
-                sortSelect.addEventListener("change", () => {
-                    const sortBy = sortSelect.value;
-                    const rowsArray = Array.from(tbody.querySelectorAll("tr"));
-                    let colIndex;
-                    let isDate = false;
+            document.getElementById("export-excel-btn")?.addEventListener("click", () => {
+                const visibleRows = rows.filter((row) => row.style.display !== "none");
+                const csvHeaders = exportColumnIndexes
+                    .map((index) => '"' + labels[index].replace(/"/g, '""') + '"')
+                    .join(",");
+                const csvBody = visibleRows.map((row) => {
+                    return exportColumnIndexes.map((index) => {
+                        const text = (row.cells[index]?.textContent || "").trim().replace(/"/g, '""');
+                        return '"' + text + '"';
+                    }).join(",");
+                }).join("\n");
 
-                    switch (sortBy) {
-                        case "inception_date": colIndex = 0; isDate = true; break;
-                        case "termination_date": colIndex = 1; isDate = true; break;
-                        case "monthly_costs": colIndex = 5; break;
-                        default: return;
-                    }
+                const csv = csvHeaders + "\n" + csvBody;
+                const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = "devices_dashboard_export.csv";
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                URL.revokeObjectURL(link.href);
+            });
 
-                    rowsArray.sort((a, b) => {
-                        let valA = a.cells[colIndex].textContent.trim();
-                        let valB = b.cells[colIndex].textContent.trim();
-                        if (isDate) {
-                            return new Date(valA) - new Date(valB);
-                        } else {
-                            return (parseFloat(valB) || 0) - (parseFloat(valA) || 0);
-                        }
-                    });
+            document.getElementById("export-pdf-btn")?.addEventListener("click", () => {
+                const jsPDF = window.jspdf && window.jspdf.jsPDF;
+                if (!jsPDF) return;
 
-                    tbody.innerHTML = "";
-                    rowsArray.forEach(row => tbody.appendChild(row));
+                const visibleRows = rows.filter((row) => row.style.display !== "none");
+                const headerLabels = exportColumnIndexes.map((index) => labels[index]);
+                const body = visibleRows.map((row) => exportColumnIndexes.map((index) => (row.cells[index]?.textContent || "").trim()));
+
+                const doc = new jsPDF("landscape");
+                doc.text("Devices Dashboard Export", 14, 15);
+                doc.autoTable({
+                    head: [headerLabels],
+                    body,
+                    startY: 20,
+                    styles: { fontSize: 8, cellPadding: 2 }
                 });
-            }
+                doc.save("devices_dashboard_export.pdf");
+            });
 
-            // ------------------------------------
-            // Export to CSV (original behavior)
-            // ------------------------------------
-            const exportBtn = document.getElementById("export-btn");
-            if (exportBtn) {
-                exportBtn.addEventListener("click", () => {
-                    const rowsToExport = Array.from(table.querySelectorAll("tr"));
-                    const csv = rowsToExport.map(row => {
-                        const cols = row.querySelectorAll("td, th");
-                        const rowData = Array.from(cols).map((col, index) => {
-                            let text = col.textContent.trim();
-                            if (index === 10 || index === 11) text = `="${text}"`; // keep Excel from parsing
-                            return `"${text.replace(/"/g, '""')}"`;
-                        }).join(",");
-                        return rowData;
-                    }).join("\n");
-
-                    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement("a");
-                    a.href = url;
-                    a.download = "Devices_dashboard_export.csv"; // original name
-                    a.style.display = "none";
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                });
-            }
-
-            // ------------------------------------
-            // Export to PDF (original behavior)
-            // ------------------------------------
-            const pdfBtn = document.getElementById("export-pdf-btn");
-            if (pdfBtn && table) {
-                pdfBtn.addEventListener("click", () => {
-                    const { jsPDF } = window.jspdf;
-                    const doc = new jsPDF('landscape');
-
-                    const headers = [];
-                    const data = [];
-                    const ths = table.querySelectorAll("thead th");
-                    ths.forEach(th => {
-                        const label = th.querySelector(".header-label");
-                        headers.push(label ? label.textContent.trim() : th.textContent.trim());
-                    });
-                    const trs = table.querySelectorAll("tbody tr");
-                    trs.forEach(row => {
-                        const rowData = [];
-                        row.querySelectorAll("td").forEach((td, index) => {
-                            let text = td.textContent.trim();
-                            rowData.push(text);
-                        });
-                        data.push(rowData);
-                    });
-
-                    doc.text("Vodacom Dashboard Export", 14, 15);
-                    doc.autoTable({
-                        head: [headers],
-                        body: data,
-                        startY: 20,
-                        styles: { fontSize: 8, cellPadding: 2 }
-                    });
-                    doc.save("Devices_Dashboard_export.pdf");
-                });
-            }
-
-            // ------------------------------------
-            // View Contracts modal (original behavior)
-            // ------------------------------------
-            window.showContractsModal = function (deviceId) {
-                fetch(`/devices/${deviceId}/contract`)
-                    .then(res => res.json())
-                    .then(contract => {
-                        const body = document.getElementById("deviceModalBody");
-                        if (!contract || Object.keys(contract).length === 0) {
-                            body.innerHTML = "<p>No contract linked to this device.</p>";
-                        } else {
-                            body.innerHTML = `
-            <table border="1" width="100%" cellpadding="5">
-              <thead>
-                <tr>
-                  <th>Name</th><th>Surname</th><th>Personnel #</th><th>Company</th>
-                  <th>Client Division</th><th>Contract Type</th><th>Monthly Costs</th>
-                  <th>VAT</th><th>Cost (Excl. VAT)</th><th>Term</th>
-                  <th>Inception</th><th>Termination</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>${contract.Name_}</td>
-                  <td>${contract.Surname_}</td>
-                  <td>${contract.Personnel_nr}</td>
-                  <td>${contract.Company}</td>
-                  <td>${contract.Client_Division}</td>
-                  <td>${contract.Contract_Type}</td>
-                  <td>${contract.Monthly_Costs}</td>
-                  <td>${contract.VAT}</td>
-                  <td>${contract.Monthly_Cost_Excl_VAT}</td>
-                  <td>${contract.Contract_Term}</td>
-                  <td>${contract.Inception_Date || ''}</td>
-                  <td>${contract.Termination_Date || ''}</td>
-                </tr>
-              </tbody>
-            </table>`;
-                        }
-                        document.getElementById("deviceModal").style.display = "block";
-                    });
-            };
-            window.closeDevicesModal = function () {
-                document.getElementById("deviceModal").style.display = "none";
-            };
-
-            // (Optional helper retained)
-            window.showOwnersModal = function (deviceId) {
-                fetch(`/devices/${deviceId}/past_owners`)
-                    .then(r => r.json())
-                    .then(data => {
-                        const body = document.getElementById("deviceModalBody");
-                        if (!data || data.length === 0) {
-                            body.innerHTML = "<p>No previous owners archived for this device.</p>";
-                        } else {
-                            body.innerHTML = `
-            <table border="1" width="100%" cellpadding="5">
-              <thead>
-                <tr>
-                  <th>Name</th><th>Surname</th><th>Personnel #</th><th>Company</th><th>Client Division</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${data.map(p => `
-                  <tr>
-                    <td>${p.Name_}</td>
-                    <td>${p.Surname_}</td>
-                    <td>${p.Personnel_nr}</td>
-                    <td>${p.Company}</td>
-                    <td>${p.Client_Division}</td>
-                  </tr>
-                `).join("")}
-              </tbody>
-            </table>`;
-                        }
-                        document.getElementById("deviceModal").style.display = "block";
-                    })
-                    .catch(err => {
-                        document.getElementById("deviceModalBody").innerHTML =
-                            `<p style="color:#b00020;">Error loading previous owners.</p>`;
-                        document.getElementById("deviceModal").style.display = "block";
-                        console.error(err);
-                    });
-            };
-
-            // ------------------------------------
-            // Sidebar handle + active link animation + logout confirm (original)
-            // ------------------------------------
-            const handle = document.getElementById("sidebarHandle");
-            function toggleSidebar() {
-                const collapsed = document.body.classList.toggle("sidebar-collapsed");
-                handle?.setAttribute("aria-pressed", String(!collapsed ? true : false));
-                handle?.setAttribute("aria-label", collapsed ? "Expand sidebar" : "Collapse sidebar");
-                handle.title = collapsed ? "Expand sidebar" : "Collapse sidebar";
-            }
-            handle?.addEventListener("click", toggleSidebar);
-
-            const activeLinks = Array.from(document.querySelectorAll(".sidebar a.active"))
-                .filter(a => a.id !== "logoutLink");
-            activeLinks.forEach(a => a.classList.add("just-activated"));
-            setTimeout(() => activeLinks.forEach(a => a.classList.remove("just-activated")), 1050);
-
-            const logoutLink = document.getElementById("logoutLink");
-            if (logoutLink) {
-                logoutLink.addEventListener("click", function (e) {
+            document.querySelectorAll(".dashboard-table-button[data-view-contract='1']").forEach((btn) => {
+                btn.addEventListener("click", (e) => {
                     e.preventDefault();
-                    if (confirm("Are you sure you want to log out?")) {
-                        window.location.href = this.href;
+                    const deviceId = btn.getAttribute("data-device-id");
+                    if (deviceId) showContractsModal(deviceId);
+                });
+            });
+
+            document.querySelectorAll(".dashboard-table-action-icon[data-edit-device='1']").forEach((btn) => {
+                btn.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    const deviceId = btn.getAttribute("data-device-id");
+                    if (deviceId) openDeviceEditModal(deviceId);
+                });
+            });
+
+            paginationPrevBtn?.addEventListener("click", () => {
+                if (currentPage <= 1) return;
+                currentPage -= 1;
+                applyFilters();
+            });
+
+            paginationNextBtn?.addEventListener("click", () => {
+                currentPage += 1;
+                applyFilters();
+            });
+
+            itemsPerPageSelect?.addEventListener("change", () => {
+                itemsPerPage = Number(itemsPerPageSelect.value || 15);
+                currentPage = 1;
+                applyFilters();
+            });
+
+            function applySort(key) {
+                const textAt = (row, index) => (row.cells[index]?.textContent || "").trim().toLowerCase();
+
+                rows.sort((a, b) => {
+                    if (key === "latest") {
+                        const idA = Number(a.getAttribute("data-device-id") || 0);
+                        const idB = Number(b.getAttribute("data-device-id") || 0);
+                        return idB - idA;
                     }
-                });
+
+                    const columnMap = {
+                        holder_name: 1,
+                        company: 3,
+                        device_name: 5
+                    };
+                    const colIndex = columnMap[key] ?? 1;
+                    return textAt(a, colIndex).localeCompare(textAt(b, colIndex));
+                }).forEach((row) => tbody.appendChild(row));
+
+                applyFilters();
             }
 
-            // ------------------------------------
-            // Header map for in-place patch (if you skip reload later)
-            // ------------------------------------
-            const headerIndex = (() => {
-                const map = {};
-                const ths = table.querySelectorAll("thead th");
-                ths.forEach((th, i) => {
-                    const labelEl = th.querySelector(".header-label");
-                    const label = (labelEl ? labelEl.textContent : th.textContent).trim().toLowerCase();
-                    map[label] = i;
-                });
-                return map;
-            })();
-            const keyToHeaderLabels = {
-                Name_: ["name"],
-                Surname_: ["surname"],
-                Personnel_nr: ["personnel number", "personnel nr", "personnel no"],
-                Company: ["company"],
-                Client_Division: ["client division", "division"],
-                Device_Name: ["device name", "device"],
-                device_make: ["device make", "make"],
-                device_model: ["device model", "model"],
-                Serial_Number: ["serial number", "serial #", "serial"],
-                Device_Description: ["description", "device description"],
-                insurance: ["insurance"]
-            };
-            const norm = s => (s || "").toString().trim().toLowerCase();
-            function columnIndexForKey(key) {
-                const labels = keyToHeaderLabels[key] || [];
-                for (const label of labels) {
-                    const idx = headerIndex[norm(label)];
-                    if (idx != null) return idx;
-                }
-                return null;
-            }
-            function patchActiveRowCells(rowEl, changedObj) {
-                if (!rowEl || !changedObj) return;
-                for (const [key, val] of Object.entries(changedObj)) {
-                    const colIdx = columnIndexForKey(key);
-                    if (colIdx != null && rowEl.cells[colIdx]) {
-                        rowEl.cells[colIdx].textContent = (val ?? "").toString();
-                    }
-                }
-            }
-
-            // ------------------------------------
-            // Left "three-dots" edit rail (non-blocking, fixed position)
-            // ------------------------------------
-            const rail = document.createElement("div");
-            rail.className = "editbtn-rail";
-            document.body.appendChild(rail);
-            Object.assign(rail.style, {
-                position: "fixed",
-                width: "30px",
-                height: "0px",
-                left: "-9999px",
-                top: "-9999px",
-                pointerEvents: "none", // rail never blocks clicks
-                zIndex: "999999"
-            });
-
-            const editBtn = document.createElement("button");
-            editBtn.className = "editbtn";
-            editBtn.type = "button";
-            editBtn.setAttribute("aria-label", "Edit row");
-            editBtn.innerHTML = `
-    <div class="editbtn__dots">
-      <span class="editbtn__dot"></span>
-      <span class="editbtn__dot"></span>
-      <span class="editbtn__dot"></span>
-    </div>`;
-            rail.appendChild(editBtn);
-            Object.assign(editBtn.style, {
-                position: "absolute",
-                left: "0",
-                top: "0",
-                width: "30px",
-                height: "0px",
-                display: "none",
-                pointerEvents: "auto" // only the button is clickable
-            });
-
-            const scroller = document.querySelector(".contentInner2") || window;
-            let activeRowForBtn = null;
-            let hideTimer = null;
-
-            function positionRailForCell() {
-                const clipR = (scroller === window)
-                    ? document.documentElement.getBoundingClientRect()
-                    : scroller.getBoundingClientRect();
-                rail.style.left = (clipR.left - 30) + "px"; // always pinned to visible left
-                rail.style.top = clipR.top + "px";
-                rail.style.height = clipR.height + "px";
-            }
-            function positionButtonForRow(row) {
-                const rowR = row.getBoundingClientRect();
-                const clipR = (scroller === window)
-                    ? document.documentElement.getBoundingClientRect()
-                    : scroller.getBoundingClientRect();
-                editBtn.style.top = (rowR.top - clipR.top) + "px";
-                editBtn.style.height = rowR.height + "px";
-            }
-            function showForRow(row) {
-                clearTimeout(hideTimer);
-                activeRowForBtn = row;
-                positionRailForCell();
-                positionButtonForRow(row);
-                editBtn.style.display = "flex";
-                editBtn.classList.remove("editbtn--visible");
-                requestAnimationFrame(() => editBtn.classList.add("editbtn--visible"));
-            }
-            function hideIfAllowed() {
-                if (!activeRowForBtn) return;
-                const overRow = activeRowForBtn.matches(":hover");
-                const overBtn = editBtn.matches(":hover");
-                if (!overRow && !overBtn) {
-                    editBtn.style.display = "none";
-                    editBtn.classList.remove("editbtn--visible");
-                    activeRowForBtn = null;
-                }
-            }
-            function relayoutRail() {
-                if (activeRowForBtn) {
-                    positionRailForCell();
-                    positionButtonForRow(activeRowForBtn);
-                } else {
-                    // keep rail pinned even when hidden
-                    positionRailForCell();
-                }
-            }
-
-            // Bind to tbody rows
-            rows.forEach(row => {
-                row.addEventListener("pointerenter", () => showForRow(row));
-                row.addEventListener("pointerleave", (e) => {
-                    if (e.relatedTarget && (e.relatedTarget === editBtn || editBtn.contains(e.relatedTarget))) return;
-                    clearTimeout(hideTimer);
-                    hideTimer = setTimeout(hideIfAllowed, 140);
+            sortMenuPopover?.querySelectorAll("button[data-sort]").forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    activeSort = btn.getAttribute("data-sort") || "latest";
+                    applySort(activeSort);
+                    closeSortMenu();
                 });
             });
-            editBtn.addEventListener("pointerenter", () => clearTimeout(hideTimer));
-            editBtn.addEventListener("pointerleave", (e) => {
-                if (activeRowForBtn && e.relatedTarget && (e.relatedTarget === activeRowForBtn || activeRowForBtn.contains(e.relatedTarget))) return;
-                clearTimeout(hideTimer);
-                hideTimer = setTimeout(hideIfAllowed, 100);
-            });
-            (scroller === window ? window : scroller).addEventListener("scroll", relayoutRail, { passive: true });
-            window.addEventListener("resize", relayoutRail);
-            relayoutRail(); // initial
 
-            // ------------------------------------
-            // Edit modal plumbing (GET/PUT)
-            // ------------------------------------
-            const editModal = document.getElementById("editRowModal");
-            const editBody = document.getElementById("editRowBody");
-            const submitWrap = document.getElementById("editSubmitWrap");
-            const submitBtn2 = document.getElementById("submitChangesBtn");
+            applySort(activeSort);
+            applyFilters();
+        }
 
-            let pending = {};
-            let deviceData = {};
-            let currentDeviceId = null;
+        async function showContractsModal(deviceId) {
+            const modal = document.getElementById("contractModal");
+            const body = document.getElementById("contractModalBody");
+            if (!modal || !body) return;
 
-            function getActiveRowFromButton() {
-                // Prefer the hovered row
-                const hovered = table.querySelector("tbody tr:hover");
-                if (hovered) return hovered;
-                // Fallback: closest by vertical center
-                const btnRect = editBtn.getBoundingClientRect();
-                let best = null, bestDist = Infinity;
-                for (const r of rows) {
-                    const rr = r.getBoundingClientRect();
-                    const center = rr.top + rr.height / 2;
-                    const dist = Math.abs(center - (btnRect.top + btnRect.height / 2));
-                    if (dist < bestDist) { bestDist = dist; best = r; }
+            body.innerHTML = "<p class='device-contract-empty'>Loading contract...</p>";
+            modal.style.display = "flex";
+            modal.classList.add("is-open");
+
+            try {
+                const res = await fetch("/devices/" + deviceId + "/contract", { credentials: "same-origin" });
+                const contract = await res.json();
+
+                if (!res.ok || !contract) {
+                    body.innerHTML = "<p class='device-contract-empty'>No contract linked to this device.</p>";
+                    return;
                 }
-                return best;
-            }
 
-            function showEditModal() { if (editModal) editModal.style.display = "block"; }
-            window.closeEditRowModal = function () { if (editModal) editModal.style.display = "none"; }
-
-            function openEditRowModal(rowEl) {
-                pending = {};
-                submitWrap.style.display = "none";
-                editBody.innerHTML = "Loading…";
-
-                const id = rowEl?.dataset?.deviceId;
-                currentDeviceId = id || null;
-
-                if (!id) { editBody.textContent = "No device id found on row."; showEditModal(); return; }
-
-                fetch(`/api/devices/${id}`)
-                    .then(r => { if (!r.ok) throw new Error("Failed to load device"); return r.json(); })
-                    .then(data => { deviceData = data; renderEditTable(data); showEditModal(); })
-                    .catch(err => { editBody.textContent = err.message || "Error loading device."; showEditModal(); });
-            }
-
-            function renderEditTable(data) {
                 const fields = [
-                    ["Name_", "Name"],
-                    ["Surname_", "Surname"],
-                    ["Personnel_nr", "Personnel Number"],
-                    ["Company", "Company"],
-                    ["Client_Division", "Client Division"],
-                    ["Device_Name", "Device Name"],
-                    ["device_make", "Device Make"],
-                    ["device_model", "Device Model"],
-                    ["Serial_Number", "Serial Number"],
-                    ["Device_Description", "Description"],
-                    ["insurance", "Insurance"]
+                    ["Contract Number", contract.contract_number || ""],
+                    ["Holder Name", ((contract.Name_ || "") + " " + (contract.Surname_ || "")).trim()],
+                    ["Personnel Number", contract.Personnel_nr || ""],
+                    ["Company", contract.Company || ""],
+                    ["Client Division", contract.Client_Division || ""],
+                    ["Contract Type", contract.Contract_Type || ""],
+                    ["Monthly Costs", contract.Monthly_Costs != null ? "R " + Number(contract.Monthly_Costs).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ""],
+                    ["VAT", contract.VAT != null ? String(contract.VAT) : ""],
+                    ["Cost Excl VAT", contract.Monthly_Cost_Excl_VAT != null ? String(contract.Monthly_Cost_Excl_VAT) : ""],
+                    ["Contract Term", contract.Contract_Term || ""],
+                    ["Inception Date", formatDate(contract.Inception_Date)],
+                    ["Termination Date", formatDate(contract.Termination_Date)]
                 ];
 
-                const editTable = document.createElement("table");
-                editTable.className = "editgrid";
-                editTable.innerHTML = `
-    <thead>
-      <tr>
-        <th>Field</th>
-        <th>Current Value</th>
-        <th></th>
-        <th>New Value</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  `;
-                const tBody = editTable.querySelector("tbody");
+                body.innerHTML = "<div class='device-contract-detail-grid'>" + fields.map(([label, value]) => {
+                    return "<div class='device-contract-detail-row'><div class='device-contract-detail-label'>"
+                        + escapeHtml(label) + "</div><div class='device-contract-detail-value'>"
+                        + escapeHtml(value || "") + "</div></div>";
+                }).join("") + "</div>";
+            } catch (_err) {
+                body.innerHTML = "<p class='device-contract-empty'>Failed to load the linked contract.</p>";
+            }
+        }
 
-                fields.forEach(([key, label]) => {
-                    const tr = document.createElement("tr");
-                    tr.innerHTML = `
-      <td class="field-col">${label}</td>
-      <td class="value-col">
-        <div class="pill">${(data[key] ?? "").toString()}</div>
-      </td>
-      <td class="edit-col">
-        <button type="button" class="confirm edit-row-btn" data-key="${key}">Edit</button>
-      </td>
-      <td class="new-col">
-        <div class="pill edit-input-wrap" data-key="${key}" style="display:none;">
-          <input type="text" class="edit-input" value="">
-        </div>
-      </td>
-    `;
-                    tBody.appendChild(tr);
-                });
+        function closeContractsModal() {
+            const modal = document.getElementById("contractModal");
+            if (!modal) return;
+            modal.style.display = "none";
+            modal.classList.remove("is-open");
+        }
 
-                editBody.innerHTML = "";
-                editBody.appendChild(editTable);
+        let currentDeviceId = null;
+        let currentDeviceData = null;
 
-                // Delegate clicks to show inputs (bind once)
-                if (!editBody._delegationBound) {
-                    editBody._delegationBound = true;
-                    editBody.addEventListener("click", (e) => {
-                        const btn = e.target.closest(".edit-row-btn");
-                        if (!btn) return;
+        async function openDeviceEditModal(deviceId) {
+            const modal = document.getElementById("deviceEditModal");
+            const grid = document.getElementById("deviceEditGrid");
+            if (!modal || !grid) return;
 
-                        const key = btn.dataset.key;
-                        const wrap = editBody.querySelector(`.edit-input-wrap[data-key="${key}"]`);
-                        if (!wrap) return;
+            currentDeviceId = deviceId;
+            grid.innerHTML = "Loading...";
+            modal.style.display = "flex";
 
-                        wrap.style.display = "flex"; // reveal pill with input
-                        const input = wrap.querySelector(".edit-input");
-                        input.value = (deviceData[key] ?? "");
-                        input.focus();
+            try {
+                const res = await fetch("/api/devices/" + deviceId, { credentials: "same-origin" });
+                if (!res.ok) throw new Error("Failed to load device");
+                const data = await res.json();
+                currentDeviceData = data;
+                renderDeviceEditGrid(data);
+            } catch (err) {
+                grid.innerHTML = "<p class='device-contract-empty'>" + escapeHtml(err.message || "Failed to load device.") + "</p>";
+            }
+        }
 
-                        if (!input._bound) {
-                            input._bound = true;
-                            input.addEventListener("input", () => {
-                                const current = (deviceData[key] ?? "").toString();
-                                const next = input.value;
-                                if (next !== current) pending[key] = next;
-                                else delete pending[key];
-                                submitWrap.style.display = Object.keys(pending).length ? "block" : "none";
-                            });
-                        }
-                    });
-                }
+        function renderDeviceEditGrid(data) {
+            const grid = document.getElementById("deviceEditGrid");
+            if (!grid) return;
 
+            const fields = [
+                ["Name_", "Name"],
+                ["Surname_", "Surname"],
+                ["Personnel_nr", "Personnel Number"],
+                ["Company", "Company"],
+                ["Client_Division", "Client Division"],
+                ["Device_Name", "Device Name"],
+                ["device_make", "Device Make"],
+                ["device_model", "Device Model"],
+                ["Serial_Number", "Serial Number"],
+                ["Device_Description", "Description"],
+                ["insurance", "Insurance"]
+            ];
 
-                submitBtn2.onclick = async () => {
-                    if (!currentDeviceId) return;
-                    if (!Object.keys(pending).length) {
-                        closeEditRowModal();
-                        return;
-                    }
+            grid.innerHTML = "";
+            fields.forEach(([key, label]) => {
+                const wrap = document.createElement("div");
+                const value = escapeHtml(data[key] ?? "");
+                wrap.innerHTML = "<label>" + escapeHtml(label)
+                    + "<input data-key='" + escapeHtml(key) + "' value='" + value + "'></label>";
+                grid.appendChild(wrap);
+            });
+        }
 
-                    submitBtn2.disabled = true;
-                    try {
-                        // ⬇️ Queue the edit request for admin approval (NOT a direct PUT anymore)
-                        const resp = await fetch(`/api/edit-requests`, {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                                device_id: Number(currentDeviceId),
-                                changes: pending
-                            })
-                        });
+        document.getElementById("deviceEditCancel")?.addEventListener("click", () => {
+            const modal = document.getElementById("deviceEditModal");
+            if (modal) modal.style.display = "none";
+        });
 
-                        if (!resp.ok) throw new Error("Failed to queue edit request");
-                        const res = await resp.json();
+        document.getElementById("deviceEditSubmit")?.addEventListener("click", async () => {
+            if (!currentDeviceId || !currentDeviceData) return;
 
-                        if (res.queued || res.created) {
-                            alert("Edit request submitted for approval.");
-                            closeEditRowModal();
-                            // optional: refresh the page so the row clears any local UI state
-                            // location.reload();
-                        } else {
-                            alert(res.message || "Could not queue request.");
-                            closeEditRowModal();
-                        }
-                    } catch (err) {
-                        alert(err?.message || "Failed to queue edit request.");
-                    } finally {
-                        submitBtn2.disabled = false;
-                    }
-                };
+            const payload = {};
+            document.querySelectorAll("#deviceEditGrid input[data-key]").forEach((input) => {
+                const key = input.getAttribute("data-key");
+                const nextValue = input.value;
+                const currentValue = (currentDeviceData[key] ?? "").toString();
+                if (nextValue !== currentValue) payload[key] = nextValue;
+            });
 
-
-
+            if (!Object.keys(payload).length) {
+                document.getElementById("deviceEditModal").style.display = "none";
+                return;
             }
 
+            const submitBtn = document.getElementById("deviceEditSubmit");
+            if (!submitBtn) return;
+            submitBtn.disabled = true;
 
-            // Open modal when clicking the floating button
-            editBtn.addEventListener("click", () => {
-                const row = getActiveRowFromButton();
-                if (!row) return;
-                openEditRowModal(row);
-            });
+            try {
+                const res = await fetch("/api/edit-requests", {
+                    method: "POST",
+                    credentials: "same-origin",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        device_id: Number(currentDeviceId),
+                        changes: payload
+                    })
+                });
+                const out = await res.json();
+                if (!res.ok || !(out.queued || out.created)) {
+                    throw new Error(out.detail || out.message || "Failed to submit edit request.");
+                }
+                document.getElementById("deviceEditModal").style.display = "none";
+                alert("Edit request submitted for approval.");
+            } catch (err) {
+                alert((err && err.message) ? err.message : "Failed to submit edit request.");
+            } finally {
+                submitBtn.disabled = false;
+            }
+        });
 
-            // Close on backdrop click
-            editModal?.addEventListener("click", (e) => {
-                if (e.target === editModal) closeEditRowModal();
-            });
+        document.getElementById("contractModal")?.addEventListener("click", (e) => {
+            if (e.target === e.currentTarget) closeContractsModal();
+        });
+
+        document.getElementById("deviceEditModal")?.addEventListener("click", (e) => {
+            if (e.target === e.currentTarget) {
+                e.currentTarget.style.display = "none";
+            }
         });
     </script>
-
-
-
-
 </body>
-
 
 </html>

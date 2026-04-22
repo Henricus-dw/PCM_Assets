@@ -1,0 +1,13 @@
+/* Table component styles only. */
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th,
+.table td {
+    border: 1px solid var(--color-border);
+    padding: 0.625rem 0.5rem;
+    text-align: left;
+}
