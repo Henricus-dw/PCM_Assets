@@ -103,9 +103,9 @@
                     </div>
                 </article>
                 <article class="kpi-card">
-                    <span class="kpi-card__label">No Insurance</span>
+                    <span class="kpi-card__label">Total Contracts</span>
                     <div class="kpi-card__value-wrap">
-                        <span class="kpi-card__value" id="kpiNoIns">-</span>
+                        <span class="kpi-card__value" id="kpiContracts">-</span>
                     </div>
                     <div class="kpi-card__meter">
                         <span class="meter-muted meter-w16"></span>
@@ -404,7 +404,11 @@
                     const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
                     setText("kpiTotal", st.total ?? 0);
                     setText("kpiTransfers", st.transfers ?? 0);
-                    setText("kpiNoIns", st.no_insurance ?? 0);
+                    // Count total contracts from breakdown data, fallback to total_contracts field
+                    const contractsCount = (breakdown && breakdown.data)
+                        ? breakdown.data.reduce((a, b) => a + (Number(b) || 0), 0)
+                        : (st.total_contracts ?? 0);
+                    setText("kpiContracts", contractsCount);
                     setText("kpiLinked", st.linked ?? 0);
 
                     // --- Card 4: Contract breakdown pie ---

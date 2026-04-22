@@ -645,6 +645,8 @@ body.time-employees .calendar-body {
     display: flex;
     flex-direction: column;
     gap: 0.12rem;
+    flex: 1 1 auto;
+    min-height: 0;
 }
 
 body.time-employees .calendar-weekdays,
@@ -655,7 +657,8 @@ body.time-employees .calendar-grid {
 }
 
 body.time-employees .calendar-grid {
-    grid-template-rows: repeat(6, minmax(1.4rem, 1fr));
+    grid-template-rows: repeat(6, minmax(1fr, 1fr));
+    flex: 1 1 auto;
 }
 
 body.time-employees .calendar-weekdays div {

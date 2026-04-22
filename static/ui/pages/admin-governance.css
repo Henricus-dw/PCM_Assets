@@ -593,6 +593,32 @@ body.admin-governance .sidebar {
     }
 }
 
+
+
+#usersPanel #usersPanelBody {
+    max-height: 500px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #b4bbb9 transparent;
+}
+
+#usersPanel #usersPanelBody::-webkit-scrollbar {
+    width: 6px;
+}
+
+#usersPanel #usersPanelBody::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#usersPanel #usersPanelBody::-webkit-scrollbar-thumb {
+    background: #b4bbb9;
+    border-radius: 3px;
+}
+
+#usersPanel #usersPanelBody::-webkit-scrollbar-thumb:hover {
+    background: #9aa3a1;
+}
+
 @media (max-width: 1180px) {
     .admin-governance-grid {
         grid-template-columns: 1fr;

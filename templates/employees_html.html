@@ -135,61 +135,55 @@
                                         <tr>
                                             <th data-col="pin">
                                                 <div class="header-label">PIN</div>
-                                                <input type="text" class="header-filter is-hidden" data-col="pin"
-                                                     />
+                                                <input type="text" class="header-filter is-hidden" data-col="pin" />
                                                 <button class="filter-toggle" data-col="pin" aria-label="Filter"><span
                                                         class="material-symbols-outlined">search</span></button>
                                             </th>
                                             <th data-col="employee_id">
                                                 <div class="header-label">Employee ID</div>
-                                                <input type="text" class="header-filter is-hidden" data-col="employee_id"
-                                                     />
+                                                <input type="text" class="header-filter is-hidden"
+                                                    data-col="employee_id" />
                                                 <button class="filter-toggle" data-col="employee_id"
                                                     aria-label="Filter"><span
                                                         class="material-symbols-outlined">search</span></button>
                                             </th>
                                             <th data-col="name">
                                                 <div class="header-label">Name</div>
-                                                <input type="text" class="header-filter is-hidden" data-col="name"
-                                                     />
+                                                <input type="text" class="header-filter is-hidden" data-col="name" />
                                                 <button class="filter-toggle" data-col="name" aria-label="Filter"><span
                                                         class="material-symbols-outlined">search</span></button>
                                             </th>
                                             <th data-col="surname">
                                                 <div class="header-label">Surname</div>
-                                                <input type="text" class="header-filter is-hidden" data-col="surname"
-                                                     />
+                                                <input type="text" class="header-filter is-hidden" data-col="surname" />
                                                 <button class="filter-toggle" data-col="surname"
                                                     aria-label="Filter"><span
                                                         class="material-symbols-outlined">search</span></button>
                                             </th>
                                             <th data-col="company">
                                                 <div class="header-label">Company</div>
-                                                <input type="text" class="header-filter is-hidden" data-col="company"
-                                                     />
+                                                <input type="text" class="header-filter is-hidden" data-col="company" />
                                                 <button class="filter-toggle" data-col="company"
                                                     aria-label="Filter"><span
                                                         class="material-symbols-outlined">search</span></button>
                                             </th>
                                             <th data-col="site">
                                                 <div class="header-label">Site</div>
-                                                <input type="text" class="header-filter is-hidden" data-col="site"
-                                                     />
+                                                <input type="text" class="header-filter is-hidden" data-col="site" />
                                                 <button class="filter-toggle" data-col="site" aria-label="Filter"><span
                                                         class="material-symbols-outlined">search</span></button>
                                             </th>
                                             <th data-col="division">
                                                 <div class="header-label">Division</div>
-                                                <input type="text" class="header-filter is-hidden" data-col="division"
-                                                     />
+                                                <input type="text" class="header-filter is-hidden"
+                                                    data-col="division" />
                                                 <button class="filter-toggle" data-col="division"
                                                     aria-label="Filter"><span
                                                         class="material-symbols-outlined">search</span></button>
                                             </th>
                                             <th data-col="status">
                                                 <div class="header-label">Status</div>
-                                                <input type="text" class="header-filter is-hidden" data-col="status"
-                                                     />
+                                                <input type="text" class="header-filter is-hidden" data-col="status" />
                                                 <button class="filter-toggle" data-col="status"
                                                     aria-label="Filter"><span
                                                         class="material-symbols-outlined">search</span></button>
@@ -207,25 +201,25 @@
 
                         <section class="stats-grid">
                             <article class="stats-card">
-                                <span class="stats-label">Attendance Rate</span>
+                                <span class="stats-label">ON SITE</span>
                                 <div class="stats-value-row">
-                                    <strong>94.2%</strong>
-                                    <span class="stats-up">+1.2%</span>
+                                    <strong id="onSiteCount">0</strong>
+                                    <span class="stats-up" id="onSitePercentage">0%</span>
                                 </div>
-                                <div class="stats-bar"><span></span></div>
+                                <div class="stats-bar"><span id="onSiteBar"></span></div>
                             </article>
                             <article class="stats-card">
                                 <span class="stats-label">Active Shifts</span>
                                 <div class="stats-value-row">
-                                    <strong>112</strong>
-                                    <span>of 248</span>
+                                    <strong>—</strong>
+                                    <span class="stats-muted">Coming soon</span>
                                 </div>
                             </article>
                             <article class="stats-card">
                                 <span class="stats-label">Overtime Hours</span>
                                 <div class="stats-value-row">
-                                    <strong>42.5h</strong>
-                                    <span class="stats-high">High</span>
+                                    <strong>—</strong>
+                                    <span class="stats-muted">Coming soon</span>
                                 </div>
                             </article>
                         </section>
@@ -763,6 +757,20 @@
             }
         }
 
+        function updateOnSiteStats(rows) {
+            const onSiteCount = rows.filter(e => e.current_status === 'IN').length;
+            const totalCount = rows.length;
+            const percentage = totalCount > 0 ? Math.round((onSiteCount / totalCount) * 100) : 0;
+
+            const countEl = document.getElementById('onSiteCount');
+            const percentEl = document.getElementById('onSitePercentage');
+            const barEl = document.getElementById('onSiteBar');
+
+            if (countEl) countEl.textContent = onSiteCount;
+            if (percentEl) percentEl.textContent = percentage + '%';
+            if (barEl) barEl.style.width = percentage + '%';
+        }
+
         function renderEmployees(rows) {
             const tbody = document.getElementById('employeeBody');
             if (!rows.length) {
@@ -771,7 +779,7 @@
             }
             tbody.innerHTML = rows.map(e => {
                 const statusClass = e.current_status === 'IN' ? 'status-in' : 'status-out';
-                const statusLabel = e.current_status === 'IN' ? 'ACTIVE' : 'LEAVE';
+                const statusLabel = e.current_status === 'IN' ? 'CHECKED IN' : 'CHECKED OUT';
                 const pinSafe = String(e.PIN ?? '');
                 const nameSafe = String(e.Name_ ?? '').replace(/'/g, "&#39;");
                 const surnameSafe = String(e.Surname_ ?? '').replace(/'/g, "&#39;");
@@ -780,7 +788,7 @@
                 const rowClass = String(selectedPin) === pinSafe ? ' selected' : '';
                 return `
                 <tr class="employee-row${rowClass}" data-pin="${pinSafe}" onclick="selectEmployeeRow(this); viewEmployee('${pinSafe}', '${nameSafe}', '${surnameSafe}', '${statusSafe}', '${roleSafe}')">
-                    <td class="cell-truncate">${String(e.PIN ?? '').padStart(5, '0')}</td>
+                    <td class="cell-truncate">${e.PIN ?? ''}</td>
                     <td class="cell-truncate">${e.Employee_id || ''}</td>
                     <td class="cell-truncate">${e.Name_ || ''}</td>
                     <td class="cell-truncate">${e.Surname_ || ''}</td>
@@ -802,6 +810,8 @@
             }
 
             updateEditButtonVisibility();
+
+            updateOnSiteStats(rows);
 
             requestAnimationFrame(updateEmployeeRowTruncation);
         }

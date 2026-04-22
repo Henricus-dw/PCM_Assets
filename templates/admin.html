@@ -178,11 +178,6 @@
                                     <p>{{ users|length }} Total Personnel</p>
                                 </div>
                             </div>
-                            <button class="admin-section-toggle" type="button" data-target="usersPanelBody"
-                                data-expand-label="Expand" data-collapse-label="Collapse">
-                                <span>Collapse</span>
-                                <span class="material-symbols-outlined">unfold_less</span>
-                            </button>
                         </div>
                         <div class="admin-panel-body" id="usersPanelBody">
                             {% if users %}
@@ -352,7 +347,7 @@
         </main>
     </div>
 
-    <div id="modulesModal" class="modal is-hidden" aria-hidden="true" >
+    <div id="modulesModal" class="modal is-hidden" aria-hidden="true">
         <div class="modal-content admin-modal-panel" role="dialog" aria-modal="true"
             aria-labelledby="modulesModalTitle">
             <span class="close" onclick="closeModulesModal()">&times;</span>

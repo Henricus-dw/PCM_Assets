@@ -93,10 +93,6 @@
                     </div>
 
 
-                    {% if message %}
-                    <p class="form-success-msg">{{ message }}</p>
-                    {% endif %}
-
                     <form id="vodacomForm" method="post" action="/submit">
 
                         <div class="deviceCheckContainer">
@@ -247,10 +243,6 @@
                         <span id="linkPillDevices" class="link-pill" aria-hidden="true">Linked</span>
                     </div>
 
-                    {% if message %}
-                    <p class="form-success-msg">{{ message }}</p>
-                    {% endif %}
-
                     <form id="allDevicesForm" method="post" action="/submit_device">
 
                         <div class="deviceCheckContainer">
@@ -355,7 +347,7 @@
 
                         <!-- Device Forms 2 to 10 (hidden by default) -->
                         <!-- For brevity, only device 2 shown, replicate similarly for devices 3 to 10 -->
-                        <div class="device-form-wrapper is-hidden" data-device-index="2" >
+                        <div class="device-form-wrapper is-hidden" data-device-index="2">
                             <h3>Device 2</h3>
 
                             <label for="AName_2">Name of Device Owner:</label>
@@ -450,7 +442,7 @@
                             </div>
                         </div>
 
-                        <div class="device-form-wrapper is-hidden" data-device-index="3" >
+                        <div class="device-form-wrapper is-hidden" data-device-index="3">
                             <h3>Device 3</h3>
 
                             <label for="AName_3">Name of Device Owner:</label>
@@ -545,7 +537,7 @@
                             </div>
                         </div>
 
-                        <div class="device-form-wrapper is-hidden" data-device-index="4" >
+                        <div class="device-form-wrapper is-hidden" data-device-index="4">
                             <h3>Device 4</h3>
 
                             <label for="AName_4">Name of Device Owner:</label>
@@ -640,7 +632,7 @@
                             </div>
                         </div>
 
-                        <div class="device-form-wrapper is-hidden" data-device-index="5" >
+                        <div class="device-form-wrapper is-hidden" data-device-index="5">
                             <h3>Device 5</h3>
 
                             <label for="AName_5">Name of Device Owner:</label>
@@ -736,7 +728,7 @@
                             </div>
                         </div>
 
-                        <div class="device-form-wrapper is-hidden" data-device-index="6" >
+                        <div class="device-form-wrapper is-hidden" data-device-index="6">
                             <h3>Device 6</h3>
 
                             <label for="AName_6">Name of Device Owner:</label>
@@ -831,7 +823,7 @@
                             </div>
                         </div>
 
-                        <div class="device-form-wrapper is-hidden" data-device-index="7" >
+                        <div class="device-form-wrapper is-hidden" data-device-index="7">
                             <h3>Device 7</h3>
 
                             <label for="AName_7">Name of Device Owner:</label>
@@ -926,7 +918,7 @@
                             </div>
                         </div>
 
-                        <div class="device-form-wrapper is-hidden" data-device-index="8" >
+                        <div class="device-form-wrapper is-hidden" data-device-index="8">
                             <h3>Device 8</h3>
 
                             <label for="AName_8">Name of Device Owner:</label>
@@ -1021,7 +1013,7 @@
                             </div>
                         </div>
 
-                        <div class="device-form-wrapper is-hidden" data-device-index="9" >
+                        <div class="device-form-wrapper is-hidden" data-device-index="9">
                             <h3>Device 9</h3>
 
                             <label for="AName_9">Name of Device Owner:</label>
@@ -1116,7 +1108,7 @@
                             </div>
                         </div>
 
-                        <div class="device-form-wrapper is-hidden" data-device-index="10" >
+                        <div class="device-form-wrapper is-hidden" data-device-index="10">
                             <h3>Device 10</h3>
 
                             <label for="AName_10">Name of Device Owner:</label>
@@ -1231,10 +1223,6 @@
                 <div class="boxTopHeader">Transferral Form</div>
 
 
-
-                {% if message %}
-                <p class="form-success-msg">{{ message }}</p>
-                {% endif %}
 
                 <form id="TransferralForm" method="post" action="/submit_transfer">
                     <div class="button-group">
@@ -1363,6 +1351,59 @@
     <script src="/static/ui/components/sidebar.js"></script>
     <script>
         /* =========================================
+            UNIFIED NOTIFICATION SYSTEM
+        ========================================= */
+        function showNotification(message) {
+            const notification = document.createElement("div");
+            notification.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: #1a1c1c;
+                color: #ffffff;
+                padding: 12px 20px;
+                border-radius: 4px;
+                font-size: 0.9rem;
+                z-index: 9999;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+                animation: slideIn 0.3s ease-out;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.animation = "slideOut 0.3s ease-out forwards";
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Add CSS animations for notifications
+        const style = document.createElement("style");
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            @keyframes slideOut {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        /* =========================================
             FORM.JS - unified script for form.html
             Place this once at the end of the <body>.
         ========================================= */
@@ -1453,6 +1494,10 @@
 
             function toggleSubmitButtons() {
                 const linked = !!(hasDevicesCheckbox?.checked || deviceIsVodacomCheckbox?.checked);
+                // Hide vodacom submit button when devices are selected (form becomes one logical form)
+                if (vodacomSubmitBtn) {
+                    vodacomSubmitBtn.style.display = linked ? "none" : "block";
+                }
                 // Add/remove a single class on <html> (high specificity and global)
                 document.documentElement.classList.toggle("is-linked", linked);
             }
@@ -1761,6 +1806,70 @@
             if (deviceForm) {
                 deviceForm.addEventListener('submit', () => {
                     mapFirstDeviceFieldsToBase();
+                });
+            }
+
+            // ====== FORM SUCCESS NOTIFICATIONS ======
+            // Vodacom form submission
+            if (vodacomForm) {
+                vodacomForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const formData = new FormData(vodacomForm);
+                    try {
+                        const res = await fetch(vodacomForm.action, { method: 'POST', body: formData });
+                        if (res.ok) {
+                            showNotification('Vodacom contract submitted successfully!');
+                            setTimeout(() => window.location.reload(), 1000);
+                        } else {
+                            showNotification('Error submitting form. Please try again.');
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        showNotification('Network error. Please try again.');
+                    }
+                });
+            }
+
+            // Device form submission (only device 1)
+            if (deviceForm) {
+                deviceForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    mapFirstDeviceFieldsToBase();
+                    const formData = new FormData(deviceForm);
+                    try {
+                        const res = await fetch(deviceForm.action, { method: 'POST', body: formData });
+                        if (res.ok) {
+                            showNotification('Device submitted successfully!');
+                            setTimeout(() => window.location.reload(), 1000);
+                        } else {
+                            showNotification('Error submitting form. Please try again.');
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        showNotification('Network error. Please try again.');
+                    }
+                });
+            }
+
+            // Transfer form submission
+            if (transferForm) {
+                transferForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    if (selectedDeviceIdEl && !selectedDeviceIdEl.value) selectedDeviceIdEl.remove();
+                    if (selectedContractIdEl && !selectedContractIdEl.value) selectedContractIdEl.remove();
+                    const formData = new FormData(transferForm);
+                    try {
+                        const res = await fetch(transferForm.action, { method: 'POST', body: formData });
+                        if (res.ok) {
+                            showNotification('Transfer submitted successfully!');
+                            setTimeout(() => window.location.reload(), 1000);
+                        } else {
+                            showNotification('Error submitting form. Please try again.');
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        showNotification('Network error. Please try again.');
+                    }
                 });
             }
 
