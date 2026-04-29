@@ -3,6 +3,7 @@ import xml.etree.ElementTree as ET
 import zipfile
 from datetime import date, datetime, timedelta
 from io import BytesIO
+from typing import Optional
 
 from sqlalchemy import inspect, text
 from sqlalchemy.orm import Session
@@ -61,7 +62,7 @@ def col_to_idx(letters: str) -> int:
     return n - 1
 
 
-def parse_excel_date(raw: str) -> date | None:
+def parse_excel_date(raw: str) -> Optional[date]:
     if not raw:
         return None
     try:
@@ -73,7 +74,7 @@ def parse_excel_date(raw: str) -> date | None:
         return None
 
 
-def parse_amount(raw: str) -> float | None:
+def parse_amount(raw: str) -> Optional[float]:
     if not raw:
         return None
     cleaned = re.sub(r"[R,\s]", "", str(raw))
