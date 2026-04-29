@@ -117,6 +117,18 @@ def infer_contract_type(plan_name: str) -> str:
     return "AIRTIME"
 
 
+def normalize_contract_number(raw: str) -> str:
+    value = (raw or "").strip()
+    if not value:
+        return ""
+
+    # Excel numeric cells can drop the leading zero for 10-digit numbers.
+    if value.isdigit() and len(value) == 9:
+        return "0" + value
+
+    return value
+
+
 def _normalize_header(value: str) -> str:
     return " ".join((value or "").strip().lower().split())
 
@@ -210,7 +222,7 @@ def read_excel_rows(file_bytes: bytes) -> list[dict]:
                         "acc_number": vals[0].strip(),
                         "account_name": vals[1].strip(),
                         "employee_name": vals[2].strip(),
-                        "contract_number": vals[3].strip(),
+                        "contract_number": normalize_contract_number(vals[3]),
                         "monthly_amount_raw": vals[4].strip(),
                         "plan_name": vals[5].strip(),
                         "cur_device_type": vals[6].strip(),
