@@ -58,6 +58,16 @@ def verify_password(plain: str, hashed: str) -> bool:
     return pwd_context.verify(plain, hashed)
 
 
+def _safe_json_object(raw_json: Optional[str]) -> dict:
+    if not raw_json:
+        return {}
+    try:
+        parsed = json.loads(raw_json)
+    except (TypeError, ValueError):
+        return {}
+    return parsed if isinstance(parsed, dict) else {}
+
+
 def _sync_session_permissions(request: Request, user: User) -> None:
     request.session["is_admin"] = bool(getattr(user, "is_admin", False))
     request.session["vodacom"] = bool(getattr(user, "vodacom", False))
@@ -2526,7 +2536,7 @@ def admin(
     for r in device_reqs:
         r.kind = "device"
         r.ref_id = r.device_id
-        r.changes = json.loads(r.changes_json or "{}")
+        r.changes = _safe_json_object(r.changes_json)
 
     contract_reqs = db.query(ContractEditRequest)\
         .filter(ContractEditRequest.status == "pending")\
@@ -2534,7 +2544,7 @@ def admin(
     for r in contract_reqs:
         r.kind = "contract"
         r.ref_id = r.contract_id
-        r.changes = json.loads(r.changes_json or "{}")
+        r.changes = _safe_json_object(r.changes_json)
 
     # Merge & sort newest first
     edit_reqs = sorted([*device_reqs, *contract_reqs],
@@ -2571,14 +2581,33 @@ async def admin_import_vodacom_excel(
     if not request.session.get("user_id"):
         return RedirectResponse(url="/login", status_code=303)
 
-    if not bool(_get_or_refresh_permission(request, "is_admin")):
+    try:
+        has_admin_access = bool(
+            _get_or_refresh_permission(request, "is_admin"))
+    except Exception as permission_exc:
+        db.rollback()
+        params = urlencode({
+            "import_result": "error",
+            "import_message": f"Permission check failed: {permission_exc}",
+        })
+        return RedirectResponse(url=f"/admin?{params}", status_code=303)
+
+    if not has_admin_access:
         params = urlencode({
             "import_result": "error",
             "import_message": "Admin access is required for Vodacom import.",
         })
         return RedirectResponse(url=f"/admin?{params}", status_code=303)
 
-    from app.vodacom_import import import_excel_bytes, ImportValidationError
+    try:
+        from app.vodacom_import import import_excel_bytes, ImportValidationError
+    except Exception as import_module_exc:
+        db.rollback()
+        params = urlencode({
+            "import_result": "error",
+            "import_message": f"Importer initialization failed: {import_module_exc}",
+        })
+        return RedirectResponse(url=f"/admin?{params}", status_code=303)
 
     filename = (excel_file.filename or "").strip()
     if not filename.lower().endswith(".xlsx"):
