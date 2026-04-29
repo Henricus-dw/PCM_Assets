@@ -2598,7 +2598,6 @@ async def admin_import_vodacom_excel(
 
     try:
         result = import_excel_bytes(db, content)
-        db.commit()
     except ImportValidationError as exc:
         db.rollback()
         params = urlencode({
@@ -2616,14 +2615,30 @@ async def admin_import_vodacom_excel(
 
     counts = result.get("counts", {})
     errors = result.get("errors", [])
+
+    if errors:
+        db.rollback()
+        first_error = errors[0]
+        params = urlencode({
+            "import_result": "error",
+            "import_message": f"Import blocked. First error: {first_error}",
+            "rows": counts.get("rows", 0),
+            "subscriptions": counts.get("subscriptions", 0),
+            "devices": counts.get("devices", 0),
+            "issuances": counts.get("issuances", 0),
+            "errors": len(errors),
+        })
+        return RedirectResponse(url=f"/admin?{params}", status_code=303)
+
+    db.commit()
     params = urlencode({
-        "import_result": "ok" if not errors else "warn",
-        "import_message": "Import complete." if not errors else "Import completed with row-level errors.",
+        "import_result": "ok",
+        "import_message": "Import complete.",
         "rows": counts.get("rows", 0),
         "subscriptions": counts.get("subscriptions", 0),
         "devices": counts.get("devices", 0),
         "issuances": counts.get("issuances", 0),
-        "errors": len(errors),
+        "errors": 0,
     })
     return RedirectResponse(url=f"/admin?{params}", status_code=303)
 

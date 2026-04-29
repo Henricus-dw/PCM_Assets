@@ -229,6 +229,12 @@ def read_excel_rows(file_bytes: bytes) -> list[dict]:
 
 def _check_schema(session: Session) -> None:
     inspector = inspect(session.bind)
+    table_names = set(inspector.get_table_names())
+
+    if "Vodacom_subscription" not in table_names:
+        raise ImportValidationError(
+            "Missing required table: Vodacom_subscription")
+
     cols = {column["name"]
             for column in inspector.get_columns("Vodacom_subscription")}
     missing = {"account_name", "last_used_date"} - cols
@@ -238,7 +244,7 @@ def _check_schema(session: Session) -> None:
             ", ".join(sorted(missing))
         )
 
-    if "device_issuances" not in inspector.get_table_names():
+    if "device_issuances" not in table_names:
         raise ImportValidationError("Missing required table: device_issuances")
 
 
