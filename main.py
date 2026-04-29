@@ -2567,9 +2567,16 @@ async def admin_import_vodacom_excel(
     request: Request,
     excel_file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_admin),
 ):
-    del current_user
+    if not request.session.get("user_id"):
+        return RedirectResponse(url="/login", status_code=303)
+
+    if not bool(_get_or_refresh_permission(request, "is_admin")):
+        params = urlencode({
+            "import_result": "error",
+            "import_message": "Admin access is required for Vodacom import.",
+        })
+        return RedirectResponse(url=f"/admin?{params}", status_code=303)
 
     from app.vodacom_import import import_excel_bytes, ImportValidationError
 
