@@ -24,6 +24,10 @@ class VodacomSubscription(Base):
     Sim_Card_Number = Column(String(50))
     Inception_Date = Column(DateTime)
     Termination_Date = Column(DateTime)
+    # Excel col B – short name like "RISK", "PCM"
+    account_name = Column(String(250))
+    # Excel col P – last confirmed SIM/device activity
+    last_used_date = Column(Date, nullable=True)
     due_upgrade = Column(String(250))
     created_at = Column(DateTime, server_default=func.now())
 
@@ -118,14 +122,36 @@ class ContractEditRequest(Base):
 class PastDeviceOwners(Base):
     __tablename__ = "Past_device_owners"
 
-    # using d_id as PK for SQLite only right
-    d_id = Column(Integer, primary_key=True, index=True)
+    # fixed: was d_id PK (allowed only 1 history row per device)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    # FK to devices.id – now allows multiple history rows per device
+    d_id = Column(Integer, index=True)
 
     Name_ = Column(String(250))
     Surname_ = Column(String(250))
     Personnel_nr = Column(String(250))
     Company = Column(String(250))
     Client_Division = Column(String(250))
+
+    created_at = Column(DateTime, server_default=func.now())
+
+
+class DeviceIssuance(Base):
+    """Tracks every physical device issued against a Vodacom subscription.
+    Sourced from Excel columns Q-U (Last Device issued / Make / Model / Serial / Date Issued).
+    Also used for standalone asset issues (no linked subscription)."""
+    __tablename__ = "device_issuances"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    # FK to Vodacom_subscription.id; NULL for standalone assets
+    vd_id = Column(Integer, nullable=True)
+
+    # e.g. Phone, Laptop, Router, Tracker
+    device_type = Column(String(250))
+    device_make = Column(String(250))
+    device_model = Column(String(250))
+    serial_number = Column(String(250))
+    issue_date = Column(Date, nullable=True)
 
     created_at = Column(DateTime, server_default=func.now())
 

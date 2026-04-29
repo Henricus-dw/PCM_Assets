@@ -55,6 +55,64 @@ body.admin-governance .sidebar {
     align-items: start;
 }
 
+.admin-import-panel {
+    margin-bottom: 1.5rem;
+}
+
+.admin-import-body {
+    padding: 1.25rem 1.5rem 1.5rem;
+}
+
+.admin-import-form {
+    display: flex;
+    gap: 0.9rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.admin-import-form input[type="file"] {
+    flex: 1;
+    min-width: 15rem;
+    border: 1px solid var(--admin-line-soft);
+    background: #ffffff;
+    border-radius: 0.125rem;
+    padding: 0.55rem 0.65rem;
+    color: var(--admin-ink-body);
+}
+
+.admin-import-alert {
+    border-radius: 0.125rem;
+    border: 1px solid var(--admin-line-soft);
+    padding: 0.75rem 0.9rem;
+    margin-bottom: 1rem;
+    color: var(--admin-ink-strong);
+    background: #ffffff;
+}
+
+.admin-import-alert--ok {
+    border-color: #a8d8b1;
+    background: #eef8f0;
+}
+
+.admin-import-alert--warn {
+    border-color: #e4d397;
+    background: #fff8df;
+}
+
+.admin-import-alert--error {
+    border-color: #e2a3a3;
+    background: #fff1f1;
+}
+
+.admin-import-stats {
+    margin-top: 0.45rem;
+    display: flex;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+    font-size: 0.8rem;
+    color: var(--admin-ink-body);
+}
+
 .admin-panel {
     background: var(--admin-panel-bg);
     border: 1px solid var(--admin-line-soft);

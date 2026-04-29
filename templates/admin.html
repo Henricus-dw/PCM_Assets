@@ -109,6 +109,45 @@
                         privileges within the Executive Portal.</p>
                 </section>
 
+                {% if module != 'biometric' %}
+                <section class="admin-panel admin-import-panel" id="vodacomImportPanel">
+                    <div class="admin-panel-header">
+                        <div class="admin-panel-title-wrap">
+                            <div class="admin-panel-icon">
+                                <span class="material-symbols-outlined">upload_file</span>
+                            </div>
+                            <div>
+                                <h2>Vodacom Excel Import</h2>
+                                <p>Upload Book1.xlsx directly from browser</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="admin-panel-body admin-import-body">
+                        {% if import_status and import_status.result %}
+                        <div class="admin-import-alert admin-import-alert--{{ import_status.result }}">
+                            <strong>{{ import_status.message or 'Import status updated.' }}</strong>
+                            {% if import_status.result in ['ok', 'warn'] %}
+                            <div class="admin-import-stats">
+                                <span>Rows: {{ import_status.rows or 0 }}</span>
+                                <span>Contracts: {{ import_status.subscriptions or 0 }}</span>
+                                <span>Devices: {{ import_status.devices or 0 }}</span>
+                                <span>Issuances: {{ import_status.issuances or 0 }}</span>
+                                <span>Errors: {{ import_status.errors or 0 }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+
+                        <form class="admin-import-form" method="post" action="/admin/vodacom/import-excel"
+                            enctype="multipart/form-data">
+                            <label for="vodacomExcelFile" class="admin-meta-label">Excel Workbook (.xlsx)</label>
+                            <input id="vodacomExcelFile" name="excel_file" type="file" accept=".xlsx" required>
+                            <button class="admin-btn admin-btn--primary" type="submit">Import Workbook</button>
+                        </form>
+                    </div>
+                </section>
+                {% endif %}
+
                 <div class="admin-governance-grid">
                     <section class="admin-panel" id="pendingPanel">
                         <div class="admin-panel-header">

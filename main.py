@@ -22,8 +22,10 @@ import uuid
 from starlette.responses import RedirectResponse
 import json
 import requests
+from urllib.parse import urlencode
 
 from auth import get_current_user, require_admin
+from app.vodacom_import import import_excel_bytes, ImportValidationError
 
 # ---- Your models & DB ----
 from models import VodacomSubscription, Device, User, PendingUser, DeviceEditRequest, ContractEditRequest, SessionFlag, PolicyDocument, PolicyDocumentUserAccess
@@ -70,6 +72,7 @@ def _sync_session_permissions(request: Request, user: User) -> None:
 POLICY_STORAGE_DIR = os.path.join("storage", "policies")
 ALLOWED_POLICY_EXTENSIONS = {".pdf"}
 MAX_POLICY_UPLOAD_SIZE_BYTES = 20 * 1024 * 1024  # 20 MB
+MAX_VODACOM_UPLOAD_SIZE_BYTES = 25 * 1024 * 1024  # 25 MB
 
 
 def _require_policy_admin(request: Request) -> None:
@@ -2538,15 +2541,90 @@ def admin(
     edit_reqs = sorted([*device_reqs, *contract_reqs],
                        key=lambda x: x.created_at or datetime.min, reverse=True)
 
+    import_status = {
+        "result": request.query_params.get("import_result", "").strip(),
+        "message": request.query_params.get("import_message", "").strip(),
+        "rows": request.query_params.get("rows", "").strip(),
+        "subscriptions": request.query_params.get("subscriptions", "").strip(),
+        "devices": request.query_params.get("devices", "").strip(),
+        "issuances": request.query_params.get("issuances", "").strip(),
+        "errors": request.query_params.get("errors", "").strip(),
+    }
+
     return templates.TemplateResponse("admin.html", {
         "request": request,
         "section": "admin",
         "pending": pending,
         "users": users,
         "edit_requests": edit_reqs,
+        "import_status": import_status,
         "time": datetime.utcnow().timestamp(),
         "current_user": current_user,
     })
+
+
+@app.post("/admin/vodacom/import-excel")
+async def admin_import_vodacom_excel(
+    request: Request,
+    excel_file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
+):
+    del current_user
+
+    filename = (excel_file.filename or "").strip()
+    if not filename.lower().endswith(".xlsx"):
+        params = urlencode({
+            "import_result": "error",
+            "import_message": "Please upload a valid .xlsx file.",
+        })
+        return RedirectResponse(url=f"/admin?{params}", status_code=303)
+
+    content = await excel_file.read()
+    if not content:
+        params = urlencode({
+            "import_result": "error",
+            "import_message": "Uploaded file is empty.",
+        })
+        return RedirectResponse(url=f"/admin?{params}", status_code=303)
+
+    if len(content) > MAX_VODACOM_UPLOAD_SIZE_BYTES:
+        params = urlencode({
+            "import_result": "error",
+            "import_message": "File exceeds 25 MB limit.",
+        })
+        return RedirectResponse(url=f"/admin?{params}", status_code=303)
+
+    try:
+        result = import_excel_bytes(db, content)
+        db.commit()
+    except ImportValidationError as exc:
+        db.rollback()
+        params = urlencode({
+            "import_result": "error",
+            "import_message": str(exc),
+        })
+        return RedirectResponse(url=f"/admin?{params}", status_code=303)
+    except Exception as exc:
+        db.rollback()
+        params = urlencode({
+            "import_result": "error",
+            "import_message": f"Import failed: {exc}",
+        })
+        return RedirectResponse(url=f"/admin?{params}", status_code=303)
+
+    counts = result.get("counts", {})
+    errors = result.get("errors", [])
+    params = urlencode({
+        "import_result": "ok" if not errors else "warn",
+        "import_message": "Import complete." if not errors else "Import completed with row-level errors.",
+        "rows": counts.get("rows", 0),
+        "subscriptions": counts.get("subscriptions", 0),
+        "devices": counts.get("devices", 0),
+        "issuances": counts.get("issuances", 0),
+        "errors": len(errors),
+    })
+    return RedirectResponse(url=f"/admin?{params}", status_code=303)
 
 
 @app.post("/admin/edit-requests/{req_id}/deny")
