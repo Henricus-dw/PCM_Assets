@@ -93,6 +93,13 @@ def split_name(full: str) -> tuple[str, str]:
     return "", ""
 
 
+def _clip(value: str, max_len: int) -> str:
+    text_value = (value or "").strip()
+    if max_len <= 0:
+        return ""
+    return text_value[:max_len]
+
+
 def is_placeholder(val: str) -> bool:
     return str(val).strip().lower() in PLACEHOLDER_VALUES
 
@@ -288,6 +295,8 @@ def import_excel_bytes(session: Session, file_bytes: bytes) -> dict:
                 contract_term = r["contract_term_raw"]
 
             first, last = split_name(r["employee_name"])
+            first = _clip(first, 50)
+            last = _clip(last, 50)
             contract_type = infer_contract_type(r["plan_name"])
 
             try:
@@ -314,22 +323,22 @@ def import_excel_bytes(session: Session, file_bytes: bytes) -> dict:
                         """
                     ),
                     {
-                        "company_number": r["acc_number"],
-                        "account_name": r["account_name"],
-                        "contract_number": r["contract_number"],
+                        "company_number": _clip(r["acc_number"], 250),
+                        "account_name": _clip(r["account_name"], 250),
+                        "contract_number": _clip(r["contract_number"], 250),
                         "name_": first,
                         "surname_": last,
-                        "contract_type": contract_type,
-                        "contract_title": r["plan_name"],
+                        "contract_type": _clip(contract_type, 50),
+                        "contract_title": _clip(r["plan_name"], 250),
                         "monthly_costs": amount,
                         "vat": vat,
                         "monthly_cost_incl_vat": incl,
-                        "contract_term": contract_term,
-                        "sim_number": r["sim_number"],
+                        "contract_term": _clip(contract_term, 50),
+                        "sim_number": _clip(r["sim_number"], 50),
                         "start_date": start_date,
                         "end_date": end_date,
                         "last_used_date": last_used,
-                        "company": r["account_name"],
+                        "company": _clip(r["account_name"], 100),
                     },
                 )
                 sub_id = result.lastrowid
