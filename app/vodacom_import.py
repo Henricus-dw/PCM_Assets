@@ -109,6 +109,15 @@ def normalize_device_description(raw: str) -> str:
     return DEVICE_TYPE_MAP.get(key, raw.strip() or "Other")
 
 
+def _has_linkable_device(row: dict) -> bool:
+    if is_placeholder(row.get("iss_device_type", "")):
+        return False
+    return any(
+        (row.get(field) or "").strip()
+        for field in ("iss_device_make", "iss_device_model", "iss_device_serial")
+    )
+
+
 def infer_contract_type(plan_name: str) -> str:
     lower = plan_name.lower().replace(" ", "")
     for k in ("data", "gb", "machine2machine", "m2m"):
@@ -363,7 +372,7 @@ def import_excel_bytes(session: Session, file_bytes: bytes) -> dict:
                 counts["skipped"] += 1
                 continue
 
-            if not is_placeholder(r["cur_device_type"]):
+            if _has_linkable_device(r):
                 try:
                     session.execute(
                         text(
@@ -386,13 +395,13 @@ def import_excel_bytes(session: Session, file_bytes: bytes) -> dict:
                             "name_": first,
                             "surname_": last,
                             "personnel_nr": "",
-                            "company": r["account_name"],
+                            "company": _clip(r["account_name"], 250),
                             "client_division": "",
-                            "device_name": r["cur_device_type"],
-                            "device_make": r["cur_device_make"],
-                            "device_model": r["cur_device_model"],
-                            "serial_number": r["cur_device_serial"],
-                            "device_description": normalize_device_description(r["cur_device_type"]),
+                            "device_name": _clip(r["iss_device_type"], 250),
+                            "device_make": _clip(r["iss_device_make"], 250),
+                            "device_model": _clip(r["iss_device_model"], 250),
+                            "serial_number": _clip(r["iss_device_serial"], 250),
+                            "device_description": normalize_device_description(r["iss_device_type"]),
                             "insurance": "Unknown",
                         },
                     )
