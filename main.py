@@ -25,7 +25,6 @@ import requests
 from urllib.parse import urlencode
 
 from auth import get_current_user, require_admin
-from app.vodacom_import import import_excel_bytes, ImportValidationError
 
 # ---- Your models & DB ----
 from models import VodacomSubscription, Device, User, PendingUser, DeviceEditRequest, ContractEditRequest, SessionFlag, PolicyDocument, PolicyDocumentUserAccess
@@ -2571,6 +2570,8 @@ async def admin_import_vodacom_excel(
     current_user: User = Depends(require_admin),
 ):
     del current_user
+
+    from app.vodacom_import import import_excel_bytes, ImportValidationError
 
     filename = (excel_file.filename or "").strip()
     if not filename.lower().endswith(".xlsx"):
