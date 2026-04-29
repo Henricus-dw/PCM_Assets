@@ -2637,7 +2637,16 @@ async def admin_import_vodacom_excel(
         })
         return RedirectResponse(url=f"/admin?{params}", status_code=303)
 
-    db.commit()
+    try:
+        db.commit()
+    except exc.SQLAlchemyError as sql_exc:
+        db.rollback()
+        params = urlencode({
+            "import_result": "error",
+            "import_message": f"Database commit failed: {sql_exc}",
+        })
+        return RedirectResponse(url=f"/admin?{params}", status_code=303)
+
     params = urlencode({
         "import_result": "ok",
         "import_message": "Import complete.",
