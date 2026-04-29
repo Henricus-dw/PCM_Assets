@@ -4,7 +4,7 @@ import zipfile
 from datetime import date, datetime, timedelta
 from io import BytesIO
 
-from sqlalchemy import text
+from sqlalchemy import inspect, text
 from sqlalchemy.orm import Session
 
 NS = {"m": "http://schemas.openxmlformats.org/spreadsheetml/2006/main"}
@@ -17,6 +17,37 @@ DEVICE_TYPE_MAP = {
     "laptop": "Laptop",
     "scanpad": "Other",
 }
+EXPECTED_SHEETS = {
+    "B0360564",
+    "B0405953",
+    "B0405954",
+    "B0405955",
+    "B0406097",
+    "C0002302",
+}
+EXPECTED_HEADERS = [
+    "Acc number",
+    "Account name",
+    "Employee Name",
+    "Contract number",
+    "Initial contract amount per month",
+    "Type contract",
+    "Device in use",
+    "Made",
+    "Model",
+    "Serial number",
+    "Contract start date",
+    "Contract end date",
+    "Contract term",
+    "Simcard number",
+    "Sim/Device",
+    "Last Used",
+    "Last Device issued",
+    "Make",
+    "Model",
+    "Serial Number",
+    "Date Issued",
+]
 
 
 class ImportValidationError(Exception):
@@ -78,9 +109,64 @@ def infer_contract_type(plan_name: str) -> str:
     return "AIRTIME"
 
 
+def _normalize_header(value: str) -> str:
+    return " ".join((value or "").strip().lower().split())
+
+
+def _parse_row_cells(row, shared: list[str]) -> list[str]:
+    vals = [""] * 21
+
+    for c in row.findall("m:c", NS):
+        m = re.match(r"([A-Z]+)", c.attrib.get("r", ""))
+        if not m:
+            continue
+        ci = col_to_idx(m.group(1))
+        if not 0 <= ci < 21:
+            continue
+
+        ctype = c.attrib.get("t")
+        v_el = c.find("m:v", NS)
+
+        if ctype == "s" and v_el is not None and v_el.text:
+            idx = int(v_el.text)
+            vals[ci] = shared[idx] if idx < len(shared) else ""
+        elif ctype == "inlineStr":
+            t_el = c.find("m:is/m:t", NS)
+            vals[ci] = t_el.text if t_el is not None and t_el.text else ""
+        else:
+            vals[ci] = v_el.text if v_el is not None and v_el.text else ""
+
+    return vals
+
+
+def _validate_workbook(sheet_names: list[str], header_rows: list[list[str]]) -> None:
+    actual_sheet_set = set(sheet_names)
+    if actual_sheet_set != EXPECTED_SHEETS:
+        missing = sorted(EXPECTED_SHEETS - actual_sheet_set)
+        extra = sorted(actual_sheet_set - EXPECTED_SHEETS)
+        parts = []
+        if missing:
+            parts.append("missing sheets: " + ", ".join(missing))
+        if extra:
+            parts.append("unexpected sheets: " + ", ".join(extra))
+        detail = "; ".join(parts) if parts else "sheet set mismatch"
+        raise ImportValidationError(
+            f"This import is only configured for Book1.xlsx; {detail}.")
+
+    expected = [_normalize_header(value) for value in EXPECTED_HEADERS]
+    for index, headers in enumerate(header_rows, start=1):
+        actual = [_normalize_header(value) for value in headers]
+        if actual != expected:
+            raise ImportValidationError(
+                f"Workbook header mismatch on sheet {sheet_names[index - 1]}. Expected the Book1.xlsx A:U layout."
+            )
+
+
 def read_excel_rows(file_bytes: bytes) -> list[dict]:
     shared: list[str] = []
     rows_out: list[dict] = []
+    sheet_names: list[str] = []
+    header_rows: list[list[str]] = []
 
     with zipfile.ZipFile(BytesIO(file_bytes)) as z:
         if "xl/sharedStrings.xml" in z.namelist():
@@ -98,31 +184,17 @@ def read_excel_rows(file_bytes: bytes) -> list[dict]:
 
         for i, sh in enumerate(sheets, start=1):
             sheet_name = sh.attrib.get("name", f"Sheet{i}")
+            sheet_names.append(sheet_name)
             ws = ET.fromstring(z.read(f"xl/worksheets/sheet{i}.xml"))
             data_rows = ws.findall("m:sheetData/m:row", NS)
 
+            if not data_rows:
+                raise ImportValidationError(f"Sheet {sheet_name} is empty.")
+
+            header_rows.append(_parse_row_cells(data_rows[0], shared))
+
             for row in data_rows[1:]:
-                vals = [""] * 21
-
-                for c in row.findall("m:c", NS):
-                    m = re.match(r"([A-Z]+)", c.attrib.get("r", ""))
-                    if not m:
-                        continue
-                    ci = col_to_idx(m.group(1))
-                    if not 0 <= ci < 21:
-                        continue
-
-                    ctype = c.attrib.get("t")
-                    v_el = c.find("m:v", NS)
-
-                    if ctype == "s" and v_el is not None and v_el.text:
-                        idx = int(v_el.text)
-                        vals[ci] = shared[idx] if idx < len(shared) else ""
-                    elif ctype == "inlineStr":
-                        t_el = c.find("m:is/m:t", NS)
-                        vals[ci] = t_el.text if t_el is not None and t_el.text else ""
-                    else:
-                        vals[ci] = v_el.text if v_el is not None and v_el.text else ""
+                vals = _parse_row_cells(row, shared)
 
                 rows_out.append(
                     {
@@ -151,13 +223,14 @@ def read_excel_rows(file_bytes: bytes) -> list[dict]:
                     }
                 )
 
+    _validate_workbook(sheet_names, header_rows)
     return rows_out
 
 
 def _check_schema(session: Session) -> None:
-    cols_result = session.execute(
-        text("SHOW COLUMNS FROM Vodacom_subscription"))
-    cols = {row[0] for row in cols_result.fetchall()}
+    inspector = inspect(session.bind)
+    cols = {column["name"]
+            for column in inspector.get_columns("Vodacom_subscription")}
     missing = {"account_name", "last_used_date"} - cols
     if missing:
         raise ImportValidationError(
@@ -165,8 +238,7 @@ def _check_schema(session: Session) -> None:
             ", ".join(sorted(missing))
         )
 
-    table_result = session.execute(text("SHOW TABLES LIKE 'device_issuances'"))
-    if not table_result.fetchone():
+    if "device_issuances" not in inspector.get_table_names():
         raise ImportValidationError("Missing required table: device_issuances")
 
 
@@ -212,7 +284,7 @@ def import_excel_bytes(session: Session, file_bytes: bytes) -> dict:
             contract_type = infer_contract_type(r["plan_name"])
 
             try:
-                session.execute(
+                result = session.execute(
                     text(
                         """
                         INSERT INTO Vodacom_subscription (
@@ -253,8 +325,10 @@ def import_excel_bytes(session: Session, file_bytes: bytes) -> dict:
                         "company": r["account_name"],
                     },
                 )
-                sub_id = session.execute(
-                    text("SELECT LAST_INSERT_ID()")).scalar_one()
+                sub_id = result.lastrowid
+                if sub_id is None:
+                    raise ImportValidationError(
+                        "Could not determine inserted subscription id.")
                 counts["subscriptions"] += 1
             except Exception as exc:
                 errors.append(f"Row {idx}: subscription insert failed - {exc}")
