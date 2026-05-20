@@ -2892,6 +2892,17 @@ async def biometric_root_catch(request: Request):
     return {"ok": True}
 
 
+@app.get("/{full_path:path}", include_in_schema=False)
+def catch_all_unknown_get(request: Request, full_path: str):
+    if full_path.startswith("api/") or full_path.startswith("static/"):
+        raise HTTPException(status_code=404, detail="Not Found")
+
+    redirect = _ensure_page_access(request)
+    if redirect:
+        return redirect
+    return RedirectResponse(url="/", status_code=302)
+
+
 """
 LOCAL RUN CHECKLIST (WINDOWS / POWERSHELL)
 
