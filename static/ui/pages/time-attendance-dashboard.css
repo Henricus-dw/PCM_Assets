@@ -334,19 +334,19 @@ body.time-attendance-dashboard #sessionsTable tbody td:last-child {
 }
 
 body.time-attendance-dashboard .ta-side-rail {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
     gap: 0.72rem;
     min-height: 0;
     height: 100%;
 }
 
 body.time-attendance-dashboard .ta-flags-card {
-    min-height: 20rem;
-    max-height: 28rem;
-    height: auto;
+    min-height: 0;
+    height: 100%;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 }
 
 body.time-attendance-dashboard .ta-card-head {
@@ -396,9 +396,9 @@ body.time-attendance-dashboard .ta-pill {
 }
 
 body.time-attendance-dashboard .ta-flags-body {
-    flex: 0 1 auto;
-    min-height: 10rem;
-    max-height: 22rem;
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
     overflow: auto;
     padding: 0;
 }
@@ -474,15 +474,20 @@ body.time-attendance-dashboard .flag-meta {
 }
 
 body.time-attendance-dashboard .ta-remediation-card {
-    min-height: 18rem;
+    min-height: 0;
+    height: 100%;
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+    overflow: hidden;
 }
 
 body.time-attendance-dashboard .remediation-panel {
     display: grid;
     gap: 0.75rem;
+    min-height: 0;
+    overflow: auto;
+    padding-right: 0.15rem;
 }
 
 body.time-attendance-dashboard .remediation-panel.is-hidden,
@@ -531,7 +536,7 @@ body.time-attendance-dashboard .remediation-hint {
 
 body.time-attendance-dashboard .remediation-context-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: 1fr;
     gap: 0.5rem;
 }
 
@@ -630,18 +635,27 @@ body.time-attendance-dashboard #sessionsTable tbody tr.session-selected-flag:hov
     }
 
     body.time-attendance-dashboard .ta-side-rail {
-        display: flex;
-        flex-direction: column;
+        display: grid;
+        grid-template-rows: auto auto;
         height: auto;
     }
 
     body.time-attendance-dashboard .ta-flags-card {
         height: auto;
-        max-height: none;
+        max-height: 20rem;
     }
 
     body.time-attendance-dashboard .ta-flags-body {
-        max-height: 18rem;
+        max-height: none;
+    }
+
+    body.time-attendance-dashboard .ta-remediation-card {
+        height: auto;
+    }
+
+    body.time-attendance-dashboard .remediation-panel {
+        overflow: visible;
+        padding-right: 0;
     }
 }
 
