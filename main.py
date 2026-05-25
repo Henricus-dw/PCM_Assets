@@ -652,15 +652,15 @@ def _auto_resolve_session_flags_for_pin(
             should_resolve = has_prior_open is None
 
         elif flag.flag_type == "checkout_without_open":
-            # Consider fixed when a nearby checkout now represents this event.
-            closed_sessions = db.query(AttendanceSession).filter(
+            # Consider fixed when a valid session now spans the flagged event time.
+            matched_sessions = db.query(AttendanceSession).filter(
                 AttendanceSession.pin == str(pin),
-                AttendanceSession.check_in < ts,
+                AttendanceSession.check_in <= ts,
                 AttendanceSession.check_out.isnot(None),
             ).all()
             should_resolve = any(
-                s.check_out and abs((s.check_out - ts).total_seconds()) <= 300
-                for s in closed_sessions
+                s.check_out and s.check_out >= ts
+                for s in matched_sessions
             )
 
         if should_resolve:
@@ -1075,6 +1075,53 @@ def api_delete_attendance_session(
         "ok": True,
         "deleted_session_id": session_id,
         "auto_resolved_flags": auto_resolved_flags,
+    })
+
+
+@app.post("/api/session-flags/revalidate")
+def api_revalidate_session_flags(
+    request: Request,
+    db: Session = Depends(get_db),
+    pin: Optional[str] = None,
+):
+    _ensure_api_access(request, "time_attendance")
+
+    q = db.query(SessionFlag).filter(SessionFlag.status == "open")
+    if pin:
+        q = q.filter(SessionFlag.pin == str(pin))
+
+    open_flags = q.all()
+    if not open_flags:
+        return JSONResponse({
+            "ok": True,
+            "pins_checked": 0,
+            "auto_resolved_flags": 0,
+            "remaining_open_flags": 0,
+        })
+
+    current_user_id = request.session.get("user_id")
+    pins = sorted({str(flag.pin)
+                  for flag in open_flags if flag.pin is not None})
+
+    total_resolved = 0
+    for pin_value in pins:
+        total_resolved += _auto_resolve_session_flags_for_pin(
+            db,
+            pin_value,
+            current_user_id,
+        )
+
+    db.commit()
+
+    remaining_q = db.query(SessionFlag).filter(SessionFlag.status == "open")
+    if pin:
+        remaining_q = remaining_q.filter(SessionFlag.pin == str(pin))
+
+    return JSONResponse({
+        "ok": True,
+        "pins_checked": len(pins),
+        "auto_resolved_flags": total_resolved,
+        "remaining_open_flags": remaining_q.count(),
     })
 
 

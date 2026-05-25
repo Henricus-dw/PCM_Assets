@@ -364,6 +364,37 @@ body.time-attendance-dashboard .ta-card-head h4 {
     font-weight: 700;
 }
 
+body.time-attendance-dashboard .ta-card-head-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+body.time-attendance-dashboard .btn-flags-refresh {
+    border: 1px solid rgba(64, 98, 98, 0.25);
+    background: #f8faf9;
+    color: #406262;
+    border-radius: 999px;
+    font-size: 0.66rem;
+    font-weight: 700;
+    line-height: 1;
+    padding: 0.24rem 0.58rem;
+    cursor: pointer;
+    transition: background-color 130ms ease, border-color 130ms ease, color 130ms ease;
+}
+
+body.time-attendance-dashboard .btn-flags-refresh:hover,
+body.time-attendance-dashboard .btn-flags-refresh:focus-visible {
+    background: #eef6f6;
+    border-color: rgba(64, 98, 98, 0.45);
+    outline: none;
+}
+
+body.time-attendance-dashboard .btn-flags-refresh:disabled {
+    opacity: 0.65;
+    cursor: wait;
+}
+
 body.time-attendance-dashboard .ta-card {
     background: #f4f4f3;
     border-radius: 0.125rem;

@@ -198,7 +198,11 @@
                         <section class="ta-card ta-flags-card">
                             <header class="ta-card-head">
                                 <h4>Session Flags</h4>
-                                <span class="ta-pill" id="sessionFlagsCount">0</span>
+                                <div class="ta-card-head-actions">
+                                    <button type="button" id="sessionFlagsRefreshBtn"
+                                        class="btn-flags-refresh">Refresh</button>
+                                    <span class="ta-pill" id="sessionFlagsCount">0</span>
+                                </div>
                             </header>
                             <div class="ta-flags-body no-scrollbar">
                                 <div id="sessionFlagsBody" class="flags-list">
@@ -778,6 +782,45 @@
             });
         }
 
+        async function revalidateSessionFlags() {
+            const refreshBtn = document.getElementById('sessionFlagsRefreshBtn');
+            if (refreshBtn?.disabled) return;
+
+            const previousLabel = refreshBtn ? refreshBtn.textContent : 'Refresh';
+            if (refreshBtn) {
+                refreshBtn.disabled = true;
+                refreshBtn.textContent = 'Checking...';
+            }
+
+            try {
+                const res = await fetch('/api/session-flags/revalidate', {
+                    method: 'POST',
+                });
+                if (!res.ok) {
+                    const text = await res.text();
+                    throw new Error(text || 'Could not revalidate flags');
+                }
+
+                const result = await res.json();
+                await refreshSessionFlags();
+
+                if (refreshBtn) {
+                    const resolved = Number(result?.auto_resolved_flags || 0);
+                    refreshBtn.textContent = resolved > 0 ? `Resolved ${resolved}` : 'No changes';
+                }
+            } catch (err) {
+                if (refreshBtn) {
+                    refreshBtn.textContent = 'Retry';
+                }
+            } finally {
+                window.setTimeout(() => {
+                    if (!refreshBtn) return;
+                    refreshBtn.disabled = false;
+                    refreshBtn.textContent = previousLabel || 'Refresh';
+                }, 1200);
+            }
+        }
+
         function getSessionTableData() {
             const table = document.getElementById('sessionsTable');
             if (!table) return { headers: [], body: [] };
@@ -1054,6 +1097,7 @@
 
             document.getElementById('remediationCheckIn')?.addEventListener('input', updateRemediationActionsVisibility);
             document.getElementById('remediationCheckOut')?.addEventListener('input', updateRemediationActionsVisibility);
+            document.getElementById('sessionFlagsRefreshBtn')?.addEventListener('click', revalidateSessionFlags);
 
             document.getElementById('export-btn')?.addEventListener('click', exportSessionsCsv);
             document.getElementById('export-pdf-btn')?.addEventListener('click', exportSessionsPdf);
