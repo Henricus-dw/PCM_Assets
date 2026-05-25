@@ -335,7 +335,7 @@ body.time-attendance-dashboard #sessionsTable tbody td:last-child {
 
 body.time-attendance-dashboard .ta-side-rail {
     display: grid;
-    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 0.9fr) minmax(0, 1.1fr);
     gap: 0.72rem;
     min-height: 0;
     height: 100%;
@@ -346,7 +346,6 @@ body.time-attendance-dashboard .ta-flags-card {
     height: 100%;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
 }
 
 body.time-attendance-dashboard .ta-card-head {
@@ -478,16 +477,12 @@ body.time-attendance-dashboard .ta-remediation-card {
     height: 100%;
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
-    overflow: hidden;
+    gap: 0.55rem;
 }
 
 body.time-attendance-dashboard .remediation-panel {
     display: grid;
-    gap: 0.75rem;
-    min-height: 0;
-    overflow: auto;
-    padding-right: 0.15rem;
+    gap: 0.5rem;
 }
 
 body.time-attendance-dashboard .remediation-panel.is-hidden,
@@ -536,16 +531,16 @@ body.time-attendance-dashboard .remediation-hint {
 
 body.time-attendance-dashboard .remediation-context-grid {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 0.5rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.4rem;
 }
 
 body.time-attendance-dashboard .remediation-context-card {
     border: 1px solid rgba(193, 200, 199, 0.35);
     border-radius: 0.125rem;
     background: #fff;
-    padding: 0.6rem;
-    min-height: 5.25rem;
+    padding: 0.42rem;
+    min-height: 0;
 }
 
 body.time-attendance-dashboard .remediation-context-card--active {
@@ -554,31 +549,36 @@ body.time-attendance-dashboard .remediation-context-card--active {
 }
 
 body.time-attendance-dashboard .remediation-context-label {
-    font-size: 0.64rem;
+    font-size: 0.58rem;
     font-weight: 800;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: #667070;
-    margin-bottom: 0.35rem;
+    margin-bottom: 0.22rem;
 }
 
 body.time-attendance-dashboard .remediation-session-name {
-    font-size: 0.8rem;
+    font-size: 0.74rem;
     font-weight: 700;
     color: #111827;
-    margin-bottom: 0.2rem;
+    margin-bottom: 0.12rem;
+}
+
+body.time-attendance-dashboard .remediation-session-meta {
+    font-size: 0.69rem;
+    line-height: 1.25;
 }
 
 body.time-attendance-dashboard .remediation-form-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.6rem;
+    gap: 0.45rem;
 }
 
 body.time-attendance-dashboard .remediation-field {
     display: grid;
-    gap: 0.35rem;
-    font-size: 0.72rem;
+    gap: 0.2rem;
+    font-size: 0.67rem;
     font-weight: 700;
     color: #667070;
 }
@@ -588,8 +588,8 @@ body.time-attendance-dashboard .remediation-field input {
     border-radius: 0.125rem;
     background: #fff;
     color: #1a1c1c;
-    padding: 0.44rem 0.5rem;
-    font-size: 0.78rem;
+    padding: 0.32rem 0.4rem;
+    font-size: 0.73rem;
     outline: none;
 }
 
@@ -601,6 +601,8 @@ body.time-attendance-dashboard .remediation-field input:focus {
 body.time-attendance-dashboard .remediation-actions {
     display: flex;
     justify-content: flex-end;
+    align-items: center;
+    flex-wrap: wrap;
     gap: 0.5rem;
 }
 
@@ -609,9 +611,9 @@ body.time-attendance-dashboard .btn-remediation-save {
     background: #4b5e70;
     color: #fff;
     border-radius: 0.125rem;
-    padding: 0.38rem 0.75rem;
+    padding: 0.32rem 0.62rem;
     font-weight: 700;
-    font-size: 0.74rem;
+    font-size: 0.7rem;
     cursor: pointer;
 }
 
@@ -654,8 +656,7 @@ body.time-attendance-dashboard #sessionsTable tbody tr.session-selected-flag:hov
     }
 
     body.time-attendance-dashboard .remediation-panel {
-        overflow: visible;
-        padding-right: 0;
+        gap: 0.6rem;
     }
 }
 
