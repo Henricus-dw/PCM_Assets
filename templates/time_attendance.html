@@ -212,23 +212,12 @@
         </main>
     </div>
 
-    <div id="flagModal" class="flag-modal" aria-hidden="true">
-        <div class="flag-modal-card" role="dialog" aria-modal="true" aria-labelledby="flagModalTitle">
-            <h3 id="flagModalTitle">Remediate Flag</h3>
-            <div class="flag-preview-box" id="flagModalPreview">Loading...</div>
-            <div id="flagModalError" class="muted ta-error is-hidden"></div>
-            <div class="flag-modal-actions">
-                <button type="button" class="btn-secondary" onclick="closeFlagModal()">Cancel</button>
-                <button type="button" id="flagActionConvert" class="btn-remediate">Apply change</button>
-                <button type="button" id="flagActionDiscard" class="btn-danger">Discard false entry</button>
-            </div>
-        </div>
-    </div>
     <script src="/static/ui/components/sidebar.js"></script>
     <script>
         let autoRefreshInterval;
         let sessionsData = [];
-        let activeFlagForModal = null;
+        let highlightedSessionKey = '';
+        let highlightedFlagId = null;
         const sessionColumnFilters = {
             name: '',
             company: '',
@@ -279,110 +268,72 @@
             return `PIN ${flag.pin || '-'}`;
         }
 
-        function previewDuration(seconds) {
-            if (seconds === null || seconds === undefined) return '-';
-            return formatDuration(seconds);
+        function sessionKey(session) {
+            return `${session.pin || ''}|${session.check_in || ''}|${session.check_out || ''}`;
         }
 
-        function openFlagModal(flag) {
-            activeFlagForModal = flag;
-            const modal = document.getElementById('flagModal');
-            const title = document.getElementById('flagModalTitle');
-            const preview = document.getElementById('flagModalPreview');
-            const convertBtn = document.getElementById('flagActionConvert');
-            const discardBtn = document.getElementById('flagActionDiscard');
-            const errorBox = document.getElementById('flagModalError');
+        function parseTs(value) {
+            if (!value) return null;
+            const ms = Date.parse(value);
+            return Number.isNaN(ms) ? null : ms;
+        }
 
-            if (!modal || !title || !preview || !convertBtn || !discardBtn) return;
+        function findSessionForFlag(flag, sessions) {
+            const flagTs = parseTs(flag?.event_timestamp);
+            const pin = String(flag?.pin || '');
+            if (!flagTs || !pin) return null;
 
-            errorBox.style.display = 'none';
-            errorBox.innerText = '';
+            const samePin = sessions.filter((s) => String(s.pin || '') === pin);
+            if (!samePin.length) return null;
 
-            const person = buildPersonLabel(flag);
-            const eventTs = flag.event_timestamp ? fmt(flag.event_timestamp) : '-';
+            const byLatestCheckIn = (a, b) => (parseTs(b.check_in) || 0) - (parseTs(a.check_in) || 0);
 
             if (flag.flag_type === 'checkin_while_open') {
-                const originalCheckIn = flag.preview?.original_check_in ? fmt(flag.preview.original_check_in) : '-';
-                const proposedCheckOut = flag.preview?.proposed_check_out ? fmt(flag.preview.proposed_check_out) : eventTs;
-                const duration = previewDuration(flag.preview?.proposed_duration_seconds);
-
-                title.innerText = 'Remediate: Check-in duplicate';
-                preview.innerHTML = `
-                    <div><strong>${person}</strong></div>
-                    <div class="preview-spacer">Existing check-in: <strong>${originalCheckIn}</strong></div>
-                    <div>Incoming mistaken scan time: <strong>${eventTs}</strong></div>
-                    <div class="preview-spacer preview-note">If changed to check-out, session becomes:</div>
-                    <div>Check-in: ${originalCheckIn}</div>
-                    <div>Check-out: ${proposedCheckOut}</div>
-                    <div>Duration: ${duration}</div>
-                `;
-                convertBtn.innerText = 'Change to check-out';
-                convertBtn.dataset.action = 'change_to_checkout';
-                convertBtn.style.display = 'inline-block';
-            } else if (flag.flag_type === 'checkout_without_open') {
-                const previousCheckout = flag.preview?.previous_check_out ? fmt(flag.preview.previous_check_out) : 'No previous check-out found';
-                const proposedCheckIn = flag.preview?.proposed_check_in ? fmt(flag.preview.proposed_check_in) : eventTs;
-
-                title.innerText = 'Remediate: Check-out duplicate';
-                preview.innerHTML = `
-                    <div><strong>${person}</strong></div>
-                    <div class="preview-spacer">Latest previous check-out: <strong>${previousCheckout}</strong></div>
-                    <div>Incoming mistaken scan time: <strong>${eventTs}</strong></div>
-                    <div class="preview-spacer preview-note">If changed to check-in, a new open session starts at:</div>
-                    <div>Check-in: ${proposedCheckIn}</div>
-                `;
-                convertBtn.innerText = 'Change to check-in';
-                convertBtn.dataset.action = 'change_to_checkin';
-                convertBtn.style.display = 'inline-block';
-            } else {
-                title.innerText = 'Remediate Session Flag';
-                preview.innerHTML = `<div><strong>${person}</strong></div><div class="preview-spacer">${getFriendlyFlagReason(flag)}</div>`;
-                convertBtn.style.display = 'none';
-                convertBtn.dataset.action = '';
+                const activeAtEvent = samePin
+                    .filter((s) => {
+                        const inTs = parseTs(s.check_in);
+                        const outTs = parseTs(s.check_out);
+                        if (!inTs || inTs > flagTs) return false;
+                        return !outTs || outTs >= flagTs;
+                    })
+                    .sort(byLatestCheckIn);
+                return activeAtEvent[0] || null;
             }
 
-            discardBtn.dataset.action = 'discard_false_entry';
-            modal.classList.add('open');
-            modal.setAttribute('aria-hidden', 'false');
+            if (flag.flag_type === 'checkout_without_open') {
+                const exactMatch = samePin
+                    .filter((s) => parseTs(s.check_in) === flagTs || parseTs(s.check_out) === flagTs)
+                    .sort(byLatestCheckIn);
+                if (exactMatch.length) return exactMatch[0];
+            }
+
+            const latestBeforeEvent = samePin
+                .filter((s) => {
+                    const inTs = parseTs(s.check_in);
+                    return inTs && inTs <= flagTs;
+                })
+                .sort(byLatestCheckIn);
+
+            return latestBeforeEvent[0] || samePin.sort(byLatestCheckIn)[0] || null;
         }
 
-        function closeFlagModal() {
-            const modal = document.getElementById('flagModal');
-            if (!modal) return;
-            modal.classList.remove('open');
-            modal.setAttribute('aria-hidden', 'true');
-            activeFlagForModal = null;
-        }
+        function highlightFlagSession(flag, shouldScroll = true) {
+            highlightedFlagId = Number(flag?.id || 0) || null;
+            const target = findSessionForFlag(flag, sessionsData);
+            highlightedSessionKey = target ? sessionKey(target) : '';
 
-        async function remediateFlag(action) {
-            const errorBox = document.getElementById('flagModalError');
-            if (!activeFlagForModal?.id || !action) return;
+            applySessionFilters();
 
-            errorBox.style.display = 'none';
-            errorBox.innerText = '';
+            if (!highlightedSessionKey) {
+                alert('No matching session found in the current date range/table view.');
+                return;
+            }
 
-            try {
-                const res = await fetch(`/api/session-flags/${activeFlagForModal.id}/remediate`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action })
-                });
-                if (!res.ok) {
-                    const txt = await res.text();
-                    throw new Error(txt || 'Remediation failed');
-                }
-
-                const result = await res.json();
-                if (Number(result.auto_resolved_count || 0) > 0) {
-                    alert(`Remediation applied. Auto-resolved ${result.auto_resolved_count} follow-up flag(s) for this employee.`);
-                }
-
-                closeFlagModal();
-                await refreshSessionFlags();
-                await refreshSessions();
-            } catch (err) {
-                errorBox.innerText = String(err.message || err);
-                errorBox.style.display = 'block';
+            if (shouldScroll) {
+                setTimeout(() => {
+                    const row = document.querySelector(`#sessionsBody tr[data-session-key="${CSS.escape(highlightedSessionKey)}"]`);
+                    row?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 0);
             }
         }
 
@@ -411,26 +362,32 @@
                 const type = formatFlagType(flag.flag_type);
                 const person = buildPersonLabel(flag);
                 const reason = getFriendlyFlagReason(flag);
+                const selectedClass = Number(highlightedFlagId) === Number(flag.id) ? ' is-selected' : '';
                 return `
-                    <div class="flag-row">
+                    <div class="flag-row${selectedClass}" data-flag-id="${flag.id}" role="button" tabindex="0" aria-label="Locate session for flag ${type}">
                         <div class="top">
                             <span>${person}</span>
                             <span class="flag-type-pill">${type}</span>
                         </div>
                         <div class="reason">${reason}</div>
                         <div class="flag-meta">${ts}</div>
-                        <div class="flag-actions">
-                            <button class="btn-remediate" data-flag-id="${flag.id}" type="button">Remediate</button>
-                        </div>
                     </div>
                 `;
             }).join('');
 
-            body.querySelectorAll('.btn-remediate').forEach((btn) => {
-                btn.addEventListener('click', () => {
-                    const id = Number(btn.dataset.flagId);
+            body.querySelectorAll('.flag-row').forEach((rowEl) => {
+                const jump = () => {
+                    const id = Number(rowEl.dataset.flagId);
                     const flag = rows.find((item) => Number(item.id) === id);
-                    if (flag) openFlagModal(flag);
+                    if (flag) highlightFlagSession(flag);
+                };
+
+                rowEl.addEventListener('click', jump);
+                rowEl.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        jump();
+                    }
                 });
             });
         }
@@ -533,8 +490,10 @@
                 const site = s.site || '-';
                 const division = s.division || '-';
                 const dur = formatDuration(s.duration_seconds);
+                const key = sessionKey(s);
+                const rowClass = key === highlightedSessionKey ? 'session-highlight' : '';
                 return `
-                    <tr>
+                    <tr class="${rowClass}" data-session-key="${key}">
                         <td>${name}</td>
                         <td>${company}</td>
                         <td>${site}</td>
@@ -692,21 +651,6 @@
                 refreshSessions();
                 refreshSessionFlags();
             }, 5000);
-
-            document.getElementById('flagActionConvert')?.addEventListener('click', () => {
-                const action = document.getElementById('flagActionConvert')?.dataset?.action;
-                if (action) remediateFlag(action);
-            });
-
-            document.getElementById('flagActionDiscard')?.addEventListener('click', () => {
-                remediateFlag('discard_false_entry');
-            });
-
-            document.getElementById('flagModal')?.addEventListener('click', (e) => {
-                if (e.target?.id === 'flagModal') {
-                    closeFlagModal();
-                }
-            });
 
             document.getElementById('export-btn')?.addEventListener('click', exportSessionsCsv);
             document.getElementById('export-pdf-btn')?.addEventListener('click', exportSessionsPdf);

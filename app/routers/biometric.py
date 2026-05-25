@@ -286,31 +286,36 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
             # Pair into attendance sessions (manual status-controlled logic).
             # status 0 -> open only
             # status 1 -> close only
-            # check_in <= timestamp prevents closing a future open session
-            # when historical offline events arrive.
-            open_session = db.query(AttendanceSession).filter(
+            # We always evaluate the latest session at or before this event and
+            # never close an older open session when a newer session is already closed.
+            latest_session = db.query(AttendanceSession).filter(
                 AttendanceSession.pin == pin,
-                AttendanceSession.check_out.is_(None),
                 AttendanceSession.check_in <= timestamp,
             ).order_by(AttendanceSession.check_in.desc()).first()
+            open_session = (
+                latest_session
+                if latest_session and latest_session.check_out is None
+                else None
+            )
 
             if status == 0:
-                # Check-in only opens a new session if none is currently open.
+                # Check-in always opens a new session.
+                # If one was already open, we still flag it for review.
                 if open_session:
                     add_session_flag(
                         "checkin_while_open",
                         "Check-in while already checked in."
                     )
                     logger.debug(
-                        f"[ATTLOG] Ignoring check-in while open session exists: pin={pin} dt={timestamp}")
-                else:
-                    session = AttendanceSession(
-                        pin=pin,
-                        check_in=timestamp,
-                        check_out=None,
-                        status="open"
-                    )
-                    db.add(session)
+                        f"[ATTLOG] Flagged check-in while open session exists: pin={pin} dt={timestamp}")
+
+                session = AttendanceSession(
+                    pin=pin,
+                    check_in=timestamp,
+                    check_out=None,
+                    status="open"
+                )
+                db.add(session)
             elif status == 1:
                 # Check-out only closes an existing open session.
                 if open_session:
@@ -325,10 +330,17 @@ async def iclock_cdata(request: Request, db: Session = Depends(get_db)):
                 else:
                     add_session_flag(
                         "checkout_without_open",
-                        "Check-out while already checked out."
+                        "Check-out with no latest open session available."
                     )
+                    # Keep the event represented in sessions while still flagging.
+                    db.add(AttendanceSession(
+                        pin=pin,
+                        check_in=timestamp,
+                        check_out=timestamp,
+                        status="orphan",
+                    ))
                     logger.debug(
-                        f"[ATTLOG] Ignoring check-out with no open session: pin={pin} dt={timestamp}")
+                        f"[ATTLOG] Flagged check-out with no latest open session: pin={pin} dt={timestamp}")
             else:
                 add_session_flag(
                     "unsupported_status",
