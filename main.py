@@ -632,6 +632,7 @@ def _auto_resolve_session_flags_for_pin(
 
     resolved_count = 0
     now_utc = datetime.utcnow()
+    duplicate_checkin_tolerance = timedelta(seconds=90)
 
     for flag in open_flags:
         ts = flag.event_timestamp
@@ -641,9 +642,10 @@ def _auto_resolve_session_flags_for_pin(
         should_resolve = False
 
         if flag.flag_type == "checkin_while_open":
+            prior_open_cutoff = ts - duplicate_checkin_tolerance
             has_prior_open = db.query(AttendanceSession).filter(
                 AttendanceSession.pin == str(pin),
-                AttendanceSession.check_in < ts,
+                AttendanceSession.check_in < prior_open_cutoff,
                 or_(
                     AttendanceSession.check_out.is_(None),
                     AttendanceSession.check_out > ts,
