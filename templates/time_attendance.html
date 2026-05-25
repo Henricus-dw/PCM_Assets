@@ -416,7 +416,7 @@
             });
         }
 
-        function populateRemediationPanel(session) {
+        function populateRemediationPanel(session, forceFormRefresh = false) {
             const emptyEl = document.getElementById('remediationEmpty');
             const panelEl = document.getElementById('remediationPanel');
             const statePill = document.getElementById('remediationStatePill');
@@ -457,11 +457,17 @@
             currentEl.innerHTML = sessionDisplaySummary(context.current);
             nextEl.innerHTML = sessionDisplaySummary(context.next);
 
-            checkInEl.value = session.status === 'orphan' ? '' : toDateTimeLocalValue(session.check_in);
-            checkOutEl.value = session.check_out ? toDateTimeLocalValue(session.check_out) : '';
+            const hasDraftChanges = remediationHasChanges();
+            const canPreserveDraft = hasDraftChanges && !forceFormRefresh;
 
-            checkInEl.dataset.original = checkInEl.value;
-            checkOutEl.dataset.original = checkOutEl.value;
+            if (!canPreserveDraft) {
+                checkInEl.value = session.status === 'orphan' ? '' : toDateTimeLocalValue(session.check_in);
+                checkOutEl.value = session.check_out ? toDateTimeLocalValue(session.check_out) : '';
+
+                checkInEl.dataset.original = checkInEl.value;
+                checkOutEl.dataset.original = checkOutEl.value;
+            }
+
             noteEl.textContent = 'Use the surrounding sessions as context before you save changes.';
             updateRemediationActionsVisibility();
         }
@@ -473,9 +479,9 @@
             syncFlagSelectionVisuals();
             applySessionFilters();
             if (session) {
-                populateRemediationPanel(session);
+                populateRemediationPanel(session, true);
             } else {
-                populateRemediationPanel(null);
+                populateRemediationPanel(null, true);
             }
         }
 
@@ -519,7 +525,7 @@
                 selectedSessionSource = 'row';
                 await refreshSessions();
                 await refreshSessionFlags();
-                populateRemediationPanel(getSelectedSession());
+                populateRemediationPanel(getSelectedSession(), true);
                 noteEl.textContent = 'Changes saved.';
             } catch (err) {
                 noteEl.textContent = String(err.message || err);
@@ -567,7 +573,7 @@
                 highlightedFlagId = null;
                 await refreshSessions();
                 await refreshSessionFlags();
-                populateRemediationPanel(null);
+                populateRemediationPanel(null, true);
                 if (noteEl) {
                     noteEl.textContent = 'Session deleted.';
                 }
@@ -946,8 +952,8 @@
             const startInput = document.getElementById('filterStartDate');
             const endInput = document.getElementById('filterEndDate');
             const sessionsBody = document.getElementById('sessionsBody');
-            startInput.value = today;
-            endInput.value = today;
+            if (!startInput.value) startInput.value = today;
+            if (!endInput.value) endInput.value = today;
             bindSessionColumnFilters();
             updateSessionActiveFilters();
 
