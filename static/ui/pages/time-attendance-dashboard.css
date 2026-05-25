@@ -472,8 +472,154 @@ body.time-attendance-dashboard .flag-meta {
     margin-top: 0.2rem;
 }
 
-body.time-attendance-dashboard #sessionsTable tbody tr.session-highlight,
-body.time-attendance-dashboard #sessionsTable tbody tr.session-highlight:hover {
+body.time-attendance-dashboard .ta-remediation-card {
+    min-height: 18rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+body.time-attendance-dashboard .remediation-panel {
+    display: grid;
+    gap: 0.75rem;
+}
+
+body.time-attendance-dashboard .remediation-panel.is-hidden,
+body.time-attendance-dashboard .remediation-note.is-hidden,
+body.time-attendance-dashboard .remediation-hint.is-hidden {
+    display: none;
+}
+
+body.time-attendance-dashboard .remediation-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+body.time-attendance-dashboard .remediation-kicker {
+    font-size: 0.67rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #6b7280;
+    margin-bottom: 0.2rem;
+}
+
+body.time-attendance-dashboard .remediation-title {
+    font-family: 'Manrope', sans-serif;
+    font-size: 1rem;
+    font-weight: 800;
+    color: #111827;
+}
+
+body.time-attendance-dashboard .remediation-meta,
+body.time-attendance-dashboard .remediation-hint,
+body.time-attendance-dashboard .remediation-session-meta,
+body.time-attendance-dashboard .remediation-note {
+    font-size: 0.74rem;
+    color: #6b7280;
+    line-height: 1.35;
+}
+
+body.time-attendance-dashboard .remediation-hint {
+    margin-top: 0.35rem;
+    color: #991b1b;
+    font-weight: 600;
+}
+
+body.time-attendance-dashboard .remediation-context-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+}
+
+body.time-attendance-dashboard .remediation-context-card {
+    border: 1px solid rgba(193, 200, 199, 0.35);
+    border-radius: 0.125rem;
+    background: #fff;
+    padding: 0.6rem;
+    min-height: 5.25rem;
+}
+
+body.time-attendance-dashboard .remediation-context-card--active {
+    border-color: rgba(64, 98, 98, 0.35);
+    background: #f7fbfb;
+}
+
+body.time-attendance-dashboard .remediation-context-label {
+    font-size: 0.64rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #667070;
+    margin-bottom: 0.35rem;
+}
+
+body.time-attendance-dashboard .remediation-session-name {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.2rem;
+}
+
+body.time-attendance-dashboard .remediation-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+}
+
+body.time-attendance-dashboard .remediation-field {
+    display: grid;
+    gap: 0.35rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #667070;
+}
+
+body.time-attendance-dashboard .remediation-field input {
+    border: 1px solid #c1c8c7;
+    border-radius: 0.125rem;
+    background: #fff;
+    color: #1a1c1c;
+    padding: 0.44rem 0.5rem;
+    font-size: 0.78rem;
+    outline: none;
+}
+
+body.time-attendance-dashboard .remediation-field input:focus {
+    border-color: #406262;
+    box-shadow: 0 0 0 2px rgba(64, 98, 98, 0.12);
+}
+
+body.time-attendance-dashboard .remediation-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+body.time-attendance-dashboard .btn-remediation-save {
+    border: none;
+    background: #4b5e70;
+    color: #fff;
+    border-radius: 0.125rem;
+    padding: 0.38rem 0.75rem;
+    font-weight: 700;
+    font-size: 0.74rem;
+    cursor: pointer;
+}
+
+body.time-attendance-dashboard .btn-remediation-save:hover {
+    background: #37495d;
+}
+
+body.time-attendance-dashboard #sessionsTable tbody tr.session-selected,
+body.time-attendance-dashboard #sessionsTable tbody tr.session-selected:hover {
+    background: #eef1f1;
+}
+
+body.time-attendance-dashboard #sessionsTable tbody tr.session-selected-flag,
+body.time-attendance-dashboard #sessionsTable tbody tr.session-selected-flag:hover {
     background: #fee2e2;
 }
 

@@ -888,6 +888,7 @@ def api_sessions_today(request: Request, db: Session = Depends(get_db), start_da
             site = emp.Site
             division = emp.Division
         out.append({
+            "id": s.id,
             "pin": s.pin,
             "full_name": full_name,
             "company": company,
@@ -900,6 +901,82 @@ def api_sessions_today(request: Request, db: Session = Depends(get_db), start_da
         })
 
     return JSONResponse(out)
+
+
+@app.post("/api/attendance-sessions/{session_id}/update")
+async def api_update_attendance_session(
+    session_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    _ensure_api_access(request, "time_attendance")
+    from models import AttendanceSession
+
+    try:
+        data = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid JSON payload")
+
+    if not isinstance(data, dict):
+        raise HTTPException(status_code=400, detail="Invalid JSON payload")
+
+    session = db.query(AttendanceSession).filter(
+        AttendanceSession.id == session_id
+    ).with_for_update().first()
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    def parse_datetime(value: Optional[str]) -> Optional[datetime]:
+        if value is None or value == "":
+            return None
+        if isinstance(value, datetime):
+            return value
+        if not isinstance(value, str):
+            raise HTTPException(
+                status_code=400, detail="Invalid datetime value")
+        try:
+            return datetime.fromisoformat(value)
+        except ValueError:
+            try:
+                return datetime.strptime(value, "%Y-%m-%dT%H:%M")
+            except ValueError:
+                raise HTTPException(
+                    status_code=400, detail=f"Invalid datetime format: {value}")
+
+    new_check_in = parse_datetime(data.get("check_in"))
+    new_check_out = parse_datetime(data.get("check_out"))
+
+    if new_check_in is not None:
+        session.check_in = new_check_in
+    if new_check_out is not None or "check_out" in data:
+        session.check_out = new_check_out
+
+    if session.check_out is not None and session.check_out < session.check_in:
+        raise HTTPException(
+            status_code=400,
+            detail="Check-out cannot be earlier than check-in"
+        )
+
+    if session.check_out is None:
+        session.status = "open"
+    elif session.check_out == session.check_in:
+        session.status = "orphan"
+    else:
+        session.status = "closed"
+
+    db.commit()
+    db.refresh(session)
+
+    return JSONResponse({
+        "ok": True,
+        "session": {
+            "id": session.id,
+            "pin": session.pin,
+            "check_in": session.check_in.isoformat() if session.check_in else None,
+            "check_out": session.check_out.isoformat() if session.check_out else None,
+            "status": session.status,
+        },
+    })
 
 
 @app.get("/api/session-flags")

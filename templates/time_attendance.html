@@ -206,6 +206,60 @@
                                 </div>
                             </div>
                         </section>
+
+                        <section class="ta-card ta-remediation-card">
+                            <header class="ta-card-head">
+                                <h4>Remediation</h4>
+                                <span class="ta-pill" id="remediationStatePill">None</span>
+                            </header>
+                            <div id="remediationEmpty" class="muted">Select a session row or flag to inspect the
+                                surrounding timeline.</div>
+                            <div id="remediationPanel" class="remediation-panel is-hidden">
+                                <div class="remediation-summary">
+                                    <div>
+                                        <div class="remediation-kicker">Selected Session</div>
+                                        <div id="remediationTitle" class="remediation-title">-</div>
+                                        <div id="remediationMeta" class="remediation-meta">-</div>
+                                        <div id="remediationFlagHint" class="remediation-hint is-hidden"></div>
+                                    </div>
+                                    <span id="remediationStatusPill" class="ta-pill">-</span>
+                                </div>
+
+                                <div class="remediation-context-grid">
+                                    <article class="remediation-context-card">
+                                        <div class="remediation-context-label">Previous</div>
+                                        <div id="remediationPrevious">-</div>
+                                    </article>
+                                    <article class="remediation-context-card remediation-context-card--active">
+                                        <div class="remediation-context-label">Current</div>
+                                        <div id="remediationCurrent">-</div>
+                                    </article>
+                                    <article class="remediation-context-card">
+                                        <div class="remediation-context-label">Following</div>
+                                        <div id="remediationNext">-</div>
+                                    </article>
+                                </div>
+
+                                <div class="remediation-form-grid">
+                                    <label class="remediation-field">
+                                        <span>Check-in</span>
+                                        <input id="remediationCheckIn" type="datetime-local" />
+                                    </label>
+                                    <label class="remediation-field">
+                                        <span>Check-out</span>
+                                        <input id="remediationCheckOut" type="datetime-local" />
+                                    </label>
+                                </div>
+
+                                <div class="remediation-actions">
+                                    <button type="button" id="remediationResetBtn" class="btn-secondary">Reset</button>
+                                    <button type="button" id="remediationSaveBtn" class="btn-remediation-save">Save
+                                        session</button>
+                                </div>
+                                <div id="remediationNote" class="remediation-note">Use the surrounding sessions as
+                                    context before you save changes.</div>
+                            </div>
+                        </section>
                     </aside>
                 </div>
             </div>
@@ -216,7 +270,8 @@
     <script>
         let autoRefreshInterval;
         let sessionsData = [];
-        let highlightedSessionKey = '';
+        let selectedSessionId = null;
+        let selectedSessionSource = 'row';
         let highlightedFlagId = null;
         const sessionColumnFilters = {
             name: '',
@@ -231,6 +286,20 @@
         function fmt(ts) {
             if (!ts) return '-';
             return new Date(ts).toLocaleString();
+        }
+
+        function toDateTimeLocalValue(ts) {
+            if (!ts) return '';
+            const date = new Date(ts);
+            if (Number.isNaN(date.getTime())) return '';
+            const pad = (value) => String(value).padStart(2, '0');
+            return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+        }
+
+        function fromDateTimeLocalValue(value) {
+            if (!value) return null;
+            const date = new Date(value);
+            return Number.isNaN(date.getTime()) ? null : date;
         }
 
         function formatDuration(seconds) {
@@ -270,6 +339,174 @@
 
         function sessionKey(session) {
             return `${session.pin || ''}|${session.check_in || ''}|${session.check_out || ''}`;
+        }
+
+        function sameSession(a, b) {
+            if (!a || !b) return false;
+            return Number(a.id) === Number(b.id);
+        }
+
+        function getSelectedSession() {
+            return sessionsData.find((session) => Number(session.id) === Number(selectedSessionId)) || null;
+        }
+
+        function getOrderedPinSessions(pin) {
+            return sessionsData
+                .filter((session) => String(session.pin || '') === String(pin || ''))
+                .slice()
+                .sort((a, b) => {
+                    const aTs = parseTs(a.check_in) || 0;
+                    const bTs = parseTs(b.check_in) || 0;
+                    if (aTs !== bTs) return aTs - bTs;
+                    return Number(a.id) - Number(b.id);
+                });
+        }
+
+        function getSessionContext(session) {
+            if (!session) return { previous: null, current: null, next: null };
+            const ordered = getOrderedPinSessions(session.pin);
+            const index = ordered.findIndex((item) => sameSession(item, session));
+            return {
+                previous: index > 0 ? ordered[index - 1] : null,
+                current: index >= 0 ? ordered[index] : session,
+                next: index >= 0 && index + 1 < ordered.length ? ordered[index + 1] : null,
+            };
+        }
+
+        function sessionDisplaySummary(session) {
+            if (!session) {
+                return '<div class="muted">-</div>';
+            }
+            const title = session.full_name || `PIN ${session.pin || '-'}`;
+            const inText = session.status === 'orphan' ? '' : fmt(session.check_in);
+            const outText = fmt(session.check_out);
+            const duration = formatDuration(session.duration_seconds);
+            return `
+                <div class="remediation-session-name">${title}</div>
+                <div class="remediation-session-meta">IN: ${inText || '-'} • OUT: ${outText || '-'} • ${duration}</div>
+            `;
+        }
+
+        function syncFlagSelectionVisuals() {
+            document.querySelectorAll('#sessionFlagsBody .flag-row').forEach((rowEl) => {
+                const rowFlagId = Number(rowEl.dataset.flagId || 0);
+                const isSelected = Number(highlightedFlagId || 0) === rowFlagId;
+                rowEl.classList.toggle('is-selected', isSelected);
+                rowEl.setAttribute('aria-selected', String(isSelected));
+            });
+        }
+
+        function populateRemediationPanel(session) {
+            const emptyEl = document.getElementById('remediationEmpty');
+            const panelEl = document.getElementById('remediationPanel');
+            const statePill = document.getElementById('remediationStatePill');
+            const statusPill = document.getElementById('remediationStatusPill');
+            const titleEl = document.getElementById('remediationTitle');
+            const metaEl = document.getElementById('remediationMeta');
+            const flagHintEl = document.getElementById('remediationFlagHint');
+            const previousEl = document.getElementById('remediationPrevious');
+            const currentEl = document.getElementById('remediationCurrent');
+            const nextEl = document.getElementById('remediationNext');
+            const checkInEl = document.getElementById('remediationCheckIn');
+            const checkOutEl = document.getElementById('remediationCheckOut');
+
+            if (!emptyEl || !panelEl || !statePill || !statusPill || !titleEl || !metaEl || !previousEl || !currentEl || !nextEl || !checkInEl || !checkOutEl || !flagHintEl) {
+                return;
+            }
+
+            if (!session) {
+                emptyEl.classList.remove('is-hidden');
+                panelEl.classList.add('is-hidden');
+                statePill.textContent = 'None';
+                return;
+            }
+
+            const context = getSessionContext(session);
+            const pinLabel = session.full_name || `PIN ${session.pin || '-'}`;
+            const sessionStatus = String(session.status || 'open');
+
+            emptyEl.classList.add('is-hidden');
+            panelEl.classList.remove('is-hidden');
+            statePill.textContent = selectedSessionSource === 'flag' && highlightedFlagId ? 'From flag' : 'Selected';
+            statusPill.textContent = sessionStatus;
+            titleEl.textContent = pinLabel;
+            metaEl.textContent = `${session.company || '-'} • ${session.site || '-'} • ${session.division || '-'}`;
+            flagHintEl.classList.toggle('is-hidden', !(selectedSessionSource === 'flag' && highlightedFlagId));
+            if (selectedSessionSource === 'flag' && highlightedFlagId) {
+                flagHintEl.textContent = 'This session was selected from a session flag and is highlighted in red.';
+            }
+
+            previousEl.innerHTML = sessionDisplaySummary(context.previous);
+            currentEl.innerHTML = sessionDisplaySummary(context.current);
+            nextEl.innerHTML = sessionDisplaySummary(context.next);
+
+            checkInEl.value = toDateTimeLocalValue(session.check_in);
+            checkOutEl.value = session.check_out ? toDateTimeLocalValue(session.check_out) : '';
+
+            checkInEl.dataset.original = checkInEl.value;
+            checkOutEl.dataset.original = checkOutEl.value;
+        }
+
+        function selectSession(session, source = 'row', flag = null) {
+            selectedSessionId = session ? Number(session.id) : null;
+            selectedSessionSource = source || 'row';
+            highlightedFlagId = flag ? Number(flag.id) : null;
+            syncFlagSelectionVisuals();
+            applySessionFilters();
+            if (session) {
+                populateRemediationPanel(session);
+            } else {
+                populateRemediationPanel(null);
+            }
+        }
+
+        async function saveRemediationSession() {
+            const session = getSelectedSession();
+            if (!session) {
+                alert('Select a session first.');
+                return;
+            }
+
+            const checkInEl = document.getElementById('remediationCheckIn');
+            const checkOutEl = document.getElementById('remediationCheckOut');
+            const noteEl = document.getElementById('remediationNote');
+            if (!checkInEl || !checkOutEl || !noteEl) return;
+
+            const payload = {
+                check_in: checkInEl.value || null,
+                check_out: checkOutEl.value || null,
+            };
+
+            noteEl.textContent = 'Saving...';
+            try {
+                const res = await fetch(`/api/attendance-sessions/${session.id}/update`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+
+                if (!res.ok) {
+                    const text = await res.text();
+                    throw new Error(text || 'Failed to save session');
+                }
+
+                const result = await res.json();
+                const updatedSession = result?.session || session;
+                selectedSessionId = Number(updatedSession.id || session.id);
+                selectedSessionSource = 'row';
+                await refreshSessions();
+                await refreshSessionFlags();
+                populateRemediationPanel(getSelectedSession());
+                noteEl.textContent = 'Session saved.';
+            } catch (err) {
+                noteEl.textContent = String(err.message || err);
+            }
+        }
+
+        function resetRemediationSession() {
+            const session = getSelectedSession();
+            if (!session) return;
+            populateRemediationPanel(session);
         }
 
         function parseTs(value) {
@@ -318,20 +555,21 @@
         }
 
         function highlightFlagSession(flag, shouldScroll = true) {
-            highlightedFlagId = Number(flag?.id || 0) || null;
             const target = findSessionForFlag(flag, sessionsData);
-            highlightedSessionKey = target ? sessionKey(target) : '';
+            highlightedFlagId = Number(flag?.id || 0) || null;
+            syncFlagSelectionVisuals();
 
-            applySessionFilters();
-
-            if (!highlightedSessionKey) {
+            if (!target) {
+                populateRemediationPanel(getSelectedSession());
                 alert('No matching session found in the current date range/table view.');
                 return;
             }
 
+            selectSession(target, 'flag', flag);
+
             if (shouldScroll) {
                 setTimeout(() => {
-                    const row = document.querySelector(`#sessionsBody tr[data-session-key="${CSS.escape(highlightedSessionKey)}"]`);
+                    const row = document.querySelector(`#sessionsBody tr[data-session-id="${CSS.escape(String(target.id))}"]`);
                     row?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }, 0);
             }
@@ -374,6 +612,8 @@
                     </div>
                 `;
             }).join('');
+
+            syncFlagSelectionVisuals();
 
             body.querySelectorAll('.flag-row').forEach((rowEl) => {
                 const jump = () => {
@@ -490,11 +730,13 @@
                 const site = s.site || '-';
                 const division = s.division || '-';
                 const dur = formatDuration(s.duration_seconds);
-                const key = sessionKey(s);
-                const rowClass = key === highlightedSessionKey ? 'session-highlight' : '';
                 const checkInValue = s.status === 'orphan' ? '' : fmt(s.check_in);
+                const isSelected = Number(selectedSessionId || 0) === Number(s.id || 0);
+                const rowClass = isSelected
+                    ? (selectedSessionSource === 'flag' && highlightedFlagId ? 'session-selected-flag' : 'session-selected')
+                    : '';
                 return `
-                    <tr class="${rowClass}" data-session-key="${key}">
+                    <tr class="${rowClass}" data-session-id="${s.id}" role="button" tabindex="0" aria-label="Select session">
                         <td>${name}</td>
                         <td>${company}</td>
                         <td>${site}</td>
@@ -515,6 +757,7 @@
                 });
             });
             renderSessions(filtered);
+            populateRemediationPanel(getSelectedSession());
             updateSessionActiveFilters();
         }
 
@@ -619,6 +862,11 @@
             if (!res.ok) return;
             const sessions = await res.json();
             sessionsData = Array.isArray(sessions) ? sessions : [];
+            if (selectedSessionId && !getSelectedSession()) {
+                selectedSessionId = null;
+                selectedSessionSource = 'row';
+                highlightedFlagId = null;
+            }
             applySessionFilters();
 
         }
@@ -653,13 +901,30 @@
                 refreshSessionFlags();
             }, 5000);
 
+            document.getElementById('remediationSaveBtn')?.addEventListener('click', saveRemediationSession);
+            document.getElementById('remediationResetBtn')?.addEventListener('click', resetRemediationSession);
+
             document.getElementById('export-btn')?.addEventListener('click', exportSessionsCsv);
             document.getElementById('export-pdf-btn')?.addEventListener('click', exportSessionsPdf);
 
             sessionsBody?.addEventListener('click', (event) => {
                 const row = event.target.closest('tr');
-                if (!row) return;
-                row.classList.toggle('row-expanded');
+                if (!row || !row.dataset.sessionId) return;
+                const session = sessionsData.find((item) => Number(item.id) === Number(row.dataset.sessionId));
+                if (session) {
+                    selectSession(session, 'row', null);
+                }
+            });
+
+            sessionsBody?.addEventListener('keydown', (event) => {
+                if (event.key !== 'Enter' && event.key !== ' ') return;
+                const row = event.target.closest('tr');
+                if (!row || !row.dataset.sessionId) return;
+                event.preventDefault();
+                const session = sessionsData.find((item) => Number(item.id) === Number(row.dataset.sessionId));
+                if (session) {
+                    selectSession(session, 'row', null);
+                }
             });
 
             // Logout handler
