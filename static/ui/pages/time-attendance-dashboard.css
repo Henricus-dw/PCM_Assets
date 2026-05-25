@@ -486,8 +486,7 @@ body.time-attendance-dashboard .remediation-panel {
 }
 
 body.time-attendance-dashboard .remediation-panel.is-hidden,
-body.time-attendance-dashboard .remediation-note.is-hidden,
-body.time-attendance-dashboard .remediation-hint.is-hidden {
+body.time-attendance-dashboard .remediation-note.is-hidden {
     display: none;
 }
 
@@ -515,18 +514,11 @@ body.time-attendance-dashboard .remediation-title {
 }
 
 body.time-attendance-dashboard .remediation-meta,
-body.time-attendance-dashboard .remediation-hint,
 body.time-attendance-dashboard .remediation-session-meta,
 body.time-attendance-dashboard .remediation-note {
     font-size: 0.74rem;
     color: #6b7280;
     line-height: 1.35;
-}
-
-body.time-attendance-dashboard .remediation-hint {
-    margin-top: 0.35rem;
-    color: #991b1b;
-    font-weight: 600;
 }
 
 body.time-attendance-dashboard .remediation-context-grid {
@@ -573,6 +565,9 @@ body.time-attendance-dashboard .remediation-form-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.45rem;
+    background: #ececeb;
+    border-radius: 0.125rem;
+    padding: 0.5rem;
 }
 
 body.time-attendance-dashboard .remediation-field {
@@ -584,17 +579,18 @@ body.time-attendance-dashboard .remediation-field {
 }
 
 body.time-attendance-dashboard .remediation-field input {
-    border: 1px solid #c1c8c7;
+    border: none;
     border-radius: 0.125rem;
-    background: #fff;
-    color: #1a1c1c;
+    background: #e8e8e7;
+    color: #406262;
     padding: 0.32rem 0.4rem;
     font-size: 0.73rem;
+    font-weight: 700;
     outline: none;
 }
 
 body.time-attendance-dashboard .remediation-field input:focus {
-    border-color: #406262;
+    outline: 1px solid rgba(64, 98, 98, 0.35);
     box-shadow: 0 0 0 2px rgba(64, 98, 98, 0.12);
 }
 
@@ -606,19 +602,36 @@ body.time-attendance-dashboard .remediation-actions {
     gap: 0.5rem;
 }
 
-body.time-attendance-dashboard .btn-remediation-save {
+body.time-attendance-dashboard .btn-remediation-pill,
+body.time-attendance-dashboard .btn-remediation-danger {
     border: none;
-    background: #4b5e70;
-    color: #fff;
-    border-radius: 0.125rem;
-    padding: 0.32rem 0.62rem;
+    border-radius: 999px;
+    padding: 0.22rem 0.62rem;
     font-weight: 700;
     font-size: 0.7rem;
     cursor: pointer;
 }
 
-body.time-attendance-dashboard .btn-remediation-save:hover {
-    background: #37495d;
+body.time-attendance-dashboard .btn-remediation-pill {
+    background: rgba(64, 98, 98, 0.12);
+    color: #406262;
+}
+
+body.time-attendance-dashboard .btn-remediation-pill:hover {
+    background: rgba(64, 98, 98, 0.2);
+}
+
+body.time-attendance-dashboard .btn-remediation-danger {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+body.time-attendance-dashboard .btn-remediation-danger:hover {
+    background: #f8d1d1;
+}
+
+body.time-attendance-dashboard .btn-remediation-pill.is-hidden {
+    display: none;
 }
 
 body.time-attendance-dashboard #sessionsTable tbody tr.session-selected,

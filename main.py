@@ -979,6 +979,30 @@ async def api_update_attendance_session(
     })
 
 
+@app.delete("/api/attendance-sessions/{session_id}")
+def api_delete_attendance_session(
+    session_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    _ensure_api_access(request, "time_attendance")
+    from models import AttendanceSession
+
+    session = db.query(AttendanceSession).filter(
+        AttendanceSession.id == session_id
+    ).with_for_update().first()
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    db.delete(session)
+    db.commit()
+
+    return JSONResponse({
+        "ok": True,
+        "deleted_session_id": session_id,
+    })
+
+
 @app.get("/api/session-flags")
 def api_session_flags(
     request: Request,

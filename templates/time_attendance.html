@@ -220,7 +220,6 @@
                                         <div class="remediation-kicker">Selected Session</div>
                                         <div id="remediationTitle" class="remediation-title">-</div>
                                         <div id="remediationMeta" class="remediation-meta">-</div>
-                                        <div id="remediationFlagHint" class="remediation-hint is-hidden"></div>
                                     </div>
                                     <span id="remediationStatusPill" class="ta-pill">-</span>
                                 </div>
@@ -252,9 +251,12 @@
                                 </div>
 
                                 <div class="remediation-actions">
-                                    <button type="button" id="remediationResetBtn" class="btn-secondary">Reset</button>
-                                    <button type="button" id="remediationSaveBtn" class="btn-remediation-save">Save
-                                        session</button>
+                                    <button type="button" id="remediationDeleteBtn"
+                                        class="btn-remediation-danger">Delete Session</button>
+                                    <button type="button" id="remediationResetBtn"
+                                        class="btn-remediation-pill is-hidden">Clear Changes</button>
+                                    <button type="button" id="remediationSaveBtn"
+                                        class="btn-remediation-pill is-hidden">Save Changes</button>
                                 </div>
                                 <div id="remediationNote" class="remediation-note">Use the surrounding sessions as
                                     context before you save changes.</div>
@@ -377,14 +379,32 @@
             if (!session) {
                 return '<div class="muted">-</div>';
             }
-            const title = session.full_name || `PIN ${session.pin || '-'}`;
             const inText = session.status === 'orphan' ? '' : fmt(session.check_in);
             const outText = fmt(session.check_out);
             const duration = formatDuration(session.duration_seconds);
             return `
-                <div class="remediation-session-name">${title}</div>
                 <div class="remediation-session-meta">IN: ${inText || '-'} • OUT: ${outText || '-'} • ${duration}</div>
             `;
+        }
+
+        function remediationHasChanges() {
+            const checkInEl = document.getElementById('remediationCheckIn');
+            const checkOutEl = document.getElementById('remediationCheckOut');
+            if (!checkInEl || !checkOutEl) return false;
+
+            const originalCheckIn = checkInEl.dataset.original || '';
+            const originalCheckOut = checkOutEl.dataset.original || '';
+            return checkInEl.value !== originalCheckIn || checkOutEl.value !== originalCheckOut;
+        }
+
+        function updateRemediationActionsVisibility() {
+            const resetBtn = document.getElementById('remediationResetBtn');
+            const saveBtn = document.getElementById('remediationSaveBtn');
+            if (!resetBtn || !saveBtn) return;
+
+            const hasChanges = remediationHasChanges();
+            resetBtn.classList.toggle('is-hidden', !hasChanges);
+            saveBtn.classList.toggle('is-hidden', !hasChanges);
         }
 
         function syncFlagSelectionVisuals() {
@@ -403,14 +423,14 @@
             const statusPill = document.getElementById('remediationStatusPill');
             const titleEl = document.getElementById('remediationTitle');
             const metaEl = document.getElementById('remediationMeta');
-            const flagHintEl = document.getElementById('remediationFlagHint');
             const previousEl = document.getElementById('remediationPrevious');
             const currentEl = document.getElementById('remediationCurrent');
             const nextEl = document.getElementById('remediationNext');
             const checkInEl = document.getElementById('remediationCheckIn');
             const checkOutEl = document.getElementById('remediationCheckOut');
+            const noteEl = document.getElementById('remediationNote');
 
-            if (!emptyEl || !panelEl || !statePill || !statusPill || !titleEl || !metaEl || !previousEl || !currentEl || !nextEl || !checkInEl || !checkOutEl || !flagHintEl) {
+            if (!emptyEl || !panelEl || !statePill || !statusPill || !titleEl || !metaEl || !previousEl || !currentEl || !nextEl || !checkInEl || !checkOutEl || !noteEl) {
                 return;
             }
 
@@ -418,6 +438,7 @@
                 emptyEl.classList.remove('is-hidden');
                 panelEl.classList.add('is-hidden');
                 statePill.textContent = 'None';
+                noteEl.textContent = 'Use the surrounding sessions as context before you save changes.';
                 return;
             }
 
@@ -431,20 +452,18 @@
             statusPill.textContent = sessionStatus;
             titleEl.textContent = pinLabel;
             metaEl.textContent = `${session.company || '-'} • ${session.site || '-'} • ${session.division || '-'}`;
-            flagHintEl.classList.toggle('is-hidden', !(selectedSessionSource === 'flag' && highlightedFlagId));
-            if (selectedSessionSource === 'flag' && highlightedFlagId) {
-                flagHintEl.textContent = 'This session was selected from a session flag and is highlighted in red.';
-            }
 
             previousEl.innerHTML = sessionDisplaySummary(context.previous);
             currentEl.innerHTML = sessionDisplaySummary(context.current);
             nextEl.innerHTML = sessionDisplaySummary(context.next);
 
-            checkInEl.value = toDateTimeLocalValue(session.check_in);
+            checkInEl.value = session.status === 'orphan' ? '' : toDateTimeLocalValue(session.check_in);
             checkOutEl.value = session.check_out ? toDateTimeLocalValue(session.check_out) : '';
 
             checkInEl.dataset.original = checkInEl.value;
             checkOutEl.dataset.original = checkOutEl.value;
+            noteEl.textContent = 'Use the surrounding sessions as context before you save changes.';
+            updateRemediationActionsVisibility();
         }
 
         function selectSession(session, source = 'row', flag = null) {
@@ -464,6 +483,10 @@
             const session = getSelectedSession();
             if (!session) {
                 alert('Select a session first.');
+                return;
+            }
+
+            if (!remediationHasChanges()) {
                 return;
             }
 
@@ -497,16 +520,62 @@
                 await refreshSessions();
                 await refreshSessionFlags();
                 populateRemediationPanel(getSelectedSession());
-                noteEl.textContent = 'Session saved.';
+                noteEl.textContent = 'Changes saved.';
             } catch (err) {
                 noteEl.textContent = String(err.message || err);
             }
         }
 
         function resetRemediationSession() {
+            const checkInEl = document.getElementById('remediationCheckIn');
+            const checkOutEl = document.getElementById('remediationCheckOut');
+            const noteEl = document.getElementById('remediationNote');
+            if (!checkInEl || !checkOutEl || !noteEl) return;
+
+            checkInEl.value = checkInEl.dataset.original || '';
+            checkOutEl.value = checkOutEl.dataset.original || '';
+            updateRemediationActionsVisibility();
+            noteEl.textContent = 'Changes cleared.';
+        }
+
+        async function deleteRemediationSession() {
             const session = getSelectedSession();
-            if (!session) return;
-            populateRemediationPanel(session);
+            if (!session) {
+                alert('Select a session first.');
+                return;
+            }
+
+            const confirmed = confirm('Delete this session? This action cannot be undone.');
+            if (!confirmed) return;
+
+            const noteEl = document.getElementById('remediationNote');
+            if (noteEl) {
+                noteEl.textContent = 'Deleting...';
+            }
+
+            try {
+                const res = await fetch(`/api/attendance-sessions/${session.id}`, {
+                    method: 'DELETE',
+                });
+                if (!res.ok) {
+                    const text = await res.text();
+                    throw new Error(text || 'Failed to delete session');
+                }
+
+                selectedSessionId = null;
+                selectedSessionSource = 'row';
+                highlightedFlagId = null;
+                await refreshSessions();
+                await refreshSessionFlags();
+                populateRemediationPanel(null);
+                if (noteEl) {
+                    noteEl.textContent = 'Session deleted.';
+                }
+            } catch (err) {
+                if (noteEl) {
+                    noteEl.textContent = String(err.message || err);
+                }
+            }
         }
 
         function parseTs(value) {
@@ -903,6 +972,10 @@
 
             document.getElementById('remediationSaveBtn')?.addEventListener('click', saveRemediationSession);
             document.getElementById('remediationResetBtn')?.addEventListener('click', resetRemediationSession);
+            document.getElementById('remediationDeleteBtn')?.addEventListener('click', deleteRemediationSession);
+
+            document.getElementById('remediationCheckIn')?.addEventListener('input', updateRemediationActionsVisibility);
+            document.getElementById('remediationCheckOut')?.addEventListener('input', updateRemediationActionsVisibility);
 
             document.getElementById('export-btn')?.addEventListener('click', exportSessionsCsv);
             document.getElementById('export-pdf-btn')?.addEventListener('click', exportSessionsPdf);
