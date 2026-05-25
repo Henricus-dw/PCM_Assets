@@ -27,7 +27,7 @@ from urllib.parse import urlencode
 from auth import get_current_user, require_admin
 
 # ---- Your models & DB ----
-from models import VodacomSubscription, Device, User, PendingUser, DeviceEditRequest, ContractEditRequest, SessionFlag, PolicyDocument, PolicyDocumentUserAccess
+from models import VodacomSubscription, Device, User, PendingUser, DeviceEditRequest, ContractEditRequest, SessionFlag, AttendanceSession, PolicyDocument, PolicyDocumentUserAccess
 from database import SessionLocal, engine, Base, ensure_local_sqlite_schema
 
 
@@ -615,6 +615,63 @@ def api_list_employees(request: Request, db: Session = Depends(get_db)):
     return JSONResponse(out)
 
 
+def _auto_resolve_session_flags_for_pin(
+    db: Session,
+    pin: str,
+    resolved_by_user_id: Optional[int] = None,
+) -> int:
+    from models import AttendanceSession
+
+    open_flags = db.query(SessionFlag).filter(
+        SessionFlag.pin == str(pin),
+        SessionFlag.status == "open",
+    ).all()
+
+    if not open_flags:
+        return 0
+
+    resolved_count = 0
+    now_utc = datetime.utcnow()
+
+    for flag in open_flags:
+        ts = flag.event_timestamp
+        if not ts:
+            continue
+
+        should_resolve = False
+
+        if flag.flag_type == "checkin_while_open":
+            has_prior_open = db.query(AttendanceSession).filter(
+                AttendanceSession.pin == str(pin),
+                AttendanceSession.check_in < ts,
+                or_(
+                    AttendanceSession.check_out.is_(None),
+                    AttendanceSession.check_out > ts,
+                ),
+            ).first()
+            should_resolve = has_prior_open is None
+
+        elif flag.flag_type == "checkout_without_open":
+            # Consider fixed when a nearby checkout now represents this event.
+            closed_sessions = db.query(AttendanceSession).filter(
+                AttendanceSession.pin == str(pin),
+                AttendanceSession.check_in < ts,
+                AttendanceSession.check_out.isnot(None),
+            ).all()
+            should_resolve = any(
+                s.check_out and abs((s.check_out - ts).total_seconds()) <= 300
+                for s in closed_sessions
+            )
+
+        if should_resolve:
+            flag.status = "resolved"
+            flag.resolved_at = now_utc
+            flag.resolved_by_user_id = resolved_by_user_id
+            resolved_count += 1
+
+    return resolved_count
+
+
 @app.get("/api/employees/summary")
 def api_employees_summary(request: Request, db: Session = Depends(get_db)):
     _ensure_api_access(request, "time_attendance")
@@ -920,6 +977,8 @@ async def api_update_attendance_session(
     if not isinstance(data, dict):
         raise HTTPException(status_code=400, detail="Invalid JSON payload")
 
+    current_user_id = request.session.get("user_id")
+
     session = db.query(AttendanceSession).filter(
         AttendanceSession.id == session_id
     ).with_for_update().first()
@@ -964,6 +1023,12 @@ async def api_update_attendance_session(
     else:
         session.status = "closed"
 
+    auto_resolved_flags = _auto_resolve_session_flags_for_pin(
+        db,
+        str(session.pin),
+        current_user_id,
+    )
+
     db.commit()
     db.refresh(session)
 
@@ -976,6 +1041,7 @@ async def api_update_attendance_session(
             "check_out": session.check_out.isoformat() if session.check_out else None,
             "status": session.status,
         },
+        "auto_resolved_flags": auto_resolved_flags,
     })
 
 
@@ -994,12 +1060,21 @@ def api_delete_attendance_session(
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
 
+    pin = str(session.pin)
+    current_user_id = request.session.get("user_id")
+
     db.delete(session)
+    auto_resolved_flags = _auto_resolve_session_flags_for_pin(
+        db,
+        pin,
+        current_user_id,
+    )
     db.commit()
 
     return JSONResponse({
         "ok": True,
         "deleted_session_id": session_id,
+        "auto_resolved_flags": auto_resolved_flags,
     })
 
 

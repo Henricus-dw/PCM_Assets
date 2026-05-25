@@ -225,15 +225,19 @@
                                 </div>
 
                                 <div class="remediation-context-grid">
-                                    <article class="remediation-context-card">
+                                    <article id="remediationPreviousCard" class="remediation-context-card"
+                                        data-role="previous">
                                         <div class="remediation-context-label">Previous</div>
                                         <div id="remediationPrevious">-</div>
                                     </article>
-                                    <article class="remediation-context-card remediation-context-card--active">
+                                    <article id="remediationCurrentCard"
+                                        class="remediation-context-card remediation-context-card--active"
+                                        data-role="current">
                                         <div class="remediation-context-label">Current</div>
                                         <div id="remediationCurrent">-</div>
                                     </article>
-                                    <article class="remediation-context-card">
+                                    <article id="remediationNextCard" class="remediation-context-card"
+                                        data-role="following">
                                         <div class="remediation-context-label">Following</div>
                                         <div id="remediationNext">-</div>
                                     </article>
@@ -426,11 +430,14 @@
             const previousEl = document.getElementById('remediationPrevious');
             const currentEl = document.getElementById('remediationCurrent');
             const nextEl = document.getElementById('remediationNext');
+            const previousCard = document.getElementById('remediationPreviousCard');
+            const currentCard = document.getElementById('remediationCurrentCard');
+            const nextCard = document.getElementById('remediationNextCard');
             const checkInEl = document.getElementById('remediationCheckIn');
             const checkOutEl = document.getElementById('remediationCheckOut');
             const noteEl = document.getElementById('remediationNote');
 
-            if (!emptyEl || !panelEl || !statePill || !statusPill || !titleEl || !metaEl || !previousEl || !currentEl || !nextEl || !checkInEl || !checkOutEl || !noteEl) {
+            if (!emptyEl || !panelEl || !statePill || !statusPill || !titleEl || !metaEl || !previousEl || !currentEl || !nextEl || !previousCard || !currentCard || !nextCard || !checkInEl || !checkOutEl || !noteEl) {
                 return;
             }
 
@@ -457,6 +464,25 @@
             currentEl.innerHTML = sessionDisplaySummary(context.current);
             nextEl.innerHTML = sessionDisplaySummary(context.next);
 
+            if (context.previous) {
+                previousCard.dataset.sessionId = String(context.previous.id);
+                previousCard.classList.add('is-nav');
+            } else {
+                delete previousCard.dataset.sessionId;
+                previousCard.classList.remove('is-nav');
+            }
+
+            currentCard.dataset.sessionId = String(context.current.id);
+            currentCard.classList.remove('is-nav');
+
+            if (context.next) {
+                nextCard.dataset.sessionId = String(context.next.id);
+                nextCard.classList.add('is-nav');
+            } else {
+                delete nextCard.dataset.sessionId;
+                nextCard.classList.remove('is-nav');
+            }
+
             const hasDraftChanges = remediationHasChanges();
             const canPreserveDraft = hasDraftChanges && !forceFormRefresh;
 
@@ -472,7 +498,7 @@
             updateRemediationActionsVisibility();
         }
 
-        function selectSession(session, source = 'row', flag = null) {
+        function selectSession(session, source = 'row', flag = null, shouldScroll = false) {
             selectedSessionId = session ? Number(session.id) : null;
             selectedSessionSource = source || 'row';
             highlightedFlagId = flag ? Number(flag.id) : null;
@@ -483,6 +509,58 @@
             } else {
                 populateRemediationPanel(null, true);
             }
+
+            if (session && shouldScroll) {
+                setTimeout(() => {
+                    const row = document.querySelector(`#sessionsBody tr[data-session-id="${CSS.escape(String(session.id))}"]`);
+                    row?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 0);
+            }
+        }
+
+        function animateRemediationContext(direction) {
+            const grid = document.querySelector('.remediation-context-grid');
+            if (!grid) return;
+
+            grid.classList.remove('is-shifting-left', 'is-shifting-right');
+            // Force reflow so repeated clicks can retrigger animation.
+            void grid.offsetWidth;
+            grid.classList.add(direction === 'left' ? 'is-shifting-left' : 'is-shifting-right');
+
+            window.setTimeout(() => {
+                grid.classList.remove('is-shifting-left', 'is-shifting-right');
+            }, 360);
+        }
+
+        function bindRemediationContextNavigation() {
+            const grid = document.querySelector('.remediation-context-grid');
+            if (!grid) return;
+
+            const jump = (cardEl) => {
+                const role = cardEl?.dataset?.role;
+                const targetId = Number(cardEl?.dataset?.sessionId || 0);
+                if (!targetId || role === 'current') return;
+
+                const target = sessionsData.find((session) => Number(session.id) === targetId);
+                if (!target) return;
+
+                animateRemediationContext(role === 'following' ? 'left' : 'right');
+                selectSession(target, 'row', null, true);
+            };
+
+            grid.addEventListener('click', (event) => {
+                const cardEl = event.target.closest('.remediation-context-card');
+                if (!cardEl) return;
+                jump(cardEl);
+            });
+
+            grid.addEventListener('keydown', (event) => {
+                if (event.key !== 'Enter' && event.key !== ' ') return;
+                const cardEl = event.target.closest('.remediation-context-card');
+                if (!cardEl) return;
+                event.preventDefault();
+                jump(cardEl);
+            });
         }
 
         async function saveRemediationSession() {
@@ -640,14 +718,7 @@
                 return;
             }
 
-            selectSession(target, 'flag', flag);
-
-            if (shouldScroll) {
-                setTimeout(() => {
-                    const row = document.querySelector(`#sessionsBody tr[data-session-id="${CSS.escape(String(target.id))}"]`);
-                    row?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }, 0);
-            }
+            selectSession(target, 'flag', flag, shouldScroll);
         }
 
         async function refreshSessionFlags() {
@@ -955,6 +1026,7 @@
             if (!startInput.value) startInput.value = today;
             if (!endInput.value) endInput.value = today;
             bindSessionColumnFilters();
+            bindRemediationContextNavigation();
             updateSessionActiveFilters();
 
             document.getElementById('taFilterToolbarBtn')?.addEventListener('click', () => {
@@ -991,7 +1063,7 @@
                 if (!row || !row.dataset.sessionId) return;
                 const session = sessionsData.find((item) => Number(item.id) === Number(row.dataset.sessionId));
                 if (session) {
-                    selectSession(session, 'row', null);
+                    selectSession(session, 'row', null, false);
                 }
             });
 
@@ -1002,7 +1074,7 @@
                 event.preventDefault();
                 const session = sessionsData.find((item) => Number(item.id) === Number(row.dataset.sessionId));
                 if (session) {
-                    selectSession(session, 'row', null);
+                    selectSession(session, 'row', null, false);
                 }
             });
 

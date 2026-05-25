@@ -535,9 +535,64 @@ body.time-attendance-dashboard .remediation-context-card {
     min-height: 0;
 }
 
+body.time-attendance-dashboard .remediation-context-card.is-nav {
+    cursor: pointer;
+    transition: border-color 140ms ease, background-color 140ms ease, transform 140ms ease;
+}
+
+body.time-attendance-dashboard .remediation-context-card.is-nav:hover,
+body.time-attendance-dashboard .remediation-context-card.is-nav:focus-visible {
+    border-color: rgba(64, 98, 98, 0.45);
+    background: #f7fbfb;
+    transform: translateY(-1px);
+    outline: none;
+}
+
 body.time-attendance-dashboard .remediation-context-card--active {
     border-color: rgba(64, 98, 98, 0.35);
     background: #f7fbfb;
+}
+
+body.time-attendance-dashboard .remediation-context-grid.is-shifting-left {
+    animation: remediationShiftLeft 340ms ease;
+}
+
+body.time-attendance-dashboard .remediation-context-grid.is-shifting-right {
+    animation: remediationShiftRight 340ms ease;
+}
+
+@keyframes remediationShiftLeft {
+    0% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    45% {
+        transform: translateX(-14px);
+        opacity: 0.92;
+    }
+
+    100% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes remediationShiftRight {
+    0% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    45% {
+        transform: translateX(14px);
+        opacity: 0.92;
+    }
+
+    100% {
+        transform: translateX(0);
+        opacity: 1;
+    }
 }
 
 body.time-attendance-dashboard .remediation-context-label {
