@@ -334,10 +334,11 @@ body.time-attendance-dashboard #sessionsTable tbody td:last-child {
 }
 
 body.time-attendance-dashboard .ta-side-rail {
-    display: block;
+    display: flex;
+    flex-direction: column;
     gap: 0.72rem;
-    min-height: auto;
-    height: auto;
+    min-height: 0;
+    height: 100%;
 }
 
 body.time-attendance-dashboard .ta-flags-card {
@@ -629,7 +630,8 @@ body.time-attendance-dashboard #sessionsTable tbody tr.session-selected-flag:hov
     }
 
     body.time-attendance-dashboard .ta-side-rail {
-        display: block;
+        display: flex;
+        flex-direction: column;
         height: auto;
     }
 
