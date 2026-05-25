@@ -471,7 +471,7 @@
             if (col === 'company') return String(session.company || '').toLowerCase();
             if (col === 'site') return String(session.site || '').toLowerCase();
             if (col === 'division') return String(session.division || '').toLowerCase();
-            if (col === 'check_in') return String(fmt(session.check_in) || '').toLowerCase();
+            if (col === 'check_in') return String(session.status === 'orphan' ? '' : fmt(session.check_in) || '').toLowerCase();
             if (col === 'check_out') return String(fmt(session.check_out) || '').toLowerCase();
             if (col === 'duration') return String(formatDuration(session.duration_seconds) || '').toLowerCase();
             return '';
@@ -492,13 +492,14 @@
                 const dur = formatDuration(s.duration_seconds);
                 const key = sessionKey(s);
                 const rowClass = key === highlightedSessionKey ? 'session-highlight' : '';
+                const checkInValue = s.status === 'orphan' ? '' : fmt(s.check_in);
                 return `
                     <tr class="${rowClass}" data-session-key="${key}">
                         <td>${name}</td>
                         <td>${company}</td>
                         <td>${site}</td>
                         <td>${division}</td>
-                        <td>${fmt(s.check_in)}</td>
+                        <td>${checkInValue}</td>
                         <td>${fmt(s.check_out)}</td>
                         <td>${dur}</td>
                     </tr>

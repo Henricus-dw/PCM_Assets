@@ -474,7 +474,7 @@ body.time-attendance-dashboard .flag-meta {
 
 body.time-attendance-dashboard #sessionsTable tbody tr.session-highlight,
 body.time-attendance-dashboard #sessionsTable tbody tr.session-highlight:hover {
-    background: #fff2cc;
+    background: #fee2e2;
 }
 
 @media (max-width: 1280px) {

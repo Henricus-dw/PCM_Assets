@@ -896,6 +896,7 @@ def api_sessions_today(request: Request, db: Session = Depends(get_db), start_da
             "check_in": s.check_in.isoformat() if s.check_in else None,
             "check_out": s.check_out.isoformat() if s.check_out else None,
             "duration_seconds": duration_seconds(s),
+            "status": s.status,
         })
 
     return JSONResponse(out)
