@@ -14,7 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from passlib.context import CryptContext
 from starlette.middleware.sessions import SessionMiddleware
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import Any, List, Optional
 from datetime import date, datetime, timedelta
 import calendar
 import os
@@ -27,7 +27,7 @@ from urllib.parse import urlencode
 from auth import get_current_user, require_admin
 
 # ---- Your models & DB ----
-from models import VodacomSubscription, Device, User, PendingUser, DeviceEditRequest, ContractEditRequest, SessionFlag, AttendanceSession, PolicyDocument, PolicyDocumentUserAccess
+from models import VodacomSubscription, Device, User, PendingUser, DeviceEditRequest, ContractEditRequest, AttendanceSession, PolicyDocument, PolicyDocumentUserAccess
 from database import SessionLocal, engine, Base, ensure_local_sqlite_schema
 
 
@@ -615,63 +615,177 @@ def api_list_employees(request: Request, db: Session = Depends(get_db)):
     return JSONResponse(out)
 
 
-def _auto_resolve_session_flags_for_pin(
-    db: Session,
-    pin: str,
-    resolved_by_user_id: Optional[int] = None,
-) -> int:
-    from models import AttendanceSession
+def _parse_attendance_date_range(
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+) -> tuple[datetime, datetime]:
+    def parse_date(value: Optional[str]) -> date:
+        if not value:
+            return date.today()
+        try:
+            return datetime.strptime(value, "%Y-%m-%d").date()
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid date")
 
-    open_flags = db.query(SessionFlag).filter(
-        SessionFlag.pin == str(pin),
-        SessionFlag.status == "open",
-    ).all()
+    start = parse_date(start_date)
+    end = parse_date(end_date) if end_date else start
+    if end < start:
+        raise HTTPException(status_code=400, detail="Invalid date range")
 
-    if not open_flags:
-        return 0
+    return (
+        datetime.combine(start, datetime.min.time()),
+        datetime.combine(end, datetime.max.time()),
+    )
 
-    resolved_count = 0
-    now_utc = datetime.utcnow()
-    duplicate_checkin_tolerance = timedelta(seconds=90)
 
-    for flag in open_flags:
-        ts = flag.event_timestamp
-        if not ts:
+def _get_employee_lookup_by_pin(db: Session, pins: set[str]) -> dict[str, Any]:
+    from models import Employee
+
+    pin_ints = []
+    for pin in pins:
+        try:
+            pin_ints.append(int(pin))
+        except (TypeError, ValueError):
             continue
 
-        should_resolve = False
+    employees = []
+    if pins:
+        filters = [Employee.Employee_id.in_(pins)]
+        if pin_ints:
+            filters.append(Employee.PIN.in_(pin_ints))
+        employees = db.query(Employee).filter(or_(*filters)).all()
 
-        if flag.flag_type == "checkin_while_open":
-            prior_open_cutoff = ts - duplicate_checkin_tolerance
-            has_prior_open = db.query(AttendanceSession).filter(
-                AttendanceSession.pin == str(pin),
-                AttendanceSession.check_in < prior_open_cutoff,
-                or_(
-                    AttendanceSession.check_out.is_(None),
-                    AttendanceSession.check_out > ts,
-                ),
-            ).first()
-            should_resolve = has_prior_open is None
+    employee_by_pin = {str(e.Employee_id): e for e in employees}
+    for employee in employees:
+        employee_by_pin.setdefault(str(employee.PIN), employee)
+    return employee_by_pin
 
-        elif flag.flag_type == "checkout_without_open":
-            # Consider fixed when a valid session now spans the flagged event time.
-            matched_sessions = db.query(AttendanceSession).filter(
-                AttendanceSession.pin == str(pin),
-                AttendanceSession.check_in <= ts,
-                AttendanceSession.check_out.isnot(None),
-            ).all()
-            should_resolve = any(
-                s.check_out and s.check_out >= ts
-                for s in matched_sessions
+
+def _build_live_session_flags(
+    db: Session,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    pin: Optional[str] = None,
+    limit: int = 50,
+) -> list[dict[str, Any]]:
+    from models import AttendanceSession
+
+    start_dt, end_dt = _parse_attendance_date_range(start_date, end_date)
+    query = db.query(AttendanceSession).filter(
+        AttendanceSession.check_in >= start_dt,
+        AttendanceSession.check_in <= end_dt,
+    )
+    if pin:
+        query = query.filter(AttendanceSession.pin == str(pin))
+
+    sessions = query.order_by(
+        AttendanceSession.pin.asc(),
+        AttendanceSession.check_in.asc(),
+        AttendanceSession.id.asc(),
+    ).all()
+
+    employee_by_pin = _get_employee_lookup_by_pin(
+        db,
+        {str(session.pin) for session in sessions if session.pin is not None},
+    )
+
+    duplicate_checkin_tolerance = timedelta(seconds=90)
+    flags_with_sort = []
+    sessions_by_pin = {}
+    for session in sessions:
+        sessions_by_pin.setdefault(str(session.pin or ""), []).append(session)
+
+    def employee_payload(pin_value: str) -> tuple[Optional[str], Optional[str]]:
+        employee = employee_by_pin.get(str(pin_value))
+        if not employee:
+            return None, None
+        full_name = f"{(employee.Name_ or '').strip()} {(employee.Surname_ or '').strip()}".strip(
+        ) or None
+        employee_number = employee.Employee_id or None
+        return full_name, employee_number
+
+    for pin_value, pin_sessions in sessions_by_pin.items():
+        active_sessions = []
+
+        for session in pin_sessions:
+            check_in = session.check_in
+            if not check_in:
+                continue
+
+            active_sessions = [
+                prev for prev in active_sessions
+                if prev.check_out is None or prev.check_out > check_in
+            ]
+            conflicting_sessions = [
+                prev for prev in active_sessions
+                if prev.check_in and prev.check_in < (check_in - duplicate_checkin_tolerance)
+            ]
+
+            if conflicting_sessions:
+                employee_name, employee_number = employee_payload(pin_value)
+                reason = "Check-in while already checked in."
+                flags_with_sort.append((
+                    check_in,
+                    {
+                        "id": int(session.id) * 10 + 1,
+                        "session_id": session.id,
+                        "attendance_log_id": None,
+                        "pin": session.pin,
+                        "employee_name": employee_name,
+                        "employee_number": employee_number,
+                        "event_timestamp": check_in.isoformat(),
+                        "event_status": 0,
+                        "flag_type": "checkin_while_open",
+                        "flag_reason": reason,
+                        "status": "open",
+                        "created_at": check_in.isoformat(),
+                        "resolved_at": None,
+                        "resolved_by_user_id": None,
+                    }
+                ))
+
+            active_sessions.append(session)
+
+        for session in pin_sessions:
+            is_orphan = session.status == "orphan" or (
+                session.check_in is not None
+                and session.check_out is not None
+                and session.check_out == session.check_in
             )
+            if not is_orphan:
+                continue
 
-        if should_resolve:
-            flag.status = "resolved"
-            flag.resolved_at = now_utc
-            flag.resolved_by_user_id = resolved_by_user_id
-            resolved_count += 1
+            event_time = session.check_out or session.check_in
+            if not event_time:
+                continue
 
-    return resolved_count
+            employee_name, employee_number = employee_payload(pin_value)
+            reason = "Check-out with no latest open session available."
+            flags_with_sort.append((
+                event_time,
+                {
+                    "id": int(session.id) * 10 + 2,
+                    "session_id": session.id,
+                    "attendance_log_id": None,
+                    "pin": session.pin,
+                    "employee_name": employee_name,
+                    "employee_number": employee_number,
+                    "event_timestamp": event_time.isoformat(),
+                    "event_status": 1,
+                    "flag_type": "checkout_without_open",
+                    "flag_reason": reason,
+                    "status": "open",
+                    "created_at": event_time.isoformat(),
+                    "resolved_at": None,
+                    "resolved_by_user_id": None,
+                }
+            ))
+
+    flags_with_sort.sort(
+        key=lambda item: (item[0], item[1]["id"]),
+        reverse=True,
+    )
+    return [flag for _, flag in flags_with_sort[:limit]]
 
 
 @app.get("/api/employees/summary")
@@ -979,8 +1093,6 @@ async def api_update_attendance_session(
     if not isinstance(data, dict):
         raise HTTPException(status_code=400, detail="Invalid JSON payload")
 
-    current_user_id = request.session.get("user_id")
-
     session = db.query(AttendanceSession).filter(
         AttendanceSession.id == session_id
     ).with_for_update().first()
@@ -1025,12 +1137,6 @@ async def api_update_attendance_session(
     else:
         session.status = "closed"
 
-    auto_resolved_flags = _auto_resolve_session_flags_for_pin(
-        db,
-        str(session.pin),
-        current_user_id,
-    )
-
     db.commit()
     db.refresh(session)
 
@@ -1043,7 +1149,6 @@ async def api_update_attendance_session(
             "check_out": session.check_out.isoformat() if session.check_out else None,
             "status": session.status,
         },
-        "auto_resolved_flags": auto_resolved_flags,
     })
 
 
@@ -1062,68 +1167,12 @@ def api_delete_attendance_session(
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
 
-    pin = str(session.pin)
-    current_user_id = request.session.get("user_id")
-
     db.delete(session)
-    auto_resolved_flags = _auto_resolve_session_flags_for_pin(
-        db,
-        pin,
-        current_user_id,
-    )
     db.commit()
 
     return JSONResponse({
         "ok": True,
         "deleted_session_id": session_id,
-        "auto_resolved_flags": auto_resolved_flags,
-    })
-
-
-@app.post("/api/session-flags/revalidate")
-def api_revalidate_session_flags(
-    request: Request,
-    db: Session = Depends(get_db),
-    pin: Optional[str] = None,
-):
-    _ensure_api_access(request, "time_attendance")
-
-    q = db.query(SessionFlag).filter(SessionFlag.status == "open")
-    if pin:
-        q = q.filter(SessionFlag.pin == str(pin))
-
-    open_flags = q.all()
-    if not open_flags:
-        return JSONResponse({
-            "ok": True,
-            "pins_checked": 0,
-            "auto_resolved_flags": 0,
-            "remaining_open_flags": 0,
-        })
-
-    current_user_id = request.session.get("user_id")
-    pins = sorted({str(flag.pin)
-                  for flag in open_flags if flag.pin is not None})
-
-    total_resolved = 0
-    for pin_value in pins:
-        total_resolved += _auto_resolve_session_flags_for_pin(
-            db,
-            pin_value,
-            current_user_id,
-        )
-
-    db.commit()
-
-    remaining_q = db.query(SessionFlag).filter(SessionFlag.status == "open")
-    if pin:
-        remaining_q = remaining_q.filter(SessionFlag.pin == str(pin))
-
-    return JSONResponse({
-        "ok": True,
-        "pins_checked": len(pins),
-        "auto_resolved_flags": total_resolved,
-        "remaining_open_flags": remaining_q.count(),
     })
 
 
@@ -1133,60 +1182,24 @@ def api_session_flags(
     db: Session = Depends(get_db),
     status: str = "open",
     limit: int = 50,
+    pin: Optional[str] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
 ):
     _ensure_api_access(request, "time_attendance")
-    from models import Employee
 
     limit = max(1, min(int(limit), 200))
-    q = db.query(SessionFlag)
-    if status:
-        q = q.filter(SessionFlag.status == status)
+    if status and status.lower() != "open":
+        return JSONResponse([])
 
-    rows = q.order_by(SessionFlag.created_at.desc()).limit(limit).all()
-
-    pins = {str(r.pin) for r in rows if r.pin is not None}
-    pin_ints = []
-    for pin in pins:
-        try:
-            pin_ints.append(int(pin))
-        except (TypeError, ValueError):
-            continue
-
-    employees = []
-    if pins:
-        filters = [Employee.Employee_id.in_(pins)]
-        if pin_ints:
-            filters.append(Employee.PIN.in_(pin_ints))
-        employees = db.query(Employee).filter(or_(*filters)).all()
-
-    employee_by_pin = {str(e.Employee_id): e for e in employees}
-    for e in employees:
-        employee_by_pin.setdefault(str(e.PIN), e)
-
-    return JSONResponse([
-        {
-            "id": r.id,
-            "attendance_log_id": r.attendance_log_id,
-            "pin": r.pin,
-            "employee_name": (
-                f"{(employee_by_pin.get(str(r.pin)).Name_ or '').strip()} {(employee_by_pin.get(str(r.pin)).Surname_ or '').strip()}".strip()
-                if employee_by_pin.get(str(r.pin)) else None
-            ),
-            "employee_number": (
-                employee_by_pin.get(str(r.pin)).Employee_id if employee_by_pin.get(
-                    str(r.pin)) else None
-            ),
-            "event_timestamp": r.event_timestamp.isoformat() if r.event_timestamp else None,
-            "event_status": r.event_status,
-            "flag_type": r.flag_type,
-            "flag_reason": r.flag_reason,
-            "status": r.status,
-            "created_at": r.created_at.isoformat() if r.created_at else None,
-            "resolved_at": r.resolved_at.isoformat() if r.resolved_at else None,
-            "resolved_by_user_id": r.resolved_by_user_id,
-        }
-        for r in rows
-    ])
+    rows = _build_live_session_flags(
+        db,
+        start_date=start_date,
+        end_date=end_date,
+        pin=pin,
+        limit=limit,
+    )
+    return JSONResponse(rows)
 
 
 @app.get("/api/accumulated-hours")

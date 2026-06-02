@@ -673,6 +673,11 @@
         }
 
         function findSessionForFlag(flag, sessions) {
+            if (flag?.session_id) {
+                const directMatch = sessions.find((session) => Number(session.id) === Number(flag.session_id));
+                if (directMatch) return directMatch;
+            }
+
             const flagTs = parseTs(flag?.event_timestamp);
             const pin = String(flag?.pin || '');
             if (!flagTs || !pin) return null;
@@ -730,7 +735,13 @@
             const countEl = document.getElementById('sessionFlagsCount');
             if (!body || !countEl) return;
 
-            const res = await fetch('/api/session-flags?status=open&limit=50');
+            const startInput = document.getElementById('filterStartDate');
+            const endInput = document.getElementById('filterEndDate');
+            const today = new Date().toISOString().slice(0, 10);
+            const startVal = startInput?.value || today;
+            const endVal = endInput?.value || today;
+
+            const res = await fetch(`/api/session-flags?status=open&limit=50&start_date=${encodeURIComponent(startVal)}&end_date=${encodeURIComponent(endVal)}`);
             if (!res.ok) {
                 body.innerHTML = '<div class="muted">Could not load flags</div>';
                 return;
@@ -793,20 +804,10 @@
             }
 
             try {
-                const res = await fetch('/api/session-flags/revalidate', {
-                    method: 'POST',
-                });
-                if (!res.ok) {
-                    const text = await res.text();
-                    throw new Error(text || 'Could not revalidate flags');
-                }
-
-                const result = await res.json();
                 await refreshSessionFlags();
 
                 if (refreshBtn) {
-                    const resolved = Number(result?.auto_resolved_flags || 0);
-                    refreshBtn.textContent = resolved > 0 ? `Resolved ${resolved}` : 'No changes';
+                    refreshBtn.textContent = 'Updated';
                 }
             } catch (err) {
                 if (refreshBtn) {
@@ -1083,7 +1084,9 @@
             });
 
             startInput.addEventListener('change', refreshSessions);
+            startInput.addEventListener('change', refreshSessionFlags);
             endInput.addEventListener('change', refreshSessions);
+            endInput.addEventListener('change', refreshSessionFlags);
             refreshSessions();
             refreshSessionFlags();
             autoRefreshInterval = setInterval(() => {
