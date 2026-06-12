@@ -1143,11 +1143,23 @@
 
         // Auto-refresh every 5 seconds
         document.addEventListener('DOMContentLoaded', () => {
-            const today = new Date().toISOString().slice(0, 10);
+            const todayDate = new Date();
+            const startDate = new Date(todayDate);
+            startDate.setDate(startDate.getDate() - 7);
+
+            const toInputDate = (value) => {
+                const year = value.getFullYear();
+                const month = String(value.getMonth() + 1).padStart(2, '0');
+                const day = String(value.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            };
+
+            const today = toInputDate(todayDate);
+            const sevenDaysPrior = toInputDate(startDate);
             const startInput = document.getElementById('filterStartDate');
             const endInput = document.getElementById('filterEndDate');
             const sessionsBody = document.getElementById('sessionsBody');
-            if (!startInput.value) startInput.value = today;
+            if (!startInput.value) startInput.value = sevenDaysPrior;
             if (!endInput.value) endInput.value = today;
             bindSessionColumnFilters();
             bindRemediationContextNavigation();
