@@ -716,6 +716,98 @@
             return latestBeforeEvent[0] || samePin.sort(byLatestCheckIn)[0] || null;
         }
 
+        function buildLiveSessionFlags(rows) {
+            const byPin = new Map();
+            const seenKeys = new Set();
+            const flags = [];
+
+            rows.forEach((session) => {
+                const pin = String(session?.pin || '');
+                if (!pin) return;
+                if (!byPin.has(pin)) byPin.set(pin, []);
+                byPin.get(pin).push(session);
+            });
+
+            const pushFlag = (session, flagType, flagReason, eventTimestamp, eventStatus) => {
+                const key = `${session.id}:${flagType}`;
+                if (seenKeys.has(key)) return;
+                seenKeys.add(key);
+
+                flags.push({
+                    id: Number(session.id) * 10 + (flagType === 'checkin_while_open' ? 1 : 2),
+                    session_id: session.id,
+                    attendance_log_id: null,
+                    pin: session.pin,
+                    employee_name: session.full_name || null,
+                    employee_number: String(session.pin || ''),
+                    event_timestamp: eventTimestamp,
+                    event_status: eventStatus,
+                    flag_type: flagType,
+                    flag_reason: flagReason,
+                    status: 'open',
+                    created_at: eventTimestamp,
+                    resolved_at: null,
+                    resolved_by_user_id: null,
+                });
+            };
+
+            const byCheckInThenId = (a, b) => {
+                const aTs = parseTs(a.check_in) || 0;
+                const bTs = parseTs(b.check_in) || 0;
+                if (aTs !== bTs) return aTs - bTs;
+                return Number(a.id) - Number(b.id);
+            };
+
+            for (const sessions of byPin.values()) {
+                const ordered = sessions.slice().sort(byCheckInThenId);
+                const openSessions = [];
+
+                for (const session of ordered) {
+                    const checkInTs = parseTs(session.check_in);
+                    if (!checkInTs) continue;
+
+                    const overlapping = openSessions.filter((prev) => {
+                        const prevOutTs = parseTs(prev.check_out);
+                        return prevOutTs === null || prevOutTs > checkInTs;
+                    });
+
+                    if (overlapping.length) {
+                        pushFlag(
+                            session,
+                            'checkin_while_open',
+                            'Check-in while already checked in.',
+                            session.check_in,
+                            0,
+                        );
+                    }
+
+                    openSessions.push(session);
+                }
+
+                for (const session of ordered) {
+                    const isOrphan = session.status === 'orphan' || (
+                        session.check_in &&
+                        session.check_out &&
+                        session.check_out === session.check_in
+                    );
+                    if (!isOrphan) continue;
+
+                    const eventTimestamp = session.check_out || session.check_in;
+                    if (!eventTimestamp) continue;
+
+                    pushFlag(
+                        session,
+                        'checkout_without_open',
+                        'Check-out with no latest open session available.',
+                        eventTimestamp,
+                        1,
+                    );
+                }
+            }
+
+            return flags;
+        }
+
         function highlightFlagSession(flag, shouldScroll = true) {
             const target = findSessionForFlag(flag, sessionsData);
             highlightedFlagId = Number(flag?.id || 0) || null;
@@ -735,20 +827,7 @@
             const countEl = document.getElementById('sessionFlagsCount');
             if (!body || !countEl) return;
 
-            const startInput = document.getElementById('filterStartDate');
-            const endInput = document.getElementById('filterEndDate');
-            const today = new Date().toISOString().slice(0, 10);
-            const startVal = startInput?.value || today;
-            const endVal = endInput?.value || today;
-
-            const res = await fetch(`/api/session-flags?status=open&limit=50&start_date=${encodeURIComponent(startVal)}&end_date=${encodeURIComponent(endVal)}`);
-            if (!res.ok) {
-                body.innerHTML = '<div class="muted">Could not load flags</div>';
-                return;
-            }
-
-            const flags = await res.json();
-            const rows = Array.isArray(flags) ? flags : [];
+            const rows = buildLiveSessionFlags(sessionsData);
             countEl.innerText = String(rows.length);
 
             if (!rows.length) {
@@ -804,6 +883,7 @@
             }
 
             try {
+                await refreshSessions();
                 await refreshSessionFlags();
 
                 if (refreshBtn) {
