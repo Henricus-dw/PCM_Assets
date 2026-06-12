@@ -509,6 +509,11 @@ body.time-employees .employee-calendar-card {
     height: 100%;
 }
 
+body.time-employees .employee-calendar-card {
+    display: flex;
+    flex-direction: column;
+}
+
 body.time-employees .employee-detail-head,
 body.time-employees .employee-calendar-head {
     display: flex;
@@ -642,8 +647,8 @@ body.time-employees #calendarEmployeeLabel {
 }
 
 body.time-employees .calendar-body {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
     gap: 0.12rem;
     flex: 1 1 auto;
     min-height: 0;
@@ -657,8 +662,9 @@ body.time-employees .calendar-grid {
 }
 
 body.time-employees .calendar-grid {
-    grid-template-rows: repeat(6, minmax(1fr, 1fr));
+    grid-template-rows: repeat(6, minmax(0, 1fr));
     flex: 1 1 auto;
+    min-height: 0;
 }
 
 body.time-employees .calendar-weekdays div {
@@ -672,7 +678,7 @@ body.time-employees .calendar-day {
     border: 1px solid rgba(193, 200, 199, 0.2);
     border-radius: 0.125rem;
     background: #fff;
-    min-height: 1.4rem;
+    min-height: 0;
     padding: 0.07rem;
     display: flex;
     flex-direction: column;

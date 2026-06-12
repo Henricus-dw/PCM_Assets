@@ -502,7 +502,8 @@
             const visibleChipCount = getVisibleCalendarChipCount();
 
             const leading = Math.max(0, Math.min(6, firstWeekday));
-            const totalCells = Math.ceil((leading + daysInMonth) / 7) * 7;
+            // Keep a stable 6-row month grid so the card layout does not collapse on short months.
+            const totalCells = 42;
 
             const weekdayHtml = weekdays.map(d => `<div>${d}</div>`).join('');
             let gridHtml = '';
