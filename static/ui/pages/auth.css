@@ -98,7 +98,13 @@ main.auth-container {
 }
 
 .auth-showcase-bg {
-    display: none;
+    position: absolute;
+    inset: 0;
+    background-image: url('/static/images/auth-bg.jpg');
+    background-size: cover;
+    background-position: center;
+    opacity: 0.05;
+    z-index: 0;
 }
 
 .auth-showcase::before {
