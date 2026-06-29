@@ -105,7 +105,7 @@ main.auth-container {
     content: '';
     position: absolute;
     inset: 0;
-    background: 
+    background:
         radial-gradient(circle at 80% 20%, rgba(233, 193, 118, 0.15) 0%, transparent 50%),
         radial-gradient(circle at 20% 80%, rgba(107, 142, 142, 0.1) 0%, transparent 50%);
     gap: 0.5rem;
