@@ -107,7 +107,7 @@ main.auth-container {
     content: '';
     position: absolute;
     inset: 0;
-    background: 
+    background:
         linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, transparent 50%),
         rgba(0, 0, 0, 0.35);
     pointer-events: none;
