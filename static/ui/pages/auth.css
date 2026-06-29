@@ -104,7 +104,12 @@ main.auth-container {
 }
 
 .auth-showcase::before {
-    display: none;
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    pointer-events: none;
+    z-index: 1;
 }
 
 .auth-showcase-badge {
