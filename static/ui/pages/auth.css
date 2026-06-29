@@ -75,8 +75,6 @@ main.auth-container {
     background-image: url('/static/images/auth-bg.jpg');
     background-size: cover;
     background-position: center;
-    align-items: center;
-    justify-content: center;
     position: relative;
 }
 
@@ -90,6 +88,19 @@ main.auth-container::after {
     pointer-events: none;
     z-index: 1;
 }
+
+/* ── Left Showcase Section (Dark Theme) ─────────────────── */
+
+.auth-showcase {
+    flex: 1;
+    color: #ffffff;
+    padding: 4rem 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    z-index: 2;
 }
 
 .auth-showcase-bg {
@@ -97,14 +108,7 @@ main.auth-container::after {
 }
 
 .auth-showcase::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background:
-        linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, transparent 50%),
-        rgba(0, 0, 0, 0.35);
-    pointer-events: none;
-    z-index: 1;
+    display: none;
 }
 
 .auth-showcase-badge {
@@ -184,18 +188,13 @@ main.auth-container::after {
 /* ── Right Form Section (Light Theme) ──────────────────── */
 
 .auth-form-section {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    padding: 3rem;
+    flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 0.75rem;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    max-width: 450px;
-    width: 100%;
-    position: absolute;
-    z-index: 10;
+    overflow-y: auto;
+    position: relative;
+    z-index: 5;
 }
 
 /* ── Card ───────────────────────────────────────────────── */
@@ -203,6 +202,11 @@ main.auth-container::after {
 .auth-card {
     width: 100%;
     max-width: 420px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 3rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .auth-card-title {
