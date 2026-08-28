@@ -84,13 +84,16 @@
                                 <h2 id="form-heading">Personal information</h2>
                             </div><span class="personnel-section-count">Required fields marked *</span>
                         </div>
-                        <form method="post" action="/personnel-hub/enrolment" class="personnel-form">
-                            <label class="personnel-field personnel-field--full"><span>Employee *</span><select
-                                    name="employee_id" required>
-                                    <option value="">Select employee</option>{% for employee in employees %}<option
-                                        value="{{ employee.Employee_id }}">{{ employee.Employee_id }} · {{
-                                        employee.Name_ or '' }} {{ employee.Surname_ or '' }}</option>{% endfor %}
-                                </select></label>
+                        <form class="personnel-form" onsubmit="return false;">
+                                <label class="personnel-field"><span>Employee number *</span><input name="employee_id"
+                                    type="text" required autocomplete="off"></label>
+                                <label class="personnel-field"><span>Name *</span><input name="name" type="text"
+                                    required autocomplete="given-name"></label>
+                                <label class="personnel-field"><span>Surname *</span><input name="surname" type="text"
+                                    required autocomplete="family-name"></label>
+                                <label class="personnel-field"><span>Company</span><input name="company" type="text"></label>
+                                <label class="personnel-field"><span>Location / site</span><input name="site" type="text"></label>
+                                <label class="personnel-field"><span>Division</span><input name="division" type="text"></label>
                             <label class="personnel-field"><span>ID / passport number</span><input name="id_number"
                                     type="text" autocomplete="off"></label>
                             <label class="personnel-field"><span>Job title</span><input name="job_title"
@@ -109,8 +112,8 @@
                                     type="date"></label>
                             <label class="personnel-field personnel-field--full"><span>Manager</span><input
                                     name="manager_name" type="text" placeholder="Manager name"></label>
-                            <div class="personnel-form-actions"><button class="personnel-header-action"
-                                    type="submit"><span class="material-symbols-outlined">save</span>Save
+                                <div class="personnel-form-actions"><button class="personnel-header-action"
+                                    type="button"><span class="material-symbols-outlined">save</span>Save
                                     profile</button></div>
                         </form>
                     </section>

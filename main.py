@@ -27,7 +27,7 @@ from urllib.parse import urlencode
 from auth import get_current_user, require_admin
 
 # ---- Your models & DB ----
-from models import VodacomSubscription, Device, User, PendingUser, DeviceEditRequest, ContractEditRequest, AttendanceSession, PolicyDocument, PolicyDocumentUserAccess, Employee, PersonnelProfile
+from models import VodacomSubscription, Device, User, PendingUser, DeviceEditRequest, ContractEditRequest, AttendanceSession, PolicyDocument, PolicyDocumentUserAccess
 from database import SessionLocal, engine, Base, ensure_local_sqlite_schema
 
 
@@ -596,92 +596,15 @@ def personnel_hub(request: Request):
 
 
 @app.get("/personnel-hub/enrolment", response_class=HTMLResponse)
-def personnel_enrolment(request: Request, db: Session = Depends(get_db)):
+def personnel_enrolment(request: Request):
     redirect = _ensure_page_access(request, "time_attendance")
     if redirect:
         return redirect
-    employees = db.query(Employee).order_by(
-        Employee.Surname_, Employee.Name_).all()
-    profiles = {profile.employee_id: profile for profile in db.query(
-        PersonnelProfile).all()}
     return templates.TemplateResponse(
         "personnel_enrolment.html",
         {"request": request, "section": "personnel-enrolment",
-         "employees": employees, "profiles": profiles, "error": None,
+         "employees": [], "profiles": {}, "error": None,
          "success": None, "time": datetime.utcnow().timestamp()}
-    )
-
-
-@app.post("/personnel-hub/enrolment", response_class=HTMLResponse)
-def personnel_enrolment_save(
-    request: Request,
-    employee_id: str = Form(...),
-    id_number: Optional[str] = Form(None),
-    email: Optional[str] = Form(None),
-    phone: Optional[str] = Form(None),
-    job_title: Optional[str] = Form(None),
-    employment_status: str = Form("active"),
-    start_date: Optional[str] = Form(None),
-    manager_name: Optional[str] = Form(None),
-    db: Session = Depends(get_db),
-):
-    redirect = _ensure_page_access(request, "time_attendance")
-    if redirect:
-        return redirect
-
-    employees = db.query(Employee).order_by(
-        Employee.Surname_, Employee.Name_).all()
-    profiles = {profile.employee_id: profile for profile in db.query(
-        PersonnelProfile).all()}
-    employee_id = employee_id.strip()
-    employee = db.query(Employee).filter(
-        Employee.Employee_id == employee_id).first()
-    error = None
-    if not employee:
-        error = "Select an employee from the directory before saving a profile."
-    elif employee_id in profiles:
-        error = "This employee already has a personnel profile."
-
-    parsed_start_date = None
-    if start_date:
-        try:
-            parsed_start_date = datetime.strptime(
-                start_date, "%Y-%m-%d").date()
-        except ValueError:
-            error = "Enter a valid start date."
-
-    if not error:
-        profile = PersonnelProfile(
-            employee_id=employee_id,
-            id_number=(id_number or "").strip() or None,
-            email=(email or "").strip() or None,
-            phone=(phone or "").strip() or None,
-            job_title=(job_title or "").strip() or None,
-            employment_status=employment_status if employment_status in {
-                "active", "on_leave", "inactive"} else "active",
-            start_date=parsed_start_date,
-            manager_name=(manager_name or "").strip() or None,
-        )
-        db.add(profile)
-        try:
-            db.commit()
-            profiles[employee_id] = profile
-            return templates.TemplateResponse(
-                "personnel_enrolment.html",
-                {"request": request, "section": "personnel-enrolment",
-                 "employees": employees, "profiles": profiles, "error": None,
-                 "success": "Personnel profile saved.", "time": datetime.utcnow().timestamp()}
-            )
-        except Exception:
-            db.rollback()
-            error = "The profile could not be saved. Check whether this employee already has a profile."
-
-    return templates.TemplateResponse(
-        "personnel_enrolment.html",
-        {"request": request, "section": "personnel-enrolment",
-         "employees": employees, "profiles": profiles, "error": error,
-         "success": None, "time": datetime.utcnow().timestamp()},
-        status_code=400,
     )
 
 
