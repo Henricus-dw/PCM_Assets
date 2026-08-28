@@ -66,7 +66,8 @@
             </a>
             {% endif %}
 
-            <a href="#" class="landing-module-card">
+            {% if request.session.get('is_admin') or request.session.get('time_attendance') %}
+            <a href="/personnel-hub" class="landing-module-card">
                 <div class="landing-module-card__icon tone-tertiary">
                     <span class="material-symbols-outlined" aria-hidden="true">badge</span>
                 </div>
@@ -78,6 +79,7 @@
                     <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
                 </div>
             </a>
+            {% endif %}
 
             <a href="/policies" class="landing-module-card">
                 <div class="landing-module-card__icon tone-secondary">

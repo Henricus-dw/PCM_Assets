@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Personnel Hub | PCM Tracer</title>
+    <link rel="icon" href="/static/pcm-lockup-goldc-final.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/static/ui/main.css?v={{ time }}">
+    <link rel="stylesheet" href="/static/ui/pages/personnel-hub.css?v={{ time }}">
+</head>
+
+<body class="dashboard-page app-with-sidebar personnel-hub-page">
+    <div class="dashboard-main">
+        <aside class="sidebar">
+            <div class="sidebar-top">
+                <div class="sidebar-brand">
+                    <span class="sidebar-brand-title">Personnel Hub</span>
+                    <span class="sidebar-brand-sub">People Operations</span>
+                </div>
+                <nav class="nav-top">
+                    <a href="/personnel-hub" class="active">
+                        <span class="material-symbols-outlined">space_dashboard</span>
+                        <span>Overview</span>
+                    </a>
+                    <a href="/time-attendance">
+                        <span class="material-symbols-outlined">groups</span>
+                        <span>Employees</span>
+                    </a>
+                    <a href="/time-attendance" class="hub-nav-child">
+                        <span class="material-symbols-outlined">person_add</span>
+                        <span>Enrolment</span>
+                        <span class="hub-nav-status">Next</span>
+                    </a>
+                    <a href="#leave" class="hub-nav-child hub-nav-disabled" aria-disabled="true">
+                        <span class="material-symbols-outlined">event_available</span>
+                        <span>Leave</span>
+                        <span class="hub-nav-status">Next</span>
+                    </a>
+                    <a href="/policies">
+                        <span class="material-symbols-outlined">policy</span>
+                        <span>Policies</span>
+                    </a>
+                    <a href="#training" class="hub-nav-child hub-nav-disabled" aria-disabled="true">
+                        <span class="material-symbols-outlined">school</span>
+                        <span>Training</span>
+                        <span class="hub-nav-status">Next</span>
+                    </a>
+                    <a href="#records" class="hub-nav-child hub-nav-disabled" aria-disabled="true">
+                        <span class="material-symbols-outlined">folder_shared</span>
+                        <span>Personnel Records</span>
+                        <span class="hub-nav-status">Next</span>
+                    </a>
+                </nav>
+            </div>
+            <div class="sidebar-mid">
+                <a href="/" class="sidebar-return" title="Return to modules">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                    <span>Return</span>
+                </a>
+            </div>
+            <div class="nav-bottom">
+                {% if request.session.get('is_admin') %}
+                <a href="/admin?module=biometric">
+                    <span class="material-symbols-outlined">admin_panel_settings</span>
+                    <span>Admin</span>
+                </a>
+                {% endif %}
+                <a href="/settings?module=biometric">
+                    <span class="material-symbols-outlined">settings</span>
+                    <span>Settings</span>
+                </a>
+                <a href="/logout" id="logoutLink">
+                    <span class="material-symbols-outlined">logout</span>
+                    <span>Log Out</span>
+                </a>
+            </div>
+            <button id="sidebarHandle" class="sidebar-handle" aria-label="Collapse sidebar" aria-pressed="false" title="Collapse sidebar">
+                <span class="handle-icon" aria-hidden="true">⟨</span>
+            </button>
+        </aside>
+
+        <main class="dashboard-content">
+            <div class="personnel-shell">
+                <header class="personnel-page-header">
+                    <div>
+                        <p class="personnel-eyebrow">People operations</p>
+                        <h1 class="personnel-title">Personnel Hub</h1>
+                        <p class="personnel-subtitle">A single place to manage employee information, documents, leave, and development.</p>
+                    </div>
+                    <a class="personnel-header-action" href="/time-attendance">
+                        <span class="material-symbols-outlined">groups</span>
+                        Open employees
+                    </a>
+                </header>
+
+                <section class="personnel-section" aria-labelledby="start-heading">
+                    <div class="personnel-section-heading">
+                        <div>
+                            <p class="personnel-kicker">Start here</p>
+                            <h2 id="start-heading">People and records</h2>
+                        </div>
+                        <span class="personnel-section-count">3 available</span>
+                    </div>
+                    <div class="personnel-card-grid">
+                        <a class="personnel-card" href="/time-attendance">
+                            <span class="personnel-card-icon"><span class="material-symbols-outlined">groups</span></span>
+                            <span class="personnel-card-body">
+                                <strong>Employee Directory</strong>
+                                <span>View employee details, sites, divisions, and attendance access.</span>
+                            </span>
+                            <span class="material-symbols-outlined personnel-card-arrow">arrow_forward</span>
+                        </a>
+                        <a class="personnel-card" href="/policies">
+                            <span class="personnel-card-icon"><span class="material-symbols-outlined">policy</span></span>
+                            <span class="personnel-card-body">
+                                <strong>Policies and Procedures</strong>
+                                <span>Browse the documents available to your team.</span>
+                            </span>
+                            <span class="material-symbols-outlined personnel-card-arrow">arrow_forward</span>
+                        </a>
+                        <a class="personnel-card" href="/time-attendance-dashboard">
+                            <span class="personnel-card-icon"><span class="material-symbols-outlined">calendar_month</span></span>
+                            <span class="personnel-card-body">
+                                <strong>Attendance</strong>
+                                <span>Review attendance sessions and identify follow-up work.</span>
+                            </span>
+                            <span class="material-symbols-outlined personnel-card-arrow">arrow_forward</span>
+                        </a>
+                    </div>
+                </section>
+
+                <section class="personnel-section personnel-section--quiet" id="leave" aria-labelledby="roadmap-heading">
+                    <div class="personnel-section-heading">
+                        <div>
+                            <p class="personnel-kicker">Planned workflow</p>
+                            <h2 id="roadmap-heading">Next in the hub</h2>
+                        </div>
+                        <span class="personnel-section-count">4 planned</span>
+                    </div>
+                    <div class="personnel-roadmap">
+                        <div class="personnel-roadmap-row">
+                            <span class="personnel-roadmap-icon"><span class="material-symbols-outlined">person_add</span></span>
+                            <span><strong>Personnel enrolment</strong><small>Personal details, employment contract, ID, NDA, and bank details.</small></span>
+                            <span class="personnel-roadmap-label">Next</span>
+                        </div>
+                        <div class="personnel-roadmap-row">
+                            <span class="personnel-roadmap-icon"><span class="material-symbols-outlined">event_available</span></span>
+                            <span><strong>Leave management</strong><small>Employee requests, manager approval, and leave history.</small></span>
+                            <span class="personnel-roadmap-label">Planned</span>
+                        </div>
+                        <div class="personnel-roadmap-row" id="training">
+                            <span class="personnel-roadmap-icon"><span class="material-symbols-outlined">school</span></span>
+                            <span><strong>Training and development</strong><small>Training records, bookings, and completion status.</small></span>
+                            <span class="personnel-roadmap-label">Planned</span>
+                        </div>
+                        <div class="personnel-roadmap-row" id="records">
+                            <span class="personnel-roadmap-icon"><span class="material-symbols-outlined">folder_shared</span></span>
+                            <span><strong>Personnel records</strong><small>Keep employee documents together with controlled access.</small></span>
+                            <span class="personnel-roadmap-label">Planned</span>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+    <script src="/static/ui/components/sidebar.js"></script>
+</body>
+
+</html>

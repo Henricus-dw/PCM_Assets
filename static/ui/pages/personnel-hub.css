@@ -1,0 +1,267 @@
+body.personnel-hub-page {
+    background: #ffffff;
+    color: #1a1c1c;
+    font-family: 'Inter', sans-serif;
+}
+
+body.personnel-hub-page .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    vertical-align: middle;
+}
+
+body.personnel-hub-page .dashboard-content {
+    background: #ffffff;
+    overflow-y: auto;
+}
+
+body.personnel-hub-page .personnel-shell {
+    max-width: 1120px;
+    padding: 1.7rem 2rem 2.5rem;
+    min-height: 100%;
+    box-sizing: border-box;
+}
+
+body.personnel-hub-page .personnel-page-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding-bottom: 1.4rem;
+    border-bottom: 1px solid rgba(193, 200, 199, 0.45);
+}
+
+body.personnel-hub-page .personnel-eyebrow,
+body.personnel-hub-page .personnel-kicker {
+    margin: 0 0 0.3rem;
+    color: #717878;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+body.personnel-hub-page .personnel-title {
+    margin: 0;
+    color: #406262;
+    font-family: 'Manrope', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+body.personnel-hub-page .personnel-subtitle {
+    max-width: 42rem;
+    margin: 0.35rem 0 0;
+    color: #656464;
+    font-size: 0.82rem;
+    line-height: 1.55;
+}
+
+body.personnel-hub-page .personnel-header-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex: 0 0 auto;
+    padding: 0.55rem 0.75rem;
+    border: 0;
+    border-radius: 0.125rem;
+    background: #406262;
+    color: #ffffff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+body.personnel-hub-page .personnel-header-action:hover {
+    background: #2f4f4f;
+}
+
+body.personnel-hub-page .personnel-header-action .material-symbols-outlined {
+    font-size: 1rem;
+}
+
+body.personnel-hub-page .personnel-section {
+    margin-top: 1.6rem;
+}
+
+body.personnel-hub-page .personnel-section-heading {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.7rem;
+}
+
+body.personnel-hub-page .personnel-section-heading h2 {
+    margin: 0;
+    color: #252b2b;
+    font-family: 'Manrope', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 800;
+}
+
+body.personnel-hub-page .personnel-section-count {
+    color: #717878;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+body.personnel-hub-page .personnel-card-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+body.personnel-hub-page .personnel-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    min-height: 8.5rem;
+    padding: 1rem;
+    border: 1px solid rgba(193, 200, 199, 0.55);
+    border-radius: 0.125rem;
+    background: #f9f9f8;
+    color: inherit;
+    text-decoration: none;
+    transition: border-color 120ms ease, background-color 120ms ease, transform 120ms ease;
+}
+
+body.personnel-hub-page .personnel-card:hover {
+    border-color: #6b8e8e;
+    background: #f4f8f7;
+    transform: translateY(-1px);
+}
+
+body.personnel-hub-page .personnel-card-icon,
+body.personnel-hub-page .personnel-roadmap-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 0.125rem;
+    background: #d7efee;
+    color: #406262;
+}
+
+body.personnel-hub-page .personnel-card-icon .material-symbols-outlined,
+body.personnel-hub-page .personnel-roadmap-icon .material-symbols-outlined {
+    font-size: 1.15rem;
+}
+
+body.personnel-hub-page .personnel-card-body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+body.personnel-hub-page .personnel-card-body strong,
+body.personnel-hub-page .personnel-roadmap-row strong {
+    color: #252b2b;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 800;
+}
+
+body.personnel-hub-page .personnel-card-body span,
+body.personnel-hub-page .personnel-roadmap-row small {
+    color: #656464;
+    font-size: 0.75rem;
+    line-height: 1.45;
+}
+
+body.personnel-hub-page .personnel-card-arrow {
+    align-self: center;
+    color: #6b8e8e;
+    font-size: 1rem;
+}
+
+body.personnel-hub-page .personnel-section--quiet {
+    max-width: 52rem;
+}
+
+body.personnel-hub-page .personnel-roadmap {
+    border-top: 1px solid rgba(193, 200, 199, 0.5);
+}
+
+body.personnel-hub-page .personnel-roadmap-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.8rem 0.25rem;
+    border-bottom: 1px solid rgba(193, 200, 199, 0.35);
+}
+
+body.personnel-hub-page .personnel-roadmap-row > span:nth-child(2) {
+    display: flex;
+    flex-direction: column;
+    gap: 0.18rem;
+}
+
+body.personnel-hub-page .personnel-roadmap-icon {
+    width: 1.9rem;
+    height: 1.9rem;
+    background: #f0f1ef;
+    color: #717878;
+}
+
+body.personnel-hub-page .personnel-roadmap-label,
+body.personnel-hub-page .hub-nav-status {
+    color: #717878;
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+body.personnel-hub-page .hub-nav-child {
+    padding-left: 1.75rem;
+}
+
+body.personnel-hub-page .hub-nav-child .material-symbols-outlined {
+    font-size: 1.05rem;
+}
+
+body.personnel-hub-page .hub-nav-status {
+    margin-left: auto;
+    opacity: 0.7;
+}
+
+body.personnel-hub-page .hub-nav-disabled {
+    cursor: default;
+    opacity: 0.62;
+}
+
+@media (max-width: 820px) {
+    body.personnel-hub-page .personnel-shell {
+        padding: 1.25rem 1rem 2rem;
+    }
+
+    body.personnel-hub-page .personnel-page-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    body.personnel-hub-page .personnel-card-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 560px) {
+    body.personnel-hub-page .personnel-title {
+        font-size: 1.65rem;
+    }
+
+    body.personnel-hub-page .personnel-roadmap-row {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    body.personnel-hub-page .personnel-roadmap-label {
+        grid-column: 2;
+    }
+}

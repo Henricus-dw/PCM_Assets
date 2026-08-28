@@ -583,6 +583,18 @@ def delete_policy_document(
 # 2) TIME & ATTENDANCE + BIOMETRIC
 
 
+@app.get("/personnel-hub", response_class=HTMLResponse)
+def personnel_hub(request: Request):
+    redirect = _ensure_page_access(request, "time_attendance")
+    if redirect:
+        return redirect
+    return templates.TemplateResponse(
+        "personnel_hub.html",
+        {"request": request, "section": "personnel-hub",
+            "time": datetime.utcnow().timestamp()}
+    )
+
+
 @app.get("/time-attendance", response_class=HTMLResponse)
 def time_attendance_home(request: Request):
     redirect = _ensure_page_access(request, "time_attendance")
