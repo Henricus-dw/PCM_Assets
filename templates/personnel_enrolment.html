@@ -8,8 +8,11 @@
     <link rel="icon" href="/static/pcm-lockup-goldc-final.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
     <link rel="stylesheet" href="/static/ui/main.css?v={{ time }}">
     <link rel="stylesheet" href="/static/ui/pages/personnel-hub.css?v={{ time }}">
 </head>
@@ -23,22 +26,36 @@
                     <span class="sidebar-brand-sub">People Operations</span>
                 </div>
                 <nav class="nav-top">
-                    <a href="/personnel-hub"><span class="material-symbols-outlined">space_dashboard</span><span>Overview</span></a>
-                    <a href="/time-attendance"><span class="material-symbols-outlined">groups</span><span>Employees</span></a>
-                    <a href="/personnel-hub/enrolment" class="active hub-nav-child"><span class="material-symbols-outlined">person_add</span><span>Enrolment</span></a>
-                    <a href="#" class="hub-nav-child hub-nav-disabled" aria-disabled="true"><span class="material-symbols-outlined">event_available</span><span>Leave</span><span class="hub-nav-status">Next</span></a>
+                    <a href="/personnel-hub"><span
+                            class="material-symbols-outlined">space_dashboard</span><span>Overview</span></a>
+                    <a href="/time-attendance"><span
+                            class="material-symbols-outlined">groups</span><span>Employees</span></a>
+                    <a href="/personnel-hub/enrolment" class="active hub-nav-child"><span
+                            class="material-symbols-outlined">person_add</span><span>Enrolment</span></a>
+                    <a href="#" class="hub-nav-child hub-nav-disabled" aria-disabled="true"><span
+                            class="material-symbols-outlined">event_available</span><span>Leave</span><span
+                            class="hub-nav-status">Next</span></a>
                     <a href="/policies"><span class="material-symbols-outlined">policy</span><span>Policies</span></a>
-                    <a href="#" class="hub-nav-child hub-nav-disabled" aria-disabled="true"><span class="material-symbols-outlined">school</span><span>Training</span><span class="hub-nav-status">Next</span></a>
-                    <a href="#" class="hub-nav-child hub-nav-disabled" aria-disabled="true"><span class="material-symbols-outlined">folder_shared</span><span>Personnel Records</span><span class="hub-nav-status">Next</span></a>
+                    <a href="#" class="hub-nav-child hub-nav-disabled" aria-disabled="true"><span
+                            class="material-symbols-outlined">school</span><span>Training</span><span
+                            class="hub-nav-status">Next</span></a>
+                    <a href="#" class="hub-nav-child hub-nav-disabled" aria-disabled="true"><span
+                            class="material-symbols-outlined">folder_shared</span><span>Personnel Records</span><span
+                            class="hub-nav-status">Next</span></a>
                 </nav>
             </div>
-            <div class="sidebar-mid"><a href="/" class="sidebar-return" title="Return to modules"><span class="material-symbols-outlined">arrow_back</span><span>Return</span></a></div>
+            <div class="sidebar-mid"><a href="/" class="sidebar-return" title="Return to modules"><span
+                        class="material-symbols-outlined">arrow_back</span><span>Return</span></a></div>
             <div class="nav-bottom">
-                {% if request.session.get('is_admin') %}<a href="/admin?module=biometric"><span class="material-symbols-outlined">admin_panel_settings</span><span>Admin</span></a>{% endif %}
-                <a href="/settings?module=biometric"><span class="material-symbols-outlined">settings</span><span>Settings</span></a>
-                <a href="/logout" id="logoutLink"><span class="material-symbols-outlined">logout</span><span>Log Out</span></a>
+                {% if request.session.get('is_admin') %}<a href="/admin?module=biometric"><span
+                        class="material-symbols-outlined">admin_panel_settings</span><span>Admin</span></a>{% endif %}
+                <a href="/settings?module=biometric"><span
+                        class="material-symbols-outlined">settings</span><span>Settings</span></a>
+                <a href="/logout" id="logoutLink"><span class="material-symbols-outlined">logout</span><span>Log
+                        Out</span></a>
             </div>
-            <button id="sidebarHandle" class="sidebar-handle" aria-label="Collapse sidebar" aria-pressed="false" title="Collapse sidebar"><span class="handle-icon" aria-hidden="true">⟨</span></button>
+            <button id="sidebarHandle" class="sidebar-handle" aria-label="Collapse sidebar" aria-pressed="false"
+                title="Collapse sidebar"><span class="handle-icon" aria-hidden="true">⟨</span></button>
         </aside>
 
         <main class="dashboard-content">
@@ -47,41 +64,85 @@
                     <div>
                         <p class="personnel-eyebrow">Personnel records</p>
                         <h1 class="personnel-title">Personnel Enrolment</h1>
-                        <p class="personnel-subtitle">Create the employee profile that will hold HR information and supporting documents.</p>
+                        <p class="personnel-subtitle">Create the employee profile that will hold HR information and
+                            supporting documents.</p>
                     </div>
-                    <a class="personnel-header-action" href="/personnel-hub"><span class="material-symbols-outlined">arrow_back</span>Back to hub</a>
+                    <a class="personnel-header-action" href="/personnel-hub"><span
+                            class="material-symbols-outlined">arrow_back</span>Back to hub</a>
                 </header>
 
-                {% if error %}<div class="personnel-alert personnel-alert--error" role="alert">{{ error }}</div>{% endif %}
-                {% if success %}<div class="personnel-alert personnel-alert--success" role="status">{{ success }}</div>{% endif %}
+                {% if error %}<div class="personnel-alert personnel-alert--error" role="alert">{{ error }}</div>{% endif
+                %}
+                {% if success %}<div class="personnel-alert personnel-alert--success" role="status">{{ success }}</div>
+                {% endif %}
 
                 <div class="personnel-enrolment-grid">
                     <section class="personnel-section personnel-form-panel" aria-labelledby="form-heading">
-                        <div class="personnel-section-heading"><div><p class="personnel-kicker">Employee profile</p><h2 id="form-heading">Personal information</h2></div><span class="personnel-section-count">Required fields marked *</span></div>
+                        <div class="personnel-section-heading">
+                            <div>
+                                <p class="personnel-kicker">Employee profile</p>
+                                <h2 id="form-heading">Personal information</h2>
+                            </div><span class="personnel-section-count">Required fields marked *</span>
+                        </div>
                         <form method="post" action="/personnel-hub/enrolment" class="personnel-form">
-                            <label class="personnel-field personnel-field--full"><span>Employee *</span><select name="employee_id" required><option value="">Select employee</option>{% for employee in employees %}<option value="{{ employee.Employee_id }}">{{ employee.Employee_id }} · {{ employee.Name_ or '' }} {{ employee.Surname_ or '' }}</option>{% endfor %}</select></label>
-                            <label class="personnel-field"><span>ID / passport number</span><input name="id_number" type="text" autocomplete="off"></label>
-                            <label class="personnel-field"><span>Job title</span><input name="job_title" type="text"></label>
-                            <label class="personnel-field"><span>Email address</span><input name="email" type="email" autocomplete="email"></label>
-                            <label class="personnel-field"><span>Phone number</span><input name="phone" type="tel" autocomplete="tel"></label>
-                            <label class="personnel-field"><span>Employment status</span><select name="employment_status"><option value="active">Active</option><option value="on_leave">On leave</option><option value="inactive">Inactive</option></select></label>
-                            <label class="personnel-field"><span>Start date</span><input name="start_date" type="date"></label>
-                            <label class="personnel-field personnel-field--full"><span>Manager</span><input name="manager_name" type="text" placeholder="Manager name"></label>
-                            <div class="personnel-form-actions"><button class="personnel-header-action" type="submit"><span class="material-symbols-outlined">save</span>Save profile</button></div>
+                            <label class="personnel-field personnel-field--full"><span>Employee *</span><select
+                                    name="employee_id" required>
+                                    <option value="">Select employee</option>{% for employee in employees %}<option
+                                        value="{{ employee.Employee_id }}">{{ employee.Employee_id }} · {{
+                                        employee.Name_ or '' }} {{ employee.Surname_ or '' }}</option>{% endfor %}
+                                </select></label>
+                            <label class="personnel-field"><span>ID / passport number</span><input name="id_number"
+                                    type="text" autocomplete="off"></label>
+                            <label class="personnel-field"><span>Job title</span><input name="job_title"
+                                    type="text"></label>
+                            <label class="personnel-field"><span>Email address</span><input name="email" type="email"
+                                    autocomplete="email"></label>
+                            <label class="personnel-field"><span>Phone number</span><input name="phone" type="tel"
+                                    autocomplete="tel"></label>
+                            <label class="personnel-field"><span>Employment status</span><select
+                                    name="employment_status">
+                                    <option value="active">Active</option>
+                                    <option value="on_leave">On leave</option>
+                                    <option value="inactive">Inactive</option>
+                                </select></label>
+                            <label class="personnel-field"><span>Start date</span><input name="start_date"
+                                    type="date"></label>
+                            <label class="personnel-field personnel-field--full"><span>Manager</span><input
+                                    name="manager_name" type="text" placeholder="Manager name"></label>
+                            <div class="personnel-form-actions"><button class="personnel-header-action"
+                                    type="submit"><span class="material-symbols-outlined">save</span>Save
+                                    profile</button></div>
                         </form>
                     </section>
 
                     <aside class="personnel-section personnel-next-panel" aria-labelledby="documents-heading">
                         <p class="personnel-kicker">Coming next</p>
                         <h2 id="documents-heading">Supporting documents</h2>
-                        <p>Once the profile is saved, we can attach the employee's employment contract, NDA, ID, bank details, and Annex A here.</p>
-                        <div class="personnel-document-list"><span><span class="material-symbols-outlined">description</span>Employment contract</span><span><span class="material-symbols-outlined">badge</span>ID document</span><span><span class="material-symbols-outlined">account_balance</span>Bank details</span></div>
+                        <p>Once the profile is saved, we can attach the employee's employment contract, NDA, ID, bank
+                            details, and Annex A here.</p>
+                        <div class="personnel-document-list"><span><span
+                                    class="material-symbols-outlined">description</span>Employment
+                                contract</span><span><span class="material-symbols-outlined">badge</span>ID
+                                document</span><span><span class="material-symbols-outlined">account_balance</span>Bank
+                                details</span></div>
                     </aside>
                 </div>
 
                 <section class="personnel-section personnel-section--quiet" aria-labelledby="profiles-heading">
-                    <div class="personnel-section-heading"><div><p class="personnel-kicker">Directory status</p><h2 id="profiles-heading">Enrolled profiles</h2></div><span class="personnel-section-count">{{ profiles|length }} saved</span></div>
-                    <div class="personnel-profile-list">{% if profiles %}{% for employee_id, profile in profiles.items() %}<div class="personnel-profile-row"><span class="personnel-profile-avatar">{{ (employee_id or '?')[:2] }}</span><span><strong>{{ employee_id }}</strong><small>{{ profile.job_title or 'Role not added' }}{% if profile.email %} · {{ profile.email }}{% endif %}</small></span><span class="personnel-roadmap-label">{{ profile.employment_status|replace('_', ' ') }}</span></div>{% endfor %}{% else %}<p class="personnel-empty-state">No personnel profiles have been enrolled yet.</p>{% endif %}</div>
+                    <div class="personnel-section-heading">
+                        <div>
+                            <p class="personnel-kicker">Directory status</p>
+                            <h2 id="profiles-heading">Enrolled profiles</h2>
+                        </div><span class="personnel-section-count">{{ profiles|length }} saved</span>
+                    </div>
+                    <div class="personnel-profile-list">{% if profiles %}{% for employee_id, profile in profiles.items()
+                        %}<div class="personnel-profile-row"><span class="personnel-profile-avatar">{{ (employee_id or
+                                '?')[:2] }}</span><span><strong>{{ employee_id }}</strong><small>{{ profile.job_title or
+                                    'Role not added' }}{% if profile.email %} · {{ profile.email }}{% endif
+                                    %}</small></span><span class="personnel-roadmap-label">{{
+                                profile.employment_status|replace('_', ' ') }}</span></div>{% endfor %}{% else %}<p
+                            class="personnel-empty-state">No personnel profiles have been enrolled yet.</p>{% endif %}
+                    </div>
                 </section>
             </div>
         </main>

@@ -600,8 +600,10 @@ def personnel_enrolment(request: Request, db: Session = Depends(get_db)):
     redirect = _ensure_page_access(request, "time_attendance")
     if redirect:
         return redirect
-    employees = db.query(Employee).order_by(Employee.Surname_, Employee.Name_).all()
-    profiles = {profile.employee_id: profile for profile in db.query(PersonnelProfile).all()}
+    employees = db.query(Employee).order_by(
+        Employee.Surname_, Employee.Name_).all()
+    profiles = {profile.employee_id: profile for profile in db.query(
+        PersonnelProfile).all()}
     return templates.TemplateResponse(
         "personnel_enrolment.html",
         {"request": request, "section": "personnel-enrolment",
@@ -627,10 +629,13 @@ def personnel_enrolment_save(
     if redirect:
         return redirect
 
-    employees = db.query(Employee).order_by(Employee.Surname_, Employee.Name_).all()
-    profiles = {profile.employee_id: profile for profile in db.query(PersonnelProfile).all()}
+    employees = db.query(Employee).order_by(
+        Employee.Surname_, Employee.Name_).all()
+    profiles = {profile.employee_id: profile for profile in db.query(
+        PersonnelProfile).all()}
     employee_id = employee_id.strip()
-    employee = db.query(Employee).filter(Employee.Employee_id == employee_id).first()
+    employee = db.query(Employee).filter(
+        Employee.Employee_id == employee_id).first()
     error = None
     if not employee:
         error = "Select an employee from the directory before saving a profile."
@@ -640,7 +645,8 @@ def personnel_enrolment_save(
     parsed_start_date = None
     if start_date:
         try:
-            parsed_start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+            parsed_start_date = datetime.strptime(
+                start_date, "%Y-%m-%d").date()
         except ValueError:
             error = "Enter a valid start date."
 
@@ -651,7 +657,8 @@ def personnel_enrolment_save(
             email=(email or "").strip() or None,
             phone=(phone or "").strip() or None,
             job_title=(job_title or "").strip() or None,
-            employment_status=employment_status if employment_status in {"active", "on_leave", "inactive"} else "active",
+            employment_status=employment_status if employment_status in {
+                "active", "on_leave", "inactive"} else "active",
             start_date=parsed_start_date,
             manager_name=(manager_name or "").strip() or None,
         )

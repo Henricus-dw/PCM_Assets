@@ -282,7 +282,7 @@ body.personnel-enrolment-page .personnel-next-panel h2 {
     font-weight: 800;
 }
 
-body.personnel-enrolment-page .personnel-next-panel > p:not(.personnel-kicker) {
+body.personnel-enrolment-page .personnel-next-panel>p:not(.personnel-kicker) {
     margin: 0.55rem 0 1rem;
     color: #656464;
     font-size: 0.76rem;
@@ -383,7 +383,7 @@ body.personnel-enrolment-page .personnel-profile-avatar {
     font-weight: 800;
 }
 
-body.personnel-enrolment-page .personnel-profile-row > span:nth-child(2) {
+body.personnel-enrolment-page .personnel-profile-row>span:nth-child(2) {
     display: flex;
     flex-direction: column;
     gap: 0.15rem;
