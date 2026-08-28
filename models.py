@@ -190,6 +190,22 @@ class Employee(Base):
     lunch_hour = Column(Boolean, nullable=True)
 
 
+class PersonnelProfile(Base):
+    __tablename__ = "personnel_profiles"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    employee_id = Column(String(50), nullable=False, unique=True, index=True)
+    id_number = Column(String(100), nullable=True)
+    email = Column(String(255), nullable=True)
+    phone = Column(String(50), nullable=True)
+    job_title = Column(String(150), nullable=True)
+    employment_status = Column(String(30), nullable=False, default="active")
+    start_date = Column(Date, nullable=True)
+    manager_name = Column(String(200), nullable=True)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+
 class TimestampRecord(Base):
     __tablename__ = "timestamp_records"
 
