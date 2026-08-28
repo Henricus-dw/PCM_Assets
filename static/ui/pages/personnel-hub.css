@@ -197,7 +197,7 @@ body.personnel-hub-page .personnel-roadmap-row {
     border-bottom: 1px solid rgba(193, 200, 199, 0.35);
 }
 
-body.personnel-hub-page .personnel-roadmap-row > span:nth-child(2) {
+body.personnel-hub-page .personnel-roadmap-row>span:nth-child(2) {
     display: flex;
     flex-direction: column;
     gap: 0.18rem;

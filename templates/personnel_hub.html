@@ -8,8 +8,11 @@
     <link rel="icon" href="/static/pcm-lockup-goldc-final.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
     <link rel="stylesheet" href="/static/ui/main.css?v={{ time }}">
     <link rel="stylesheet" href="/static/ui/pages/personnel-hub.css?v={{ time }}">
 </head>
@@ -79,7 +82,8 @@
                     <span>Log Out</span>
                 </a>
             </div>
-            <button id="sidebarHandle" class="sidebar-handle" aria-label="Collapse sidebar" aria-pressed="false" title="Collapse sidebar">
+            <button id="sidebarHandle" class="sidebar-handle" aria-label="Collapse sidebar" aria-pressed="false"
+                title="Collapse sidebar">
                 <span class="handle-icon" aria-hidden="true">⟨</span>
             </button>
         </aside>
@@ -90,7 +94,8 @@
                     <div>
                         <p class="personnel-eyebrow">People operations</p>
                         <h1 class="personnel-title">Personnel Hub</h1>
-                        <p class="personnel-subtitle">A single place to manage employee information, documents, leave, and development.</p>
+                        <p class="personnel-subtitle">A single place to manage employee information, documents, leave,
+                            and development.</p>
                     </div>
                     <a class="personnel-header-action" href="/time-attendance">
                         <span class="material-symbols-outlined">groups</span>
@@ -108,7 +113,8 @@
                     </div>
                     <div class="personnel-card-grid">
                         <a class="personnel-card" href="/time-attendance">
-                            <span class="personnel-card-icon"><span class="material-symbols-outlined">groups</span></span>
+                            <span class="personnel-card-icon"><span
+                                    class="material-symbols-outlined">groups</span></span>
                             <span class="personnel-card-body">
                                 <strong>Employee Directory</strong>
                                 <span>View employee details, sites, divisions, and attendance access.</span>
@@ -116,7 +122,8 @@
                             <span class="material-symbols-outlined personnel-card-arrow">arrow_forward</span>
                         </a>
                         <a class="personnel-card" href="/policies">
-                            <span class="personnel-card-icon"><span class="material-symbols-outlined">policy</span></span>
+                            <span class="personnel-card-icon"><span
+                                    class="material-symbols-outlined">policy</span></span>
                             <span class="personnel-card-body">
                                 <strong>Policies and Procedures</strong>
                                 <span>Browse the documents available to your team.</span>
@@ -124,7 +131,8 @@
                             <span class="material-symbols-outlined personnel-card-arrow">arrow_forward</span>
                         </a>
                         <a class="personnel-card" href="/time-attendance-dashboard">
-                            <span class="personnel-card-icon"><span class="material-symbols-outlined">calendar_month</span></span>
+                            <span class="personnel-card-icon"><span
+                                    class="material-symbols-outlined">calendar_month</span></span>
                             <span class="personnel-card-body">
                                 <strong>Attendance</strong>
                                 <span>Review attendance sessions and identify follow-up work.</span>
@@ -134,7 +142,8 @@
                     </div>
                 </section>
 
-                <section class="personnel-section personnel-section--quiet" id="leave" aria-labelledby="roadmap-heading">
+                <section class="personnel-section personnel-section--quiet" id="leave"
+                    aria-labelledby="roadmap-heading">
                     <div class="personnel-section-heading">
                         <div>
                             <p class="personnel-kicker">Planned workflow</p>
@@ -144,23 +153,31 @@
                     </div>
                     <div class="personnel-roadmap">
                         <div class="personnel-roadmap-row">
-                            <span class="personnel-roadmap-icon"><span class="material-symbols-outlined">person_add</span></span>
-                            <span><strong>Personnel enrolment</strong><small>Personal details, employment contract, ID, NDA, and bank details.</small></span>
+                            <span class="personnel-roadmap-icon"><span
+                                    class="material-symbols-outlined">person_add</span></span>
+                            <span><strong>Personnel enrolment</strong><small>Personal details, employment contract, ID,
+                                    NDA, and bank details.</small></span>
                             <span class="personnel-roadmap-label">Next</span>
                         </div>
                         <div class="personnel-roadmap-row">
-                            <span class="personnel-roadmap-icon"><span class="material-symbols-outlined">event_available</span></span>
-                            <span><strong>Leave management</strong><small>Employee requests, manager approval, and leave history.</small></span>
+                            <span class="personnel-roadmap-icon"><span
+                                    class="material-symbols-outlined">event_available</span></span>
+                            <span><strong>Leave management</strong><small>Employee requests, manager approval, and leave
+                                    history.</small></span>
                             <span class="personnel-roadmap-label">Planned</span>
                         </div>
                         <div class="personnel-roadmap-row" id="training">
-                            <span class="personnel-roadmap-icon"><span class="material-symbols-outlined">school</span></span>
-                            <span><strong>Training and development</strong><small>Training records, bookings, and completion status.</small></span>
+                            <span class="personnel-roadmap-icon"><span
+                                    class="material-symbols-outlined">school</span></span>
+                            <span><strong>Training and development</strong><small>Training records, bookings, and
+                                    completion status.</small></span>
                             <span class="personnel-roadmap-label">Planned</span>
                         </div>
                         <div class="personnel-roadmap-row" id="records">
-                            <span class="personnel-roadmap-icon"><span class="material-symbols-outlined">folder_shared</span></span>
-                            <span><strong>Personnel records</strong><small>Keep employee documents together with controlled access.</small></span>
+                            <span class="personnel-roadmap-icon"><span
+                                    class="material-symbols-outlined">folder_shared</span></span>
+                            <span><strong>Personnel records</strong><small>Keep employee documents together with
+                                    controlled access.</small></span>
                             <span class="personnel-roadmap-label">Planned</span>
                         </div>
                     </div>
