@@ -13,7 +13,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 from passlib.context import CryptContext
 from starlette.middleware.sessions import SessionMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Any, List, Optional
 from datetime import date, datetime, timedelta
 import calendar
@@ -27,7 +27,7 @@ from urllib.parse import urlencode
 from auth import get_current_user, require_admin
 
 # ---- Your models & DB ----
-from models import VodacomSubscription, Device, User, PendingUser, DeviceEditRequest, ContractEditRequest, AttendanceSession, PolicyDocument, PolicyDocumentUserAccess
+from models import VodacomSubscription, Device, User, PendingUser, DeviceEditRequest, ContractEditRequest, AttendanceSession, PolicyDocument, PolicyDocumentUserAccess, TabletFormEntry
 from database import SessionLocal, engine, Base, ensure_local_sqlite_schema
 
 
@@ -154,6 +154,14 @@ app.include_router(biometric_router)
 
 # Static files & templates
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# TabletForm kiosk PWA lives in a sibling folder; served as-is under /tablet-form
+_TABLETFORM_DIR = os.path.join(os.path.dirname(
+    os.path.abspath(__file__)), "..", "TabletForm")
+if os.path.isdir(_TABLETFORM_DIR):
+    app.mount("/tablet-form", StaticFiles(directory=_TABLETFORM_DIR,
+                                          html=True), name="tablet-form")
+
 templates = Jinja2Templates(directory="templates")
 templates.env.auto_reload = True
 templates.env.cache = {}
@@ -1517,6 +1525,38 @@ def submit_device(
     db.add(device)
     db.commit()
     return templates.TemplateResponse("form.html", {"request": request, "message": "Device saved successfully!", "section": "form"})
+
+
+# -------------- TABLETFORM (standalone kiosk PWA) API --------------
+
+class TabletFormSubmission(BaseModel):
+    bin_location: str = Field(..., min_length=1, max_length=100)
+    sku_barcode: str = Field(..., min_length=1, max_length=100)
+    qty: int = Field(..., gt=0)
+    picker_detail: str = Field(..., min_length=1, max_length=150)
+    shipment_number: str = Field(..., min_length=1, max_length=100)
+
+
+@app.post("/api/tablet-form")
+def submit_tablet_form(payload: TabletFormSubmission, db: Session = Depends(get_db)):
+    now = datetime.utcnow()
+    entry = TabletFormEntry(
+        entry_date=now.date(),
+        entry_time=now.time(),
+        bin_location=payload.bin_location.strip(),
+        sku_barcode=payload.sku_barcode.strip(),
+        qty=payload.qty,
+        picker_detail=payload.picker_detail.strip(),
+        shipment_number=payload.shipment_number.strip(),
+    )
+    db.add(entry)
+    try:
+        db.commit()
+        db.refresh(entry)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    return JSONResponse({"status": "ok", "id": entry.id})
 
 
 @app.post("/submit_all", response_class=RedirectResponse)

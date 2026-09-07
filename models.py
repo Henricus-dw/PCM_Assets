@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String
-from sqlalchemy import Column, Integer, String, Float, DateTime, Date, func, UniqueConstraint, Text, Boolean, text
+from sqlalchemy import Column, Integer, String, Float, DateTime, Date, Time, func, UniqueConstraint, Text, Boolean, text
 
 from database import Base
 
@@ -246,3 +246,18 @@ class PolicyDocumentUserAccess(Base):
         UniqueConstraint('policy_document_id', 'user_id',
                          name='uq_policy_document_user_access'),
     )
+
+
+class TabletFormEntry(Base):
+    """Submissions from the standalone TabletForm kiosk app."""
+    __tablename__ = "TabletForm"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    entry_date = Column(Date, nullable=False)
+    entry_time = Column(Time, nullable=False)
+    bin_location = Column(String(100), nullable=False)
+    sku_barcode = Column(String(100), nullable=False)
+    qty = Column(Integer, nullable=False)
+    picker_detail = Column(String(150), nullable=False)
+    shipment_number = Column(String(100), nullable=False)
+    created_at = Column(DateTime, server_default=func.now())
