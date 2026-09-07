@@ -20,6 +20,8 @@ body {
     background: var(--bg);
     color: var(--text);
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 .topbar {
@@ -29,6 +31,7 @@ body {
     background: var(--primary);
     color: #fff;
     padding: 16px 20px;
+    flex: none;
 }
 
 .topbar h1 {
@@ -46,18 +49,29 @@ body {
 }
 
 .form-wrap {
-    max-width: 560px;
-    margin: 24px auto;
-    padding: 0 16px 40px;
+    flex: 1 1 auto;
     width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 24px 16px 40px;
+}
+
+.form-wrap>* {
+    width: 100%;
+    max-width: 560px;
 }
 
 /* Tablet portrait and up: let the form use more of the available width */
 @media (min-width: 700px) {
     .form-wrap {
+        padding: 40px 32px 56px;
+    }
+
+    .form-wrap>* {
         max-width: 900px;
-        margin: 40px auto;
-        padding: 0 32px 56px;
     }
 
     .topbar h1 {
@@ -67,7 +81,7 @@ body {
 
 /* Tablet landscape and up: wider layout with two-column fields */
 @media (min-width: 1100px) {
-    .form-wrap {
+    .form-wrap>* {
         max-width: 1200px;
     }
 }
