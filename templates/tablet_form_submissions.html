@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tablet Form Submissions | PCM Tracer</title>
+    <link rel="icon" href="/static/pcm-lockup-goldc-final.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="/static/ui/main.css?v={{ time }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+</head>
+
+<body class="dashboard-page app-with-sidebar">
+    <div class="dashboard-main">
+        <aside class="sidebar">
+            <div class="sidebar-top">
+                <div class="sidebar-brand">
+                    <span class="sidebar-brand-title">Asset Management</span>
+                    <span class="sidebar-brand-sub">Enterprise Portal</span>
+                </div>
+                <nav class="nav-top">
+                    <a href="/" class="{{ 'active' if section == 'home' else '' }}">
+                        <span class="material-symbols-outlined">home</span>
+                        <span>Home</span>
+                    </a>
+                    <a href="/tablet-form-submissions"
+                        class="{{ 'active' if section == 'tablet-form-submissions' else '' }}">
+                        <span class="material-symbols-outlined">fact_check</span>
+                        <span>Tablet Form Submissions</span>
+                    </a>
+                </nav>
+            </div>
+            <div class="sidebar-mid">
+                <a href="/" class="sidebar-return" title="Return">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                    <span>Return</span>
+                </a>
+            </div>
+            <div class="nav-bottom">
+                {% if request.session.get('is_admin') %}
+                <a href="/admin" class="{{ 'active' if section == 'admin' else '' }}">
+                    <span class="material-symbols-outlined">admin_panel_settings</span>
+                    <span>Admin</span>
+                </a>
+                {% endif %}
+                <a href="/settings" class="{{ 'active' if section == 'settings' else '' }}">
+                    <span class="material-symbols-outlined">settings</span>
+                    <span>Settings</span>
+                </a>
+                <a href="/logout" id="logoutLink" class="{{ 'active' if section == 'logout' else '' }}">
+                    <span class="material-symbols-outlined">logout</span>
+                    <span>Log Out</span>
+                </a>
+            </div>
+            <button id="sidebarHandle" class="sidebar-handle" aria-label="Collapse sidebar" aria-pressed="false"
+                title="Collapse sidebar">
+                <span class="handle-icon">⟨</span>
+            </button>
+        </aside>
+
+        <main class="dashboard-content">
+            <div class="dashboard-content-scroll">
+                <div class="dashboard-vitals">
+                    <div class="vitals-metrics">
+                        <div class="vitals-metric-group">
+                            <div class="vitals-metric-label">Total Submissions</div>
+                            <div class="vitals-metric-value">{{ (entries or []) | length }} <span
+                                    class="vitals-metric-subtext">Live</span></div>
+                        </div>
+                        <div class="vitals-actions">
+                            <button class="vitals-action-btn" id="export-excel-btn">
+                                <span class="material-symbols-outlined">file_download</span>
+                                Excel
+                            </button>
+                            <button class="vitals-action-btn" id="export-pdf-btn">
+                                <span class="material-symbols-outlined">picture_as_pdf</span>
+                                PDF
+                            </button>
+                            <a class="vitals-action-btn" href="/admin/tablet-form/export">
+                                <span class="material-symbols-outlined">cloud_download</span>
+                                CSV (server)
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-table-wrapper">
+                    <div class="dashboard-table-container">
+                        <div class="dashboard-table-toolbar">
+                            <div class="dashboard-table-filters">
+                                <button id="sortMenuBtn" type="button" class="dashboard-table-filter-btn"
+                                    aria-label="Sort by">
+                                    <span class="material-symbols-outlined">filter_list</span>
+                                </button>
+                                <span class="dashboard-table-filter-label">ACTIVE FILTERS:</span>
+                                <span id="activeFiltersHost" class="dashboard-table-active-badges"></span>
+                            </div>
+                            <p class="dashboard-table-info">Showing 1-15 of 0 entries</p>
+                        </div>
+
+                        <div class="dashboard-table-scroll">
+                            <table class="dashboard-table">
+                                <thead>
+                                    <tr>
+                                        <th data-col="0">
+                                            <div class="dashboard-table-header-cell"><span>ID</span></div>
+                                        </th>
+                                        <th data-col="1">
+                                            <div class="dashboard-table-header-cell"><span>Date</span></div>
+                                        </th>
+                                        <th data-col="2">
+                                            <div class="dashboard-table-header-cell"><span>Time</span></div>
+                                        </th>
+                                        <th data-col="3">
+                                            <div class="dashboard-table-header-cell"><span>Bin Location</span></div>
+                                        </th>
+                                        <th data-col="4">
+                                            <div class="dashboard-table-header-cell"><span>SKU / Barcode</span></div>
+                                        </th>
+                                        <th data-col="5">
+                                            <div class="dashboard-table-header-cell"><span>Qty</span></div>
+                                        </th>
+                                        <th data-col="6">
+                                            <div class="dashboard-table-header-cell"><span>Picker Detail</span></div>
+                                        </th>
+                                        <th data-col="7">
+                                            <div class="dashboard-table-header-cell"><span>Shipment #</span></div>
+                                        </th>
+                                        <th data-col="8">
+                                            <div class="dashboard-table-header-cell"><span>Submitted At</span></div>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% if entries %}
+                                    {% for entry in entries %}
+                                    <tr data-entry-id="{{ entry.id }}">
+                                        <td class="dashboard-table-cell-muted">{{ entry.id }}</td>
+                                        <td class="dashboard-table-cell-primary">{{ entry.entry_date }}</td>
+                                        <td>{{ entry.entry_time }}</td>
+                                        <td>{{ entry.bin_location }}</td>
+                                        <td>{{ entry.sku_barcode }}</td>
+                                        <td>{{ entry.qty }}</td>
+                                        <td>{{ entry.picker_detail }}</td>
+                                        <td>{{ entry.shipment_number }}</td>
+                                        <td class="dashboard-table-cell-muted">{{ entry.created_at }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="9" class="table-empty-cell">No submissions found.</td>
+                                    </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="dashboard-table-footer">
+                            <div class="dashboard-table-pagination">
+                                <span class="dashboard-table-pagination-info">Page 1 of 1</span>
+                                <div class="dashboard-table-pagination-controls">
+                                    <button id="paginationPrevBtn" type="button"
+                                        class="dashboard-table-pagination-btn"><span
+                                            class="material-symbols-outlined">chevron_left</span></button>
+                                    <button id="paginationNextBtn" type="button"
+                                        class="dashboard-table-pagination-btn"><span
+                                            class="material-symbols-outlined">chevron_right</span></button>
+                                </div>
+                            </div>
+                            <div class="dashboard-table-pagination-select">
+                                <span>Items per page:</span>
+                                <select id="itemsPerPageSelect">
+                                    <option value="15" selected>15</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="filterPopover" class="dashboard-filter-popover">
+        <input id="filterPopoverInput" type="text" placeholder="Filter column" />
+        <button id="filterPopoverClear" type="button" title="Clear">
+            <span class="material-symbols-outlined">close</span>
+        </button>
+    </div>
+
+    <div id="sortMenuPopover" class="dashboard-filter-popover dashboard-filter-popover--sort">
+        <button type="button" data-sort="latest">Latest Entry</button>
+        <button type="button" data-sort="bin_location">Bin Location</button>
+        <button type="button" data-sort="picker_detail">Picker Detail</button>
+        <button type="button" data-sort="shipment_number">Shipment #</button>
+    </div>
+
+    <script src="/static/ui/components/sidebar.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            initTabletFormTableInteractions();
+        });
+
+        function initTabletFormTableInteractions() {
+            const table = document.querySelector(".dashboard-table");
+            if (!table) return;
+
+            const tbody = table.querySelector("tbody");
+            if (!tbody) return;
+
+            const rows = Array.from(tbody.querySelectorAll("tr[data-entry-id]"));
+            const headers = Array.from(table.querySelectorAll("thead th"));
+            const filters = {};
+
+            const activeFiltersHost = document.getElementById("activeFiltersHost");
+            const tableInfo = document.querySelector(".dashboard-table-info");
+            const paginationInfo = document.querySelector(".dashboard-table-pagination-info");
+            const paginationPrevBtn = document.getElementById("paginationPrevBtn");
+            const paginationNextBtn = document.getElementById("paginationNextBtn");
+            const itemsPerPageSelect = document.getElementById("itemsPerPageSelect");
+
+            const labels = headers.map((th, idx) => {
+                const labelEl = th.querySelector(".dashboard-table-header-cell span");
+                const label = (labelEl ? labelEl.textContent : th.textContent).trim();
+
+                const headerCell = th.querySelector(".dashboard-table-header-cell") || th;
+                const filterBtn = document.createElement("button");
+                filterBtn.type = "button";
+                filterBtn.className = "dashboard-table-filter-btn";
+                filterBtn.setAttribute("aria-label", "Search " + label);
+                filterBtn.innerHTML = '<span class="material-symbols-outlined">search</span>';
+
+                headerCell.appendChild(filterBtn);
+
+                filterBtn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    openFilterPopover(idx, filterBtn);
+                });
+
+                return label;
+            });
+
+            const popover = document.getElementById("filterPopover");
+            const popoverInput = document.getElementById("filterPopoverInput");
+            const popoverClear = document.getElementById("filterPopoverClear");
+            const sortMenuBtn = document.getElementById("sortMenuBtn");
+            const sortMenuPopover = document.getElementById("sortMenuPopover");
+            const exportColumnIndexes = headers.map((_, index) => index);
+
+            let activeFilterCol = null;
+            let activeSort = "latest";
+            let currentPage = 1;
+            let itemsPerPage = Number(itemsPerPageSelect?.value || 15);
+            const sortLabels = {
+                latest: "Latest Entry",
+                bin_location: "Bin Location",
+                picker_detail: "Picker Detail",
+                shipment_number: "Shipment #"
+            };
+
+            function rowMatchesFilters(row) {
+                return Object.entries(filters).every(([colIndex, query]) => {
+                    if (!query) return true;
+                    const cell = row.cells[Number(colIndex)];
+                    const text = (cell ? cell.textContent : "").trim().toLowerCase();
+                    return text.includes(query);
+                });
+            }
+
+            function updatePaginationState(filteredRows) {
+                const totalFiltered = filteredRows.length;
+                const totalPages = Math.max(1, Math.ceil(totalFiltered / itemsPerPage));
+                currentPage = Math.min(currentPage, totalPages);
+
+                const startIndex = totalFiltered ? (currentPage - 1) * itemsPerPage : 0;
+                const endIndex = Math.min(startIndex + itemsPerPage, totalFiltered);
+
+                rows.forEach((row) => { row.style.display = "none"; });
+                filteredRows.slice(startIndex, endIndex).forEach((row) => { row.style.display = ""; });
+
+                if (tableInfo) {
+                    tableInfo.textContent = totalFiltered
+                        ? "Showing " + (startIndex + 1) + "-" + endIndex + " of " + totalFiltered + " entries"
+                        : "Showing 0 of 0 entries";
+                }
+
+                if (paginationInfo) paginationInfo.textContent = "Page " + currentPage + " of " + totalPages;
+                if (paginationPrevBtn) paginationPrevBtn.disabled = currentPage <= 1;
+                if (paginationNextBtn) paginationNextBtn.disabled = currentPage >= totalPages || totalFiltered === 0;
+            }
+
+            function openFilterPopover(colIndex, anchor) {
+                if (!popover || !popoverInput) return;
+                activeFilterCol = colIndex;
+                popoverInput.value = filters[colIndex] || "";
+
+                const rect = anchor.getBoundingClientRect();
+                popover.style.display = "inline-flex";
+                popover.style.left = Math.max(8, rect.left - 40) + "px";
+                popover.style.top = Math.min(window.innerHeight - 46, rect.bottom + 6) + "px";
+                popoverInput.focus();
+            }
+
+            function closeFilterPopover() {
+                if (popover) popover.style.display = "none";
+                activeFilterCol = null;
+            }
+
+            function openSortMenu(anchor) {
+                if (!sortMenuPopover) return;
+                const rect = anchor.getBoundingClientRect();
+                sortMenuPopover.style.display = "inline-flex";
+                sortMenuPopover.style.flexDirection = "column";
+                sortMenuPopover.style.left = Math.max(8, rect.left - 10) + "px";
+                sortMenuPopover.style.top = Math.min(window.innerHeight - 160, rect.bottom + 6) + "px";
+            }
+
+            function closeSortMenu() {
+                if (sortMenuPopover) sortMenuPopover.style.display = "none";
+            }
+
+            popoverInput?.addEventListener("input", () => {
+                if (activeFilterCol == null) return;
+                filters[activeFilterCol] = popoverInput.value.trim().toLowerCase();
+                currentPage = 1;
+                applyFilters();
+            });
+
+            popoverInput?.addEventListener("keydown", (e) => {
+                if (e.key === "Escape") closeFilterPopover();
+            });
+
+            popoverClear?.addEventListener("click", () => {
+                if (activeFilterCol == null || !popoverInput) return;
+                popoverInput.value = "";
+                filters[activeFilterCol] = "";
+                currentPage = 1;
+                applyFilters();
+            });
+
+            document.addEventListener("click", (e) => {
+                if (popover && popover.style.display !== "none" && !popover.contains(e.target)) {
+                    closeFilterPopover();
+                }
+                if (!sortMenuPopover || sortMenuPopover.style.display === "none") return;
+                if (sortMenuPopover.contains(e.target) || e.target === sortMenuBtn || sortMenuBtn?.contains(e.target)) return;
+                closeSortMenu();
+            });
+
+            sortMenuBtn?.addEventListener("click", (e) => {
+                e.stopPropagation();
+                openSortMenu(sortMenuBtn);
+            });
+
+            function applyFilters() {
+                const filteredRows = rows.filter((row) => rowMatchesFilters(row));
+                updateActiveFilters();
+                updatePaginationState(filteredRows);
+            }
+
+            function updateActiveFilters() {
+                if (!activeFiltersHost) return;
+                activeFiltersHost.innerHTML = "";
+
+                const sortBadge = document.createElement("span");
+                sortBadge.className = "dashboard-table-filter-badge";
+                sortBadge.textContent = "SORT BY: " + (sortLabels[activeSort] || "Latest Entry");
+                activeFiltersHost.appendChild(sortBadge);
+
+                const activeEntries = Object.entries(filters).filter(([, value]) => value);
+                if (!activeEntries.length) return;
+
+                activeEntries.forEach(([colIndex, value]) => {
+                    const badge = document.createElement("span");
+                    badge.className = "dashboard-table-filter-badge";
+
+                    const close = document.createElement("span");
+                    close.className = "material-symbols-outlined";
+                    close.textContent = "close";
+                    close.title = "Clear";
+                    close.addEventListener("click", () => {
+                        filters[colIndex] = "";
+                        if (activeFilterCol === Number(colIndex) && popoverInput) popoverInput.value = "";
+                        currentPage = 1;
+                        applyFilters();
+                    });
+
+                    badge.textContent = labels[Number(colIndex)] + ": " + value;
+                    badge.appendChild(close);
+                    activeFiltersHost.appendChild(badge);
+                });
+            }
+
+            document.getElementById("export-excel-btn")?.addEventListener("click", () => {
+                const visibleRows = rows.filter((row) => row.style.display !== "none");
+                const csvHeaders = exportColumnIndexes
+                    .map((index) => '"' + labels[index].replace(/"/g, '""') + '"')
+                    .join(",");
+                const csvBody = visibleRows.map((row) => {
+                    return exportColumnIndexes.map((index) => {
+                        const text = (row.cells[index]?.textContent || "").trim().replace(/"/g, '""');
+                        return '"' + text + '"';
+                    }).join(",");
+                }).join("\n");
+
+                const csv = csvHeaders + "\n" + csvBody;
+                const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = "tablet_form_submissions_export.csv";
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                URL.revokeObjectURL(link.href);
+            });
+
+            document.getElementById("export-pdf-btn")?.addEventListener("click", () => {
+                const jsPDF = window.jspdf && window.jspdf.jsPDF;
+                if (!jsPDF) return;
+
+                const visibleRows = rows.filter((row) => row.style.display !== "none");
+                const headerLabels = exportColumnIndexes.map((index) => labels[index]);
+                const body = visibleRows.map((row) => exportColumnIndexes.map((index) => (row.cells[index]?.textContent || "").trim()));
+
+                const doc = new jsPDF("landscape");
+                doc.text("Tablet Form Submissions Export", 14, 15);
+                doc.autoTable({
+                    head: [headerLabels],
+                    body,
+                    startY: 20,
+                    styles: { fontSize: 8, cellPadding: 2 }
+                });
+                doc.save("tablet_form_submissions_export.pdf");
+            });
+
+            paginationPrevBtn?.addEventListener("click", () => {
+                if (currentPage <= 1) return;
+                currentPage -= 1;
+                applyFilters();
+            });
+
+            paginationNextBtn?.addEventListener("click", () => {
+                currentPage += 1;
+                applyFilters();
+            });
+
+            itemsPerPageSelect?.addEventListener("change", () => {
+                itemsPerPage = Number(itemsPerPageSelect.value || 15);
+                currentPage = 1;
+                applyFilters();
+            });
+
+            function applySort(key) {
+                const textAt = (row, index) => (row.cells[index]?.textContent || "").trim().toLowerCase();
+
+                rows.sort((a, b) => {
+                    if (key === "latest") {
+                        const idA = Number(a.getAttribute("data-entry-id") || 0);
+                        const idB = Number(b.getAttribute("data-entry-id") || 0);
+                        return idB - idA;
+                    }
+
+                    const columnMap = {
+                        bin_location: 3,
+                        picker_detail: 6,
+                        shipment_number: 7
+                    };
+                    const colIndex = columnMap[key] ?? 1;
+                    return textAt(a, colIndex).localeCompare(textAt(b, colIndex));
+                }).forEach((row) => tbody.appendChild(row));
+
+                applyFilters();
+            }
+
+            sortMenuPopover?.querySelectorAll("button[data-sort]").forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    activeSort = btn.getAttribute("data-sort") || "latest";
+                    applySort(activeSort);
+                    closeSortMenu();
+                });
+            });
+
+            applySort(activeSort);
+            applyFilters();
+        }
+    </script>
+</body>
+
+</html>

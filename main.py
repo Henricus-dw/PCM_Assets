@@ -17,6 +17,8 @@ from pydantic import BaseModel, Field
 from typing import Any, List, Optional
 from datetime import date, datetime, timedelta
 import calendar
+import csv
+import io
 import os
 import uuid
 from starlette.responses import RedirectResponse
@@ -1559,6 +1561,43 @@ def submit_tablet_form(payload: TabletFormSubmission, db: Session = Depends(get_
     return JSONResponse({"status": "ok", "id": entry.id})
 
 
+@app.get("/tablet-form-submissions", response_class=HTMLResponse)
+def tablet_form_submissions(request: Request, db: Session = Depends(get_db)):
+    redirect = _ensure_page_access(request)
+    if redirect:
+        return redirect
+    if not bool(_get_or_refresh_permission(request, "is_admin")):
+        return RedirectResponse(url="/", status_code=302)
+
+    entries = db.query(TabletFormEntry).order_by(
+        TabletFormEntry.id.desc()).all()
+    return templates.TemplateResponse(
+        "tablet_form_submissions.html",
+        {"request": request, "entries": entries, "section": "tablet-form-submissions",
+            "time": datetime.utcnow().timestamp()}
+    )
+
+
+@app.get("/admin/tablet-form/export")
+def export_tablet_form(current_user: User = Depends(require_admin), db: Session = Depends(get_db)):
+    entries = db.query(TabletFormEntry).order_by(
+        TabletFormEntry.id.desc()).all()
+
+    buffer = io.StringIO()
+    writer = csv.writer(buffer)
+    writer.writerow(["ID", "Date", "Time", "Bin Location", "SKU/Barcode",
+                     "Qty", "Picker Detail", "Shipment #", "Submitted At"])
+    for e in entries:
+        writer.writerow([e.id, e.entry_date, e.entry_time, e.bin_location,
+                         e.sku_barcode, e.qty, e.picker_detail, e.shipment_number, e.created_at])
+
+    return Response(
+        content=buffer.getvalue(),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=tablet_form_export.csv"}
+    )
+
+
 @app.post("/submit_all", response_class=RedirectResponse)
 def submit_all_forms(
     request: Request,
@@ -2491,50 +2530,6 @@ def admin(
         "time": datetime.utcnow().timestamp(),
         "current_user": current_user,
     })
-
-
-@app.get("/admin/tablet-form/export")
-def export_tablet_form(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_admin)
-):
-    from io import BytesIO
-    from openpyxl import Workbook
-
-    entries = db.query(TabletFormEntry).order_by(
-        TabletFormEntry.id.desc()).all()
-
-    headers = ["Date", "Time", "Bin Location", "SKU/Barcode",
-               "Qty", "Picker Detail", "Shipment #", "Submitted At"]
-
-    wb = Workbook()
-    ws = wb.active
-    ws.title = "TabletForm"
-    ws.append(headers)
-    for entry in entries:
-        ws.append([
-            entry.entry_date.isoformat() if entry.entry_date else "",
-            entry.entry_time.strftime(
-                "%H:%M:%S") if entry.entry_time else "",
-            entry.bin_location,
-            entry.sku_barcode,
-            entry.qty,
-            entry.picker_detail,
-            entry.shipment_number,
-            entry.created_at.strftime(
-                "%Y-%m-%d %H:%M:%S") if entry.created_at else "",
-        ])
-
-    buffer = BytesIO()
-    wb.save(buffer)
-    buffer.seek(0)
-
-    filename = f"tabletform_export_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.xlsx"
-    return Response(
-        content=buffer.getvalue(),
-        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
-    )
 
 
 @app.post("/admin/vodacom/import-excel")

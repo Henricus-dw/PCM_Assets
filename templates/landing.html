@@ -107,18 +107,20 @@
                 </div>
             </a>
 
-            <a href="#" class="landing-module-card">
+            {% if request.session.get('is_admin') %}
+            <a href="/tablet-form-submissions" class="landing-module-card">
                 <div class="landing-module-card__icon tone-tertiary">
-                    <span class="material-symbols-outlined" aria-hidden="true">gavel</span>
+                    <span class="material-symbols-outlined" aria-hidden="true">fact_check</span>
                 </div>
                 <div class="landing-module-card__content">
-                    <h3>IR</h3>
-                    <p>Incident reporting, investigations, and disciplinary case tracking.</p>
+                    <h3>Tablet Form</h3>
+                    <p>View and export warehouse picking submissions from the Tablet Form app.</p>
                 </div>
                 <div class="landing-module-card__arrow">
                     <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
                 </div>
             </a>
+            {% endif %}
 
             <a href="#" class="landing-module-card">
                 <div class="landing-module-card__icon tone-error">
