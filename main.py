@@ -7,7 +7,7 @@ from sqlalchemy import text, Column, Integer, String, Float, DateTime, func, or_
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
 from fastapi import FastAPI, Request, Form, Depends, HTTPException, APIRouter, Path, UploadFile, File
-from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, FileResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
@@ -2491,6 +2491,63 @@ def admin(
         "time": datetime.utcnow().timestamp(),
         "current_user": current_user,
     })
+
+
+def _xml_escape(value) -> str:
+    text = "" if value is None else str(value)
+    return (text.replace("&", "&amp;").replace("<", "&lt;")
+            .replace(">", "&gt;").replace('"', "&quot;"))
+
+
+@app.get("/admin/tablet-form/export")
+def export_tablet_form(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)
+):
+    entries = db.query(TabletFormEntry).order_by(
+        TabletFormEntry.id.desc()).all()
+
+    headers = ["Date", "Time", "Bin Location", "SKU/Barcode",
+               "Qty", "Picker Detail", "Shipment #", "Submitted At"]
+
+    def _row_xml(cells):
+        cells_xml = "".join(
+            f'<Cell><Data ss:Type="String">{_xml_escape(c)}</Data></Cell>' for c in cells
+        )
+        return f"<Row>{cells_xml}</Row>"
+
+    rows_xml = [_row_xml(headers)]
+    for entry in entries:
+        rows_xml.append(_row_xml([
+            entry.entry_date.isoformat() if entry.entry_date else "",
+            entry.entry_time.strftime(
+                "%H:%M:%S") if entry.entry_time else "",
+            entry.bin_location,
+            entry.sku_barcode,
+            entry.qty,
+            entry.picker_detail,
+            entry.shipment_number,
+            entry.created_at.strftime(
+                "%Y-%m-%d %H:%M:%S") if entry.created_at else "",
+        ]))
+
+    xml_doc = (
+        '<?xml version="1.0"?>'
+        '<?mso-application progid="Excel.Sheet"?>'
+        '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" '
+        'xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">'
+        '<Worksheet ss:Name="TabletForm">'
+        '<Table>' + "".join(rows_xml) + '</Table>'
+        '</Worksheet>'
+        '</Workbook>'
+    )
+
+    filename = f"tabletform_export_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.xml"
+    return Response(
+        content=xml_doc,
+        media_type="application/xml",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @app.post("/admin/vodacom/import-excel")
