@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Tablet Form</title>
+    <meta name="theme-color" content="#0b3d91" />
+    <link rel="manifest" href="./manifest.json" />
+    <link rel="icon" href="./icons/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./icons/icon.svg" />
+    <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+    <header class="topbar">
+        <h1>Tablet Form</h1>
+        <button id="settingsBtn" class="icon-btn" title="Server settings" aria-label="Server settings">&#9881;</button>
+    </header>
+
+    <main class="form-wrap">
+        <div id="statusBanner" class="status-banner" hidden></div>
+
+        <form id="tabletForm" autocomplete="off">
+            <div class="field-row">
+                <div class="field">
+                    <label>Date</label>
+                    <input type="text" id="entryDate" readonly />
+                </div>
+                <div class="field">
+                    <label>Time</label>
+                    <input type="text" id="entryTime" readonly />
+                </div>
+            </div>
+
+            <div class="field">
+                <label for="binLocation">Bin Location</label>
+                <input type="text" id="binLocation" name="bin_location" required maxlength="100" />
+            </div>
+
+            <div class="field">
+                <label for="skuBarcode">SKU / Barcode</label>
+                <input type="text" id="skuBarcode" name="sku_barcode" required maxlength="100" inputmode="text" />
+            </div>
+
+            <div class="field">
+                <label for="qty">Qty</label>
+                <input type="number" id="qty" name="qty" required min="1" step="1" inputmode="numeric" />
+            </div>
+
+            <div class="field">
+                <label for="pickerDetail">Picker Detail</label>
+                <input type="text" id="pickerDetail" name="picker_detail" required maxlength="150" />
+            </div>
+
+            <div class="field">
+                <label for="shipmentNumber">Shipment #</label>
+                <input type="text" id="shipmentNumber" name="shipment_number" required maxlength="100" />
+            </div>
+
+            <button type="submit" id="submitBtn" class="submit-btn">Submit</button>
+        </form>
+
+        <div id="queueInfo" class="queue-info" hidden></div>
+    </main>
+
+    <dialog id="settingsDialog">
+        <form id="settingsForm">
+            <h2>Server Settings</h2>
+            <label for="apiBaseUrl">PCM_Tracer server URL</label>
+            <input type="url" id="apiBaseUrl" placeholder="https://your-pcm-tracer-host" required />
+            <p class="hint">Example: http://192.168.1.50:8000</p>
+            <div class="dialog-actions">
+                <button type="button" id="settingsCancel">Cancel</button>
+                <button type="submit">Save</button>
+            </div>
+        </form>
+    </dialog>
+
+    <script src="./app.js"></script>
+</body>
+
+</html>

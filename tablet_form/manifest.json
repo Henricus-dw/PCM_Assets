@@ -1,0 +1,19 @@
+{
+  "name": "Tablet Form",
+  "short_name": "TabletForm",
+  "description": "Warehouse picker form that submits directly to the PCM_Tracer database.",
+  "start_url": "/tablet-form/",
+  "scope": "/tablet-form/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f4f6fb",
+  "theme_color": "#0b3d91",
+  "icons": [
+    {
+      "src": "./icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

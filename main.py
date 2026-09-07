@@ -155,9 +155,9 @@ app.include_router(biometric_router)
 # Static files & templates
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# TabletForm kiosk PWA lives in a sibling folder; served as-is under /tablet-form
+# TabletForm kiosk PWA lives inside this repo so it deploys via the same git pull
 _TABLETFORM_DIR = os.path.join(os.path.dirname(
-    os.path.abspath(__file__)), "..", "TabletForm")
+    os.path.abspath(__file__)), "tablet_form")
 if os.path.isdir(_TABLETFORM_DIR):
     app.mount("/tablet-form", StaticFiles(directory=_TABLETFORM_DIR,
                                           html=True), name="tablet-form")
