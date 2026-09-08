@@ -1537,6 +1537,7 @@ class TabletFormSubmission(BaseModel):
     qty: int = Field(..., gt=0)
     picker_detail: str = Field(..., min_length=1, max_length=150)
     shipment_number: str = Field(..., min_length=1, max_length=100)
+    hu_number: str = Field(..., min_length=1, max_length=100)
 
 
 @app.post("/api/tablet-form")
@@ -1550,6 +1551,7 @@ def submit_tablet_form(payload: TabletFormSubmission, db: Session = Depends(get_
         qty=payload.qty,
         picker_detail=payload.picker_detail.strip(),
         shipment_number=payload.shipment_number.strip(),
+        hu_number=payload.hu_number.strip(),
     )
     db.add(entry)
     try:
@@ -1586,10 +1588,10 @@ def export_tablet_form(current_user: User = Depends(require_admin), db: Session 
     buffer = io.StringIO()
     writer = csv.writer(buffer)
     writer.writerow(["ID", "Date", "Time", "Bin Location", "SKU/Barcode",
-                     "Qty", "Picker Detail", "Shipment #", "Submitted At"])
+                     "Qty", "Picker Detail", "Shipment #", "HU Number", "Submitted At"])
     for e in entries:
         writer.writerow([e.id, e.entry_date, e.entry_time, e.bin_location,
-                         e.sku_barcode, e.qty, e.picker_detail, e.shipment_number, e.created_at])
+                         e.sku_barcode, e.qty, e.picker_detail, e.shipment_number, e.hu_number, e.created_at])
 
     return Response(
         content=buffer.getvalue(),

@@ -123,6 +123,7 @@ form.addEventListener("submit", async (e) => {
         qty: parseInt(document.getElementById("qty").value, 10),
         picker_detail: document.getElementById("pickerDetail").value.trim(),
         shipment_number: document.getElementById("shipmentNumber").value.trim(),
+        hu_number: document.getElementById("huNumber").value.trim(),
     };
 
     try {

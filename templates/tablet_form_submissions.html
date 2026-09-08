@@ -132,6 +132,9 @@
                                             <div class="dashboard-table-header-cell"><span>Shipment #</span></div>
                                         </th>
                                         <th data-col="8">
+                                            <div class="dashboard-table-header-cell"><span>HU Number</span></div>
+                                        </th>
+                                        <th data-col="9">
                                             <div class="dashboard-table-header-cell"><span>Submitted At</span></div>
                                         </th>
                                     </tr>
@@ -148,12 +151,13 @@
                                         <td>{{ entry.qty }}</td>
                                         <td>{{ entry.picker_detail }}</td>
                                         <td>{{ entry.shipment_number }}</td>
+                                        <td>{{ entry.hu_number }}</td>
                                         <td class="dashboard-table-cell-muted">{{ entry.created_at }}</td>
                                     </tr>
                                     {% endfor %}
                                     {% else %}
                                     <tr>
-                                        <td colspan="9" class="table-empty-cell">No submissions found.</td>
+                                        <td colspan="10" class="table-empty-cell">No submissions found.</td>
                                     </tr>
                                     {% endif %}
                                 </tbody>

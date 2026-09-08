@@ -260,4 +260,5 @@ class TabletFormEntry(Base):
     qty = Column(Integer, nullable=False)
     picker_detail = Column(String(150), nullable=False)
     shipment_number = Column(String(100), nullable=False)
+    hu_number = Column(String(100), nullable=True)
     created_at = Column(DateTime, server_default=func.now())
