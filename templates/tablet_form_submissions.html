@@ -126,13 +126,15 @@
                                             <div class="dashboard-table-header-cell"><span>Qty</span></div>
                                         </th>
                                         <th data-col="6">
-                                            <div class="dashboard-table-header-cell"><span>Picker Detail</span></div>
+                                            <div class="dashboard-table-header-cell"><span>HU Number</span></div>
                                         </th>
                                         <th data-col="7">
-                                            <div class="dashboard-table-header-cell"><span>Shipment #</span></div>
+                                            <div class="dashboard-table-header-cell"><span>Replenishment
+                                                    Requested</span></div>
                                         </th>
                                         <th data-col="8">
-                                            <div class="dashboard-table-header-cell"><span>HU Number</span></div>
+                                            <div class="dashboard-table-header-cell"><span>Replenishment
+                                                    Completed</span></div>
                                         </th>
                                         <th data-col="9">
                                             <div class="dashboard-table-header-cell"><span>Submitted At</span></div>
@@ -149,9 +151,9 @@
                                         <td>{{ entry.bin_location }}</td>
                                         <td>{{ entry.sku_barcode }}</td>
                                         <td>{{ entry.qty }}</td>
-                                        <td>{{ entry.picker_detail }}</td>
-                                        <td>{{ entry.shipment_number }}</td>
                                         <td>{{ entry.hu_number }}</td>
+                                        <td>{{ entry.replenishment_requested_at }}</td>
+                                        <td>{{ entry.replenishment_completed_at }}</td>
                                         <td class="dashboard-table-cell-muted">{{ entry.created_at }}</td>
                                     </tr>
                                     {% endfor %}
@@ -201,8 +203,8 @@
     <div id="sortMenuPopover" class="dashboard-filter-popover dashboard-filter-popover--sort">
         <button type="button" data-sort="latest">Latest Entry</button>
         <button type="button" data-sort="bin_location">Bin Location</button>
-        <button type="button" data-sort="picker_detail">Picker Detail</button>
-        <button type="button" data-sort="shipment_number">Shipment #</button>
+        <button type="button" data-sort="hu_number">HU Number</button>
+        <button type="button" data-sort="replenishment_completed_at">Replenishment Completed</button>
     </div>
 
     <script src="/static/ui/components/sidebar.js"></script>
@@ -264,8 +266,8 @@
             const sortLabels = {
                 latest: "Latest Entry",
                 bin_location: "Bin Location",
-                picker_detail: "Picker Detail",
-                shipment_number: "Shipment #"
+                hu_number: "HU Number",
+                replenishment_completed_at: "Replenishment Completed"
             };
 
             function rowMatchesFilters(row) {
@@ -472,8 +474,8 @@
 
                     const columnMap = {
                         bin_location: 3,
-                        picker_detail: 6,
-                        shipment_number: 7
+                        hu_number: 6,
+                        replenishment_completed_at: 8
                     };
                     const colIndex = columnMap[key] ?? 1;
                     return textAt(a, colIndex).localeCompare(textAt(b, colIndex));

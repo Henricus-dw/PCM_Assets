@@ -121,9 +121,9 @@ form.addEventListener("submit", async (e) => {
         bin_location: document.getElementById("binLocation").value.trim(),
         sku_barcode: document.getElementById("skuBarcode").value.trim(),
         qty: parseInt(document.getElementById("qty").value, 10),
-        picker_detail: document.getElementById("pickerDetail").value.trim(),
-        shipment_number: document.getElementById("shipmentNumber").value.trim(),
         hu_number: document.getElementById("huNumber").value.trim(),
+        replenishment_requested_at: document.getElementById("replenishmentRequestedAt").value,
+        replenishment_completed_at: document.getElementById("replenishmentCompletedAt").value,
     };
 
     try {

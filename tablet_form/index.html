@@ -49,18 +49,18 @@
             </div>
 
             <div class="field">
-                <label for="pickerDetail">Picker Detail</label>
-                <input type="text" id="pickerDetail" name="picker_detail" required maxlength="150" />
-            </div>
-
-            <div class="field">
-                <label for="shipmentNumber">Shipment #</label>
-                <input type="text" id="shipmentNumber" name="shipment_number" required maxlength="100" />
-            </div>
-
-            <div class="field">
                 <label for="huNumber">HU Number</label>
                 <input type="text" id="huNumber" name="hu_number" required maxlength="100" />
+            </div>
+
+            <div class="field">
+                <label for="replenishmentRequestedAt">Time of Replenishment</label>
+                <input type="datetime-local" id="replenishmentRequestedAt" name="replenishment_requested_at" required />
+            </div>
+
+            <div class="field">
+                <label for="replenishmentCompletedAt">Replenishment Completed</label>
+                <input type="datetime-local" id="replenishmentCompletedAt" name="replenishment_completed_at" required />
             </div>
 
             <button type="submit" id="submitBtn" class="submit-btn">Submit</button>

@@ -258,7 +258,10 @@ class TabletFormEntry(Base):
     bin_location = Column(String(100), nullable=False)
     sku_barcode = Column(String(100), nullable=False)
     qty = Column(Integer, nullable=False)
-    picker_detail = Column(String(150), nullable=False)
-    shipment_number = Column(String(100), nullable=False)
+    # deprecated: no longer collected on the form, kept for historical rows
+    picker_detail = Column(String(150), nullable=True)
+    shipment_number = Column(String(100), nullable=True)
     hu_number = Column(String(100), nullable=True)
+    replenishment_requested_at = Column(DateTime, nullable=True)
+    replenishment_completed_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, server_default=func.now())
