@@ -174,4 +174,3 @@ body.app-with-sidebar .sidebar-handle .handle-icon::before {
 body.app-with-sidebar .sidebar-handle[aria-pressed="true"] .handle-icon::before {
     transform: rotate(180deg);
 }
-
