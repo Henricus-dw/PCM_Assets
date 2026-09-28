@@ -619,6 +619,66 @@ body.admin-governance .sidebar {
     background: #9aa3a1;
 }
 
+@media (min-width: 1181px) and (min-height: 640px) {
+    .admin-governance-scroll {
+        min-height: 0;
+        overflow: hidden;
+        padding: 1rem 1.5rem;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .admin-hero {
+        flex: 0 0 auto;
+        margin-bottom: 1rem;
+    }
+
+    .admin-governance-grid {
+        flex: 1 1 auto;
+        min-height: 0;
+        grid-template-rows: minmax(0, 0.9fr) minmax(0, 1.1fr);
+        gap: 1rem;
+    }
+
+    .admin-panel {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+    }
+
+    .admin-panel-header {
+        flex: 0 0 auto;
+        padding: 0.875rem 1rem;
+    }
+
+    #pendingPanelBody,
+    #usersPanelBody {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+    }
+
+    #usersPanel #usersPanelBody {
+        max-height: none;
+    }
+
+    #editsPanelBody {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+    }
+
+    .admin-summary-grid {
+        flex: 0 0 auto;
+        margin-top: 1rem;
+    }
+
+    .admin-summary-card {
+        min-height: 6.5rem;
+        padding: 0.875rem 1rem;
+    }
+}
+
 @media (max-width: 1180px) {
     .admin-governance-grid {
         grid-template-columns: 1fr;
