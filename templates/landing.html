@@ -21,6 +21,12 @@
                 <span class="material-symbols-outlined" aria-hidden="true">person</span>
                 <span>{{ current_user.name or current_user.email }}</span>
             </div>
+            {% if request.session.get('is_admin') %}
+            <a href="/admin" class="landing-admin-link">
+                <span class="material-symbols-outlined" aria-hidden="true">admin_panel_settings</span>
+                <span>Admin</span>
+            </a>
+            {% endif %}
             <a href="/logout" class="landing-logout-link">
                 <span class="material-symbols-outlined" aria-hidden="true">logout</span>
                 <span>Log Out</span>

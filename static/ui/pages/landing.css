@@ -55,6 +55,32 @@ body.landing-page .landing-user-badge span:last-child {
     font-weight: 600;
 }
 
+body.landing-page .landing-admin-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.125rem;
+    background: #334155;
+    color: #ffffff;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color 200ms ease, transform 120ms ease;
+}
+
+body.landing-page .landing-admin-link:hover {
+    background: #1e293b;
+}
+
+body.landing-page .landing-admin-link:active {
+    transform: scale(0.97);
+}
+
+body.landing-page .landing-admin-link .material-symbols-outlined {
+    font-size: 18px;
+}
+
 body.landing-page .landing-logout-link {
     display: inline-flex;
     align-items: center;
