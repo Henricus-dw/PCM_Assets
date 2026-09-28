@@ -157,7 +157,7 @@ body.app-with-sidebar .sidebar-handle[aria-pressed="true"] {
 }
 
 body.app-with-sidebar .sidebar-handle .handle-icon,
-body.app-with-sidebar .sidebar-handle > .material-symbols-outlined {
+body.app-with-sidebar .sidebar-handle>.material-symbols-outlined {
     display: inline-block;
     font-size: 1.25rem;
     line-height: 1;
@@ -165,14 +165,15 @@ body.app-with-sidebar .sidebar-handle > .material-symbols-outlined {
 }
 
 body.app-with-sidebar .sidebar-handle[aria-pressed="true"] .handle-icon,
-body.app-with-sidebar .sidebar-handle[aria-pressed="true"] > .material-symbols-outlined {
+body.app-with-sidebar .sidebar-handle[aria-pressed="true"]>.material-symbols-outlined {
     transform: rotate(180deg);
 }
 
 @media (prefers-reduced-motion: reduce) {
+
     body.app-with-sidebar .sidebar-handle,
     body.app-with-sidebar .sidebar-handle .handle-icon,
-    body.app-with-sidebar .sidebar-handle > .material-symbols-outlined {
+    body.app-with-sidebar .sidebar-handle>.material-symbols-outlined {
         transition: none;
     }
 }
