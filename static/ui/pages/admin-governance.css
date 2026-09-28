@@ -643,6 +643,7 @@ body.admin-governance .sidebar {
     .admin-panel {
         display: flex;
         flex-direction: column;
+        align-self: stretch;
         min-height: 0;
     }
 
