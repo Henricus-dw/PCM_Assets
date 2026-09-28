@@ -498,6 +498,10 @@ main.auth-container::after {
         flex-direction: column;
     }
 
+    body.auth-register .auth-form-section {
+        align-items: flex-start;
+    }
+
     .auth-showcase {
         min-height: 400px;
         padding: 2rem;

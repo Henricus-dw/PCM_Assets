@@ -6,44 +6,131 @@
     <title>Create account</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="/static/pcm-lockup-goldc-final.svg" type="image/svg+xml" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
     <link rel="stylesheet" href="/static/ui/main.css" />
     <link rel="stylesheet" href="/static/ui/pages/auth.css" />
 </head>
 
 <body class="auth-register">
-    <main class="auth-card">
-        <h1>Create account</h1>
-        {% if error %}
-        <div class="auth-error">{{ error }}</div>
-        {% endif %}
-        <form class="auth-form" method="post" action="/register" autocomplete="on">
-            <div class="auth-field">
-                <label for="name">Name</label>
-                <input id="name" name="name" required />
+    <header class="auth-navbar">
+        <nav class="auth-navbar-content">
+            <div class="auth-navbar-brand">
+                <img src="/static/pcm-lockup-goldc-final.svg" alt="PCM logo" class="auth-navbar-logo" />
             </div>
-            <div class="auth-field">
-                <label for="surname">Surname</label>
-                <input id="surname" name="surname" required />
+            <div class="auth-navbar-links">
+                <a href="/">Home</a>
+                <a href="/login">Sign in</a>
             </div>
-            <div class="auth-field">
-                <label for="email">Email address</label>
-                <input id="email" name="email" type="email" required autocomplete="email" />
+        </nav>
+    </header>
+
+    <main class="auth-container">
+        <section class="auth-showcase">
+            <div class="auth-showcase-bg"></div>
+            <div class="auth-showcase-content">
+                <div class="auth-showcase-badge">
+                    <span class="material-symbols-outlined">security</span>
+                    <span>Professional Management</span>
+                </div>
+                <h1 class="auth-showcase-title">
+                    Secure Asset &amp; Risk <br />
+                    <span class="auth-showcase-highlight">Management Platform</span>
+                </h1>
+                <p class="auth-showcase-description">
+                    Protecting global assets through precision logistics and integrated risk management.
+                    Enterprise-grade security and compliance.
+                </p>
+                <div class="auth-showcase-stats">
+                    <div class="auth-stat">
+                        <div class="auth-stat-number">24/7</div>
+                        <div class="auth-stat-label">Global Monitoring</div>
+                    </div>
+                    <div class="auth-stat">
+                        <div class="auth-stat-number">99.9%</div>
+                        <div class="auth-stat-label">Uptime SLA</div>
+                    </div>
+                </div>
             </div>
-            <div class="auth-field">
-                <label for="password">Password</label>
-                <input id="password" name="password" type="password" required autocomplete="new-password" />
+        </section>
+
+        <section class="auth-form-section">
+            <div class="auth-card">
+                <h2 class="auth-card-title">Create an Account</h2>
+                <p class="auth-card-subtitle">Request access to manage your enterprise assets and risk profiles.</p>
+
+                {% if error %}
+                <div class="auth-error">{{ error }}</div>
+                {% endif %}
+
+                <form class="auth-form" method="post" action="/register" autocomplete="on">
+                    <div class="auth-field">
+                        <label for="name">Name</label>
+                        <div class="auth-field-input-wrapper">
+                            <span class="material-symbols-outlined auth-field-icon">person</span>
+                            <input id="name" name="name" type="text" required autocomplete="given-name"
+                                placeholder="Your first name" />
+                        </div>
+                    </div>
+                    <div class="auth-field">
+                        <label for="surname">Surname</label>
+                        <div class="auth-field-input-wrapper">
+                            <span class="material-symbols-outlined auth-field-icon">badge</span>
+                            <input id="surname" name="surname" type="text" required autocomplete="family-name"
+                                placeholder="Your surname" />
+                        </div>
+                    </div>
+                    <div class="auth-field">
+                        <label for="email">Corporate Email</label>
+                        <div class="auth-field-input-wrapper">
+                            <span class="material-symbols-outlined auth-field-icon">mail</span>
+                            <input id="email" name="email" type="email" required autocomplete="email"
+                                placeholder="your.email@company.com" />
+                        </div>
+                    </div>
+                    <div class="auth-field">
+                        <label for="password">Password</label>
+                        <div class="auth-field-input-wrapper">
+                            <span class="material-symbols-outlined auth-field-icon">lock</span>
+                            <input id="password" name="password" type="password" required autocomplete="new-password"
+                                placeholder="Create a password" />
+                        </div>
+                    </div>
+                    <div class="auth-field">
+                        <label for="confirm_password">Confirm password</label>
+                        <div class="auth-field-input-wrapper">
+                            <span class="material-symbols-outlined auth-field-icon">lock_reset</span>
+                            <input id="confirm_password" name="confirm_password" type="password" required
+                                autocomplete="new-password" placeholder="Enter your password again" />
+                        </div>
+                    </div>
+                    <button class="auth-submit" type="submit">
+                        <span>Request approval</span>
+                        <span class="material-symbols-outlined">arrow_forward</span>
+                    </button>
+                </form>
+
+                <div class="auth-divider">
+                    <span>Or</span>
+                </div>
+
+                <p class="auth-footer">
+                    Already have an account? <a href="/login">Sign in</a>
+                </p>
             </div>
-            <div class="auth-field">
-                <label for="confirm_password">Confirm password</label>
-                <input id="confirm_password" name="confirm_password" type="password" required
-                    autocomplete="new-password" />
-            </div>
-            <button class="auth-submit" type="submit">Request approval</button>
-        </form>
-        <p class="auth-footer">
-            <a href="/login">Back to sign in</a>
-        </p>
+        </section>
     </main>
+
+    <footer class="auth-footer-bar">
+        <div class="auth-footer-content">
+            <p>&copy; 2024 PCM Tracer. All rights reserved.</p>
+            <div class="auth-footer-links">
+                <a href="/privacy">Privacy Policy</a>
+                <a href="/terms">Terms of Service</a>
+                <a href="/security">Security</a>
+            </div>
+        </div>
+    </footer>
 </body>
 
 </html>
