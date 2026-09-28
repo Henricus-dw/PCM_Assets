@@ -125,52 +125,54 @@ body.app-with-sidebar .nav-bottom #logoutLink {
 
 body.app-with-sidebar .sidebar-handle {
     position: absolute;
-    right: -15px;
-    top: 50%;
-    width: 30px;
-    height: 48px;
-    border: 0;
-    border-radius: 0 0.375rem 0.375rem 0;
-    background: #f8f9f8;
-    color: #2f3032;
-    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
+    right: -14px;
+    top: 1.25rem;
+    width: 28px;
+    height: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 999px;
+    background: #414648;
+    color: #f4f5f4;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    transform: translateY(-50%);
-    transition: background-color 180ms ease, color 180ms ease, box-shadow 180ms ease;
+    transition: background-color 150ms ease, box-shadow 150ms ease;
 }
 
 body.app-with-sidebar .sidebar-handle:hover {
-    background: #ffffff;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.28);
+    background: #535a5c;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.24);
 }
 
 body.app-with-sidebar .sidebar-handle:focus-visible {
-    outline: 2px solid #e9c176;
+    outline: 2px solid #d5d9d8;
     outline-offset: 2px;
 }
 
 body.app-with-sidebar .sidebar-handle[aria-pressed="true"] {
-    background: #e9c176;
-    color: #252b33;
+    background: #e6e9e8;
+    color: #303536;
 }
 
-body.app-with-sidebar .sidebar-handle .handle-icon {
-    font-size: 0;
+body.app-with-sidebar .sidebar-handle .handle-icon,
+body.app-with-sidebar .sidebar-handle > .material-symbols-outlined {
+    display: inline-block;
+    font-size: 1.25rem;
     line-height: 1;
+    transition: transform 160ms ease-out;
 }
 
-body.app-with-sidebar .sidebar-handle .handle-icon::before {
-    content: "‹";
-    display: block;
-    font-family: "Manrope", "Segoe UI", sans-serif;
-    font-size: 1.75rem;
-    font-weight: 600;
-    transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-body.app-with-sidebar .sidebar-handle[aria-pressed="true"] .handle-icon::before {
+body.app-with-sidebar .sidebar-handle[aria-pressed="true"] .handle-icon,
+body.app-with-sidebar .sidebar-handle[aria-pressed="true"] > .material-symbols-outlined {
     transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.app-with-sidebar .sidebar-handle,
+    body.app-with-sidebar .sidebar-handle .handle-icon,
+    body.app-with-sidebar .sidebar-handle > .material-symbols-outlined {
+        transition: none;
+    }
 }
