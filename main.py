@@ -6,6 +6,7 @@ from datetime import datetime
 from sqlalchemy import text, Column, Integer, String, Float, DateTime, func, or_
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from fastapi import FastAPI, Request, Form, Depends, HTTPException, APIRouter, Path, UploadFile, File
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, FileResponse, Response
 from fastapi.staticfiles import StaticFiles
@@ -24,11 +25,14 @@ import uuid
 from starlette.responses import RedirectResponse
 import json
 import requests
+import logging
+import re
+import secrets
 
 from auth import get_current_user, require_admin
 
 # ---- Your models & DB ----
-from models import VodacomSubscription, Device, User, PendingUser, DeviceEditRequest, ContractEditRequest, AttendanceSession, PolicyDocument, PolicyDocumentUserAccess, TabletFormEntry
+from models import VodacomSubscription, Device, User, PendingUser, DeviceEditRequest, ContractEditRequest, AttendanceSession, PolicyDocument, PolicyDocumentUserAccess, TabletFormEntry, PersonnelEmployee
 from database import SessionLocal, engine, Base, ensure_local_sqlite_schema
 
 
@@ -603,16 +607,205 @@ def personnel_hub(request: Request):
     )
 
 
+PERSONNEL_FORM_SECTIONS = (
+    ("Personal information", (
+        ("employee_number", "Employee number", "text", 50, True),
+        ("first_name", "Name", "text", 100, True),
+        ("surname", "Surname", "text", 100, True),
+        ("identity_number", "ID / passport number", "text", 50, False),
+        ("email", "Email address", "email", 255, False),
+        ("phone", "Phone number", "tel", 50, False),
+    )),
+    ("Residential address", (
+        ("address_line_1", "Address line 1", "text", 255, False),
+        ("address_line_2", "Address line 2", "text", 255, False),
+        ("city", "City / town", "text", 100, False),
+        ("province", "Province / region", "text", 100, False),
+        ("postal_code", "Postal code", "text", 20, False),
+    )),
+    ("Next of kin", (
+        ("next_of_kin_name", "Contact name", "text", 200, False),
+        ("next_of_kin_relationship", "Relationship", "text", 100, False),
+        ("next_of_kin_phone", "Contact phone number", "tel", 50, False),
+    )),
+    ("Employment details", (
+        ("company", "Company", "text", 100, False),
+        ("site", "Location / site", "text", 100, False),
+        ("division", "Division", "text", 100, False),
+        ("job_title", "Job title", "text", 150, False),
+        ("start_date", "Start date", "date", None, False),
+        ("end_date", "End date", "date", None, False),
+    )),
+)
+
+
+def _personnel_enrolment_response(
+    request: Request, db: Session, profile_id: Optional[int] = None,
+    values: Optional[dict] = None, error: Optional[str] = None,
+    status_code: int = 200,
+):
+    profiles = db.query(PersonnelEmployee).order_by(
+        PersonnelEmployee.surname, PersonnelEmployee.first_name,
+        PersonnelEmployee.id).all()
+    if values is None:
+        profile = db.get(PersonnelEmployee, profile_id) if profile_id else None
+        if profile_id and profile is None:
+            raise HTTPException(status_code=404, detail="Personnel employee not found")
+        values = {
+            column.name: getattr(profile, column.name)
+            for column in PersonnelEmployee.__table__.columns
+        } if profile else {"employment_status": "active"}
+    if not request.session.get("personnel_csrf_token"):
+        request.session["personnel_csrf_token"] = secrets.token_urlsafe(32)
+    return templates.TemplateResponse(
+        "personnel_enrolment.html",
+        {
+            "request": request, "section": "personnel-enrolment",
+            "profiles": profiles, "profile_id": profile_id, "values": values,
+            "form_sections": PERSONNEL_FORM_SECTIONS,
+            "error": error, "success": request.session.pop("personnel_success", None),
+            "csrf_token": request.session["personnel_csrf_token"],
+            "time": datetime.utcnow().timestamp(),
+        },
+        status_code=status_code,
+    )
+
+
 @app.get("/personnel-hub/enrolment", response_class=HTMLResponse)
-def personnel_enrolment(request: Request):
+def personnel_enrolment(
+    request: Request, edit: Optional[int] = None, db: Session = Depends(get_db),
+):
     redirect = _ensure_page_access(request, "time_attendance")
     if redirect:
         return redirect
-    return templates.TemplateResponse(
-        "personnel_enrolment.html",
-        {"request": request, "section": "personnel-enrolment",
-         "employees": [], "profiles": {}, "error": None,
-         "success": None, "time": datetime.utcnow().timestamp()}
+    if not db.get(User, request.session.get("user_id")):
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    if edit is not None and not 0 < edit <= 2147483647:
+        raise HTTPException(status_code=400, detail="Invalid personnel employee ID")
+    return _personnel_enrolment_response(request, db, profile_id=edit)
+
+
+@app.post("/personnel-hub/enrolment/save", response_class=HTMLResponse)
+async def save_personnel_enrolment(request: Request, db: Session = Depends(get_db)):
+    _ensure_api_access(request, "time_attendance")
+    user = db.get(User, request.session.get("user_id"))
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    form = await request.form()
+    csrf_token = form.get("csrf_token")
+    session_token = request.session.get("personnel_csrf_token")
+    if (not isinstance(csrf_token, str) or not csrf_token.isascii() or not session_token
+            or not secrets.compare_digest(csrf_token, session_token)):
+        raise HTTPException(status_code=403, detail="Invalid form token; reload the enrolment page")
+
+    def form_text(name: str) -> str:
+        value = form.get(name, "")
+        if not isinstance(value, str):
+            raise HTTPException(status_code=400, detail="Invalid form field")
+        return value.strip()
+
+    raw_id = form_text("profile_id")
+    if raw_id and (
+        len(raw_id) > 10 or not raw_id.isascii() or not raw_id.isdecimal()
+        or not 0 < int(raw_id) <= 2147483647
+    ):
+        raise HTTPException(status_code=400, detail="Invalid personnel employee ID")
+    profile_id = int(raw_id) if raw_id else None
+    profile = db.get(PersonnelEmployee, profile_id) if profile_id else None
+    if profile_id and profile is None:
+        raise HTTPException(status_code=404, detail="Personnel employee not found")
+
+    values = {
+        name: form_text(name)
+        for _, fields in PERSONNEL_FORM_SECTIONS
+        for name, _, _, _, _ in fields
+    }
+    for name in ("identity_type", "employment_status", "manager_personnel_id"):
+        values[name] = form_text(name)
+    cleaned: dict[str, Any] = {}
+    errors = []
+    for _, fields in PERSONNEL_FORM_SECTIONS:
+        for name, label, input_type, max_length, required in fields:
+            value = values[name]
+            if required and not value:
+                errors.append(f"{label} is required.")
+            if max_length and len(value) > max_length:
+                errors.append(f"{label} must be {max_length} characters or fewer.")
+            if input_type == "date" and value:
+                try:
+                    if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
+                        raise ValueError
+                    cleaned[name] = date.fromisoformat(value)
+                    if cleaned[name].year < 1000:
+                        raise ValueError
+                except ValueError:
+                    errors.append(f"{label} must be a valid date (YYYY-MM-DD).")
+            else:
+                cleaned[name] = value or None
+    if values["email"] and not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", values["email"]):
+        errors.append("Enter a valid email address.")
+    if values["identity_type"] not in {"", "id", "passport"}:
+        errors.append("Choose ID or passport as the identity type.")
+    if bool(values["identity_type"]) != bool(values["identity_number"]):
+        errors.append("Provide both the identity type and number, or leave both blank.")
+    cleaned["identity_type"] = values["identity_type"] or None
+    if values["employment_status"] not in {"active", "inactive"}:
+        errors.append("Choose active or inactive as the employment status.")
+    cleaned["employment_status"] = values["employment_status"]
+    if (cleaned.get("start_date") and cleaned.get("end_date")
+            and cleaned["end_date"] < cleaned["start_date"]):
+        errors.append("End date cannot be before start date.")
+
+    manager_id = values["manager_personnel_id"]
+    cleaned["manager_personnel_id"] = None
+    if manager_id:
+        if (len(manager_id) > 10 or not manager_id.isascii() or not manager_id.isdecimal()
+                or not 0 < int(manager_id) <= 2147483647):
+            errors.append("Choose a valid manager.")
+        elif int(manager_id) == profile_id:
+            errors.append("An employee cannot be their own manager.")
+        elif db.get(PersonnelEmployee, int(manager_id)) is None:
+            errors.append("The selected manager no longer exists.")
+        else:
+            cleaned["manager_personnel_id"] = int(manager_id)
+
+    duplicate = db.query(PersonnelEmployee).filter(
+        PersonnelEmployee.employee_number == values["employee_number"],
+        PersonnelEmployee.id != (profile_id or 0),
+    ).first()
+    if duplicate:
+        errors.append("That employee number is already enrolled.")
+    if errors:
+        return _personnel_enrolment_response(
+            request, db, profile_id, values, " ".join(errors), status_code=400)
+
+    if profile is None:
+        profile = PersonnelEmployee(created_by_user_id=user.id)
+        db.add(profile)
+    for name, value in cleaned.items():
+        setattr(profile, name, value)
+    profile.updated_by_user_id = user.id
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        duplicate = db.query(PersonnelEmployee).filter(
+            PersonnelEmployee.employee_number == values["employee_number"],
+            PersonnelEmployee.id != (profile_id or 0),
+        ).first()
+        if duplicate:
+            return _personnel_enrolment_response(
+                request, db, profile_id, values,
+                "That employee number is already enrolled.", status_code=409)
+        logging.getLogger(__name__).exception("Personnel enrolment integrity error")
+        return _personnel_enrolment_response(
+            request, db, profile_id, values,
+            "The record could not be saved because related data changed. "
+            "Check the selected manager and try again.", status_code=409)
+    request.session["personnel_success"] = (
+        "Personnel profile updated." if profile_id else "Personnel profile saved.")
+    return RedirectResponse(
+        url=f"/personnel-hub/enrolment?edit={profile.id}", status_code=303,
     )
 
 

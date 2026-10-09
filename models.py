@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String
 from sqlalchemy import Column, Integer, String, Float, DateTime, Date, Time, func, UniqueConstraint, Text, Boolean, text
+from sqlalchemy import Enum, FetchedValue, ForeignKey, Index
 
 from database import Base
 
@@ -188,6 +189,69 @@ class Employee(Base):
     Site = Column(String(100))
     Division = Column(String(100))
     lunch_hour = Column(Boolean, nullable=True)
+
+
+class PersonnelEmployee(Base):
+    __tablename__ = "personnel_employees"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    employee_number = Column(String(50), nullable=False)
+    first_name = Column(String(100), nullable=False)
+    surname = Column(String(100), nullable=False)
+
+    identity_type = Column(Enum('id', 'passport'), nullable=True)
+    identity_number = Column(String(50), nullable=True)
+    email = Column(String(255), nullable=True)
+    phone = Column(String(50), nullable=True)
+
+    address_line_1 = Column(String(255), nullable=True)
+    address_line_2 = Column(String(255), nullable=True)
+    city = Column(String(100), nullable=True)
+    province = Column(String(100), nullable=True)
+    postal_code = Column(String(20), nullable=True)
+
+    next_of_kin_name = Column(String(200), nullable=True)
+    next_of_kin_relationship = Column(String(100), nullable=True)
+    next_of_kin_phone = Column(String(50), nullable=True)
+
+    company = Column(String(100), nullable=True)
+    site = Column(String(100), nullable=True)
+    division = Column(String(100), nullable=True)
+    job_title = Column(String(150), nullable=True)
+    manager_personnel_id = Column(Integer, ForeignKey(
+        'personnel_employees.id', name='fk_personnel_manager',
+        ondelete='SET NULL', onupdate='RESTRICT'), nullable=True)
+
+    employment_status = Column(
+        Enum('active', 'inactive'), nullable=False,
+        server_default=text("'active'"), default='active')
+    start_date = Column(Date, nullable=True)
+    end_date = Column(Date, nullable=True)
+
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    updated_at = Column(
+        DateTime, nullable=False, server_default=func.now(),
+        onupdate=func.now(), server_onupdate=FetchedValue())
+
+    created_by_user_id = Column(Integer, ForeignKey(
+        'users.id', name='fk_personnel_created_by',
+        ondelete='RESTRICT', onupdate='RESTRICT'), nullable=False)
+    updated_by_user_id = Column(Integer, ForeignKey(
+        'users.id', name='fk_personnel_updated_by',
+        ondelete='RESTRICT', onupdate='RESTRICT'), nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint('employee_number',
+                         name='uq_personnel_employee_number'),
+        Index('idx_personnel_manager', 'manager_personnel_id'),
+        Index('idx_personnel_created_by', 'created_by_user_id'),
+        Index('idx_personnel_updated_by', 'updated_by_user_id'),
+        {
+            'mysql_engine': 'InnoDB',
+            'mysql_charset': 'utf8mb4',
+            'mysql_collate': 'utf8mb4_unicode_ci',
+        },
+    )
 
 
 class TimestampRecord(Base):

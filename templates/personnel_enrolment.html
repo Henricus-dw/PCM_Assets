@@ -64,15 +64,14 @@
                     <div>
                         <p class="personnel-eyebrow">Personnel records</p>
                         <h1 class="personnel-title">Personnel Enrolment</h1>
-                        <p class="personnel-subtitle">Create the employee profile that will hold HR information and
-                            supporting documents.</p>
+                        <p class="personnel-subtitle">Save and update personnel details independently of attendance
+                            registration. Supporting documents will be added later.</p>
                     </div>
                     <a class="personnel-header-action" href="/personnel-hub"><span
                             class="material-symbols-outlined">arrow_back</span>Back to hub</a>
                 </header>
 
-                {% if error %}<div class="personnel-alert personnel-alert--error" role="alert">{{ error }}</div>{% endif
-                %}
+                {% if error %}<div class="personnel-alert personnel-alert--error" role="alert">{{ error }}</div>{% endif %}
                 {% if success %}<div class="personnel-alert personnel-alert--success" role="status">{{ success }}</div>
                 {% endif %}
 
@@ -81,51 +80,70 @@
                         <div class="personnel-section-heading">
                             <div>
                                 <p class="personnel-kicker">Employee profile</p>
-                                <h2 id="form-heading">Personal information</h2>
+                                <h2 id="form-heading">{{ 'Edit personnel profile' if profile_id else 'Enrol an employee' }}</h2>
                             </div><span class="personnel-section-count">Required fields marked *</span>
                         </div>
-                        <form class="personnel-form" onsubmit="return false;">
-                            <label class="personnel-field"><span>Employee number *</span><input name="employee_id"
-                                    type="text" required autocomplete="off"></label>
-                            <label class="personnel-field"><span>Name *</span><input name="name" type="text" required
-                                    autocomplete="given-name"></label>
-                            <label class="personnel-field"><span>Surname *</span><input name="surname" type="text"
-                                    required autocomplete="family-name"></label>
-                            <label class="personnel-field"><span>Company</span><input name="company"
-                                    type="text"></label>
-                            <label class="personnel-field"><span>Location / site</span><input name="site"
-                                    type="text"></label>
-                            <label class="personnel-field"><span>Division</span><input name="division"
-                                    type="text"></label>
-                            <label class="personnel-field"><span>ID / passport number</span><input name="id_number"
-                                    type="text" autocomplete="off"></label>
-                            <label class="personnel-field"><span>Job title</span><input name="job_title"
-                                    type="text"></label>
-                            <label class="personnel-field"><span>Email address</span><input name="email" type="email"
-                                    autocomplete="email"></label>
-                            <label class="personnel-field"><span>Phone number</span><input name="phone" type="tel"
-                                    autocomplete="tel"></label>
-                            <label class="personnel-field"><span>Employment status</span><select
-                                    name="employment_status">
-                                    <option value="active">Active</option>
-                                    <option value="on_leave">On leave</option>
-                                    <option value="inactive">Inactive</option>
-                                </select></label>
-                            <label class="personnel-field"><span>Start date</span><input name="start_date"
-                                    type="date"></label>
-                            <label class="personnel-field personnel-field--full"><span>Manager</span><input
-                                    name="manager_name" type="text" placeholder="Manager name"></label>
-                            <div class="personnel-form-actions"><button class="personnel-header-action"
-                                    type="button"><span class="material-symbols-outlined">save</span>Save
-                                    profile</button></div>
+                        <form class="personnel-form" method="post" action="/personnel-hub/enrolment/save">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <input type="hidden" name="profile_id" value="{{ profile_id or '' }}">
+                            {% for heading, fields in form_sections %}
+                            <fieldset class="personnel-form-group">
+                                <legend>{{ heading }}</legend>
+                                <div class="personnel-form-fields">
+                                    {% for name, label, input_type, max_length, required in fields %}
+                                    {% if name == 'identity_number' %}
+                                    <label class="personnel-field"><span>Identity type</span>
+                                        <select name="identity_type">
+                                            <option value="">Not provided</option>
+                                            <option value="id" {% if values.get('identity_type') == 'id' %}selected{% endif %}>ID</option>
+                                            <option value="passport" {% if values.get('identity_type') == 'passport' %}selected{% endif %}>Passport</option>
+                                        </select>
+                                    </label>
+                                    {% endif %}
+                                    <label class="personnel-field"><span>{{ label }}{% if required %} *{% endif %}</span>
+                                        <input name="{{ name }}" type="{{ input_type }}"
+                                            value="{{ values.get(name) or '' }}"
+                                            {% if max_length %}maxlength="{{ max_length }}"{% endif %}
+                                            {% if required %}required{% endif %}>
+                                    </label>
+                                    {% endfor %}
+                                    {% if heading == 'Employment details' %}
+                                    <label class="personnel-field"><span>Employment status *</span>
+                                        <select name="employment_status" required>
+                                            <option value="active" {% if values.get('employment_status') == 'active' %}selected{% endif %}>Active</option>
+                                            <option value="inactive" {% if values.get('employment_status') == 'inactive' %}selected{% endif %}>Inactive</option>
+                                        </select>
+                                    </label>
+                                    <label class="personnel-field"><span>Manager</span>
+                                        <select name="manager_personnel_id">
+                                            <option value="">Not assigned</option>
+                                            {% for manager in profiles if manager.id != profile_id %}
+                                            <option value="{{ manager.id }}"
+                                                {% if values.get('manager_personnel_id')|string == manager.id|string %}selected{% endif %}>
+                                                {{ manager.first_name }} {{ manager.surname }} ({{ manager.employee_number }})
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </label>
+                                    {% endif %}
+                                </div>
+                            </fieldset>
+                            {% endfor %}
+                            <div class="personnel-form-actions">
+                                {% if profile_id %}<a class="personnel-header-action" href="/personnel-hub/enrolment">Enrol another employee</a>{% endif %}
+                                <button class="personnel-header-action" type="submit">
+                                    <span class="material-symbols-outlined">save</span>
+                                    {{ 'Save changes' if profile_id else 'Save profile' }}
+                                </button>
+                            </div>
                         </form>
                     </section>
 
                     <aside class="personnel-section personnel-next-panel" aria-labelledby="documents-heading">
                         <p class="personnel-kicker">Coming next</p>
                         <h2 id="documents-heading">Supporting documents</h2>
-                        <p>Once the profile is saved, we can attach the employee's employment contract, NDA, ID, bank
-                            details, and Annex A here.</p>
+                        <p>Document uploads are not available yet. A later step will add the employee's employment
+                            contract, NDA, ID, bank details, and Annex A here.</p>
                         <div class="personnel-document-list"><span><span
                                     class="material-symbols-outlined">description</span>Employment
                                 contract</span><span><span class="material-symbols-outlined">badge</span>ID
@@ -141,13 +159,19 @@
                             <h2 id="profiles-heading">Enrolled profiles</h2>
                         </div><span class="personnel-section-count">{{ profiles|length }} saved</span>
                     </div>
-                    <div class="personnel-profile-list">{% if profiles %}{% for employee_id, profile in profiles.items()
-                        %}<div class="personnel-profile-row"><span class="personnel-profile-avatar">{{ (employee_id or
-                                '?')[:2] }}</span><span><strong>{{ employee_id }}</strong><small>{{ profile.job_title or
-                                    'Role not added' }}{% if profile.email %} · {{ profile.email }}{% endif
-                                    %}</small></span><span class="personnel-roadmap-label">{{
-                                profile.employment_status|replace('_', ' ') }}</span></div>{% endfor %}{% else %}<p
-                            class="personnel-empty-state">No personnel profiles have been enrolled yet.</p>{% endif %}
+                    <div class="personnel-profile-list">
+                        {% for profile in profiles %}
+                        <a class="personnel-profile-row" href="/personnel-hub/enrolment?edit={{ profile.id }}"
+                            aria-label="Edit {{ profile.first_name }} {{ profile.surname }} ({{ profile.employee_number }})">
+                            <span class="personnel-profile-avatar">{{ profile.employee_number[:2] }}</span>
+                            <span><strong>{{ profile.first_name }} {{ profile.surname }}</strong>
+                                <small>{{ profile.employee_number }} · {{ profile.job_title or 'Role not added' }}</small>
+                            </span>
+                            <span class="personnel-roadmap-label">{{ profile.employment_status }} · Edit</span>
+                        </a>
+                        {% else %}
+                        <p class="personnel-empty-state">No personnel profiles have been enrolled yet.</p>
+                        {% endfor %}
                     </div>
                 </section>
             </div>
