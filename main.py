@@ -32,7 +32,7 @@ import secrets
 from auth import get_current_user, require_admin
 
 # ---- Your models & DB ----
-from models import VodacomSubscription, Device, User, PendingUser, DeviceEditRequest, ContractEditRequest, AttendanceSession, PolicyDocument, PolicyDocumentUserAccess, TabletFormEntry, PersonnelEmployee
+from models import VodacomSubscription, Device, User, PendingUser, DeviceEditRequest, ContractEditRequest, AttendanceSession, PolicyDocument, PolicyDocumentUserAccess, TabletFormEntry, PersonnelEmployee, Employee
 from database import SessionLocal, engine, Base, ensure_local_sqlite_schema
 
 
@@ -1515,6 +1515,145 @@ def accumulated_hours_dashboard(request: Request):
         {"request": request, "section": "accumulated-hours",
             "time": datetime.utcnow().timestamp()}
     )
+
+
+def get_pay_query_period(today: date) -> tuple[date, date]:
+    if today.day >= 21:
+        start = date(today.year, today.month, 21)
+    else:
+        previous_month = today.month - 1 or 12
+        previous_year = today.year if today.month > 1 else today.year - 1
+        start = date(previous_year, previous_month, 21)
+
+    if start.month == 12:
+        end = date(start.year + 1, 1, 20)
+    else:
+        end = date(start.year, start.month + 1, 20)
+    return start, end
+
+
+@app.get("/pay-queries", response_class=HTMLResponse)
+def pay_queries_dashboard(request: Request):
+    redirect = _ensure_page_access(request, "time_attendance")
+    if redirect:
+        return redirect
+    start, end = get_pay_query_period(date.today())
+    return templates.TemplateResponse(
+        "pay_queries.html",
+        {
+            "request": request,
+            "section": "pay-queries",
+            "start_date": start.isoformat(),
+            "end_date": end.isoformat(),
+            "time": datetime.utcnow().timestamp(),
+        },
+    )
+
+
+@app.get("/api/pay-queries")
+def api_pay_queries(
+    request: Request,
+    db: Session = Depends(get_db),
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+):
+    _ensure_api_access(request, "time_attendance")
+
+    def parse_date(value: Optional[str], default: date) -> date:
+        if not value:
+            return default
+        try:
+            return datetime.strptime(value, "%Y-%m-%d").date()
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid date; use YYYY-MM-DD")
+
+    default_start, default_end = get_pay_query_period(date.today())
+    start = parse_date(start_date, default_start)
+    end = parse_date(end_date, default_end)
+    if end < start:
+        raise HTTPException(status_code=400, detail="End date must be on or after start date")
+    if (end - start).days >= 62:
+        raise HTTPException(status_code=400, detail="Pay query periods cannot exceed 62 days")
+
+    days = []
+    current_day = start
+    while current_day <= end:
+        days.append(current_day)
+        current_day += timedelta(days=1)
+
+    employees = db.query(Employee).order_by(
+        Employee.Surname_, Employee.Name_, Employee.Employee_id
+    ).all()
+    employee_rows = {}
+    employee_by_pin = {}
+    for employee in employees:
+        row = {
+            "employee_number": employee.Employee_id,
+            "name": employee.Name_ or "",
+            "surname": employee.Surname_ or "",
+            "company": employee.Company or "",
+            "site": employee.Site or "",
+            "division": employee.Division or "",
+            "daily_seconds": {day.isoformat(): 0 for day in days},
+            "total_seconds": 0,
+        }
+        employee_rows[employee.Employee_id] = row
+        employee_by_pin[employee.Employee_id] = row
+        employee_by_pin[str(employee.PIN)] = row
+
+    start_dt = datetime.combine(start, datetime.min.time())
+    end_exclusive = datetime.combine(end + timedelta(days=1), datetime.min.time())
+    sessions = db.query(AttendanceSession).filter(
+        AttendanceSession.check_out.isnot(None),
+        AttendanceSession.check_in < end_exclusive,
+        AttendanceSession.check_out > start_dt,
+    ).order_by(AttendanceSession.check_in.asc()).all()
+
+    for session in sessions:
+        if not session.check_in or not session.check_out:
+            continue
+        row = employee_by_pin.get(str(session.pin))
+        if row is None:
+            # Keep biometric sessions visible even if their PIN has no employee record.
+            row = employee_rows.setdefault(session.pin, {
+                "employee_number": session.pin,
+                "name": "",
+                "surname": "",
+                "company": "",
+                "site": "",
+                "division": "",
+                "daily_seconds": {day.isoformat(): 0 for day in days},
+                "total_seconds": 0,
+            })
+        overlap_start = max(session.check_in, start_dt)
+        overlap_end = min(session.check_out, end_exclusive)
+        day = overlap_start.date()
+        while day <= overlap_end.date() and day <= end:
+            day_start = datetime.combine(day, datetime.min.time())
+            day_end = day_start + timedelta(days=1)
+            seconds = int((
+                min(overlap_end, day_end) - max(overlap_start, day_start)
+            ).total_seconds())
+            if seconds > 0:
+                day_key = day.isoformat()
+                row["daily_seconds"][day_key] += seconds
+                row["total_seconds"] += seconds
+            day += timedelta(days=1)
+
+    rows = sorted(
+        employee_rows.values(),
+        key=lambda row: (
+            row["site"].casefold(), row["surname"].casefold(),
+            row["name"].casefold(), row["employee_number"].casefold(),
+        ),
+    )
+    return JSONResponse({
+        "start_date": start.isoformat(),
+        "end_date": end.isoformat(),
+        "days": [day.isoformat() for day in days],
+        "rows": rows,
+        "included_sessions": "completed",
+    })
 
 
 # 3) VODACOM HOME DASHBOARD

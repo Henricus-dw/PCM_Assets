@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pay Queries | PCM Tracer</title>
+    <link rel="icon" href="/static/pcm-lockup-goldc-final.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="/static/ui/main.css?v={{ time }}">
+    <link rel="stylesheet" href="/static/ui/pages/pay-queries.css?v={{ time }}">
+</head>
+
+<body class="dashboard-page app-with-sidebar pay-queries-dashboard">
+    {% set admin_href = '/admin?module=biometric' %}
+    {% set settings_href = '/settings?module=biometric' %}
+
+    <div class="dashboard-main">
+        <aside class="sidebar">
+            <div class="sidebar-top">
+                <div class="sidebar-brand">
+                    <span class="sidebar-brand-title">Asset Management</span>
+                    <span class="sidebar-brand-sub">Enterprise Portal</span>
+                </div>
+                <nav class="nav-top">
+                    <a href="/time-attendance" class="{{ 'active' if section == 'time-attendance' else '' }}">
+                        <span class="material-symbols-outlined">groups</span>
+                        <span>Employees</span>
+                    </a>
+                    <a href="/time-attendance-dashboard"
+                        class="{{ 'active' if section == 'time-attendance-dashboard' else '' }}">
+                        <span class="material-symbols-outlined">calendar_month</span>
+                        <span>Attendance Dashboard</span>
+                    </a>
+                    <a href="/hours-accumulated" class="{{ 'active' if section == 'accumulated-hours' else '' }}">
+                        <span class="material-symbols-outlined">timer</span>
+                        <span>Accumulated Hours</span>
+                    </a>
+                    <a href="/pay-queries" class="{{ 'active' if section == 'pay-queries' else '' }}">
+                        <span class="material-symbols-outlined">request_quote</span>
+                        <span>Pay Queries</span>
+                    </a>
+                </nav>
+            </div>
+            <div class="sidebar-mid">
+                <a href="/" class="sidebar-return" title="Return">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                    <span>Return</span>
+                </a>
+            </div>
+            <div class="nav-bottom">
+                {% if request.session.get('is_admin') %}
+                <a href="{{ admin_href }}">
+                    <span class="material-symbols-outlined">admin_panel_settings</span>
+                    <span>Admin</span>
+                </a>
+                {% endif %}
+                <a href="{{ settings_href }}">
+                    <span class="material-symbols-outlined">settings</span>
+                    <span>Settings</span>
+                </a>
+                <a href="/logout" id="logoutLink">
+                    <span class="material-symbols-outlined">logout</span>
+                    <span>Log Out</span>
+                </a>
+            </div>
+            <button id="sidebarHandle" class="sidebar-handle" aria-label="Collapse sidebar" aria-pressed="false"
+                title="Collapse sidebar">
+                <span class="handle-icon" aria-hidden="true">⟨</span>
+            </button>
+        </aside>
+
+        <main class="dashboard-content">
+            <div class="pq-shell">
+                <header class="pq-page-header">
+                    <div>
+                        <p class="pq-eyebrow">Time &amp; Attendance</p>
+                        <h1 class="pq-title">Pay Queries</h1>
+                        <p class="pq-subtitle">Review recorded hours for each employee across a pay period.</p>
+                    </div>
+                    <div class="pq-controls">
+                        <label>
+                            <span>Period starts</span>
+                            <input id="filterStartDate" type="date" value="{{ start_date }}">
+                        </label>
+                        <span class="pq-date-separator">to</span>
+                        <label>
+                            <span>Period ends</span>
+                            <input id="filterEndDate" type="date" value="{{ end_date }}">
+                        </label>
+                        <button id="export-btn" class="pq-export-btn" type="button">
+                            <span class="material-symbols-outlined">file_download</span>
+                            Export CSV
+                        </button>
+                    </div>
+                </header>
+
+                <div class="pq-summary" aria-live="polite">
+                    <div><span>Employees</span><strong id="employeeCount">—</strong></div>
+                    <div><span>Recorded hours</span><strong id="recordedHours">—</strong></div>
+                    <div class="pq-period-label" id="periodLabel"></div>
+                </div>
+
+                <p class="pq-note">Only completed attendance sessions are included. Open or unpaired clock events are not counted. Due hours, leave, and balance calculations will be added after work schedules and leave recording are defined.</p>
+                <p id="payQueryError" class="pq-error" role="alert" hidden></p>
+
+                <section class="pq-board" aria-label="Pay period hours by employee">
+                    <div class="pq-toolbar">
+                        <label class="pq-search-label" for="employeeSearch">Search employees</label>
+                        <input id="employeeSearch" class="pq-search" type="search"
+                            placeholder="Name, employee number, company or site">
+                    </div>
+                    <div class="pq-table-wrap">
+                        <table id="payQueriesTable">
+                            <thead id="payQueriesHead"></thead>
+                            <tbody id="payQueriesBody">
+                                <tr><td class="pq-message">Loading pay period hours…</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="payQueryEmpty" class="pq-empty" hidden>No employees match this search.</div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/ui/components/sidebar.js"></script>
+    <script>
+        let payQueryData = null;
+        let visibleRows = [];
+
+        function formatHours(seconds) {
+            return (Number(seconds || 0) / 3600).toFixed(2);
+        }
+
+        function periodDateLabel(dateValue) {
+            return new Date(`${dateValue}T00:00:00`).toLocaleDateString(undefined, {
+                day: 'numeric', month: 'short', year: 'numeric'
+            });
+        }
+
+        function appendCell(row, value, className = '') {
+            const cell = document.createElement('td');
+            cell.textContent = value;
+            if (className) cell.className = className;
+            row.appendChild(cell);
+            return cell;
+        }
+
+        function makeHeaderCell(row, label, className = '') {
+            const cell = document.createElement('th');
+            cell.scope = 'col';
+            cell.textContent = label;
+            if (className) cell.className = className;
+            row.appendChild(cell);
+        }
+
+        function renderPayQueryTable() {
+            const head = document.getElementById('payQueriesHead');
+            const body = document.getElementById('payQueriesBody');
+            const empty = document.getElementById('payQueryEmpty');
+            const query = document.getElementById('employeeSearch').value.trim().toLocaleLowerCase();
+
+            head.replaceChildren();
+            body.replaceChildren();
+            if (!payQueryData) return;
+
+            const header = document.createElement('tr');
+            makeHeaderCell(header, 'Employee #', 'pq-identity');
+            makeHeaderCell(header, 'Surname', 'pq-identity');
+            makeHeaderCell(header, 'Name', 'pq-identity');
+            makeHeaderCell(header, 'Company');
+            makeHeaderCell(header, 'Site');
+            makeHeaderCell(header, 'Division');
+            payQueryData.days.forEach((day) => {
+                const date = new Date(`${day}T00:00:00`);
+                makeHeaderCell(header, `${date.toLocaleDateString(undefined, { weekday: 'short' })} ${date.getDate()}`, 'pq-day');
+            });
+            makeHeaderCell(header, 'Worked', 'pq-total');
+            head.appendChild(header);
+
+            visibleRows = payQueryData.rows.filter((employee) => {
+                const searchable = [
+                    employee.employee_number, employee.name, employee.surname,
+                    employee.company, employee.site, employee.division
+                ].join(' ').toLocaleLowerCase();
+                return searchable.includes(query);
+            });
+
+            visibleRows.forEach((employee) => {
+                const row = document.createElement('tr');
+                appendCell(row, employee.employee_number, 'pq-identity');
+                appendCell(row, employee.surname, 'pq-identity');
+                appendCell(row, employee.name, 'pq-identity');
+                appendCell(row, employee.company);
+                appendCell(row, employee.site);
+                appendCell(row, employee.division);
+                payQueryData.days.forEach((day) => {
+                    appendCell(row, formatHours(employee.daily_seconds[day]), 'pq-day');
+                });
+                appendCell(row, formatHours(employee.total_seconds), 'pq-total');
+                body.appendChild(row);
+            });
+
+            if (!visibleRows.length) {
+                const row = document.createElement('tr');
+                const cell = appendCell(row, query ? 'No employees match this search.' : 'No employees or attendance records found for this period.', 'pq-message');
+                cell.colSpan = payQueryData.days.length + 7;
+                body.appendChild(row);
+            }
+            empty.hidden = true;
+            updateSummary();
+        }
+
+        function updateSummary() {
+            const totalSeconds = visibleRows.reduce((sum, employee) => sum + employee.total_seconds, 0);
+            document.getElementById('employeeCount').textContent = String(visibleRows.length);
+            document.getElementById('recordedHours').textContent = `${formatHours(totalSeconds)} h`;
+            document.getElementById('periodLabel').textContent =
+                `${periodDateLabel(payQueryData.start_date)} – ${periodDateLabel(payQueryData.end_date)}`;
+        }
+
+        async function refreshPayQueries() {
+            const start = document.getElementById('filterStartDate').value;
+            const end = document.getElementById('filterEndDate').value;
+            const error = document.getElementById('payQueryError');
+            error.hidden = true;
+
+            if (!start || !end) {
+                error.textContent = 'Choose both a start date and an end date.';
+                error.hidden = false;
+                return;
+            }
+            if (end < start) {
+                error.textContent = 'The end date must be on or after the start date.';
+                error.hidden = false;
+                return;
+            }
+
+            const body = document.getElementById('payQueriesBody');
+            body.replaceChildren();
+            const loadingRow = document.createElement('tr');
+            const loadingCell = appendCell(loadingRow, 'Loading pay period hours…', 'pq-message');
+            loadingCell.colSpan = 7;
+            body.appendChild(loadingRow);
+
+            try {
+                const response = await fetch(`/api/pay-queries?start_date=${encodeURIComponent(start)}&end_date=${encodeURIComponent(end)}`);
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.detail || 'Unable to load pay period hours.');
+                payQueryData = result;
+                renderPayQueryTable();
+            } catch (err) {
+                payQueryData = null;
+                body.replaceChildren();
+                error.textContent = err instanceof Error ? err.message : 'Unable to load pay period hours.';
+                error.hidden = false;
+                document.getElementById('employeeCount').textContent = '—';
+                document.getElementById('recordedHours').textContent = '—';
+                document.getElementById('periodLabel').textContent = '';
+            }
+        }
+
+        function csvCell(value) {
+            let text = String(value ?? '');
+            if (/^[\s]*[=+\-@]/.test(text)) text = `'${text}`;
+            return `"${text.replace(/"/g, '""')}"`;
+        }
+
+        function exportPayQueriesCsv() {
+            if (!payQueryData || !visibleRows.length) {
+                document.getElementById('payQueryError').textContent = 'There are no employee rows to export.';
+                document.getElementById('payQueryError').hidden = false;
+                return;
+            }
+            const headers = [
+                'Employee number', 'Surname', 'Name', 'Company', 'Site', 'Division',
+                ...payQueryData.days, 'Worked hours'
+            ];
+            const lines = [headers.map(csvCell).join(',')];
+            visibleRows.forEach((employee) => {
+                const row = [
+                    employee.employee_number, employee.surname, employee.name,
+                    employee.company, employee.site, employee.division,
+                    ...payQueryData.days.map((day) => formatHours(employee.daily_seconds[day])),
+                    formatHours(employee.total_seconds)
+                ];
+                lines.push(row.map(csvCell).join(','));
+            });
+            const blob = new Blob([`\uFEFF${lines.join('\r\n')}`], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `pay_queries_${payQueryData.start_date}_to_${payQueryData.end_date}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }
+
+        document.getElementById('filterStartDate').addEventListener('change', refreshPayQueries);
+        document.getElementById('filterEndDate').addEventListener('change', refreshPayQueries);
+        document.getElementById('employeeSearch').addEventListener('input', renderPayQueryTable);
+        document.getElementById('export-btn').addEventListener('click', exportPayQueriesCsv);
+        refreshPayQueries();
+    </script>
+</body>
+
+</html>
