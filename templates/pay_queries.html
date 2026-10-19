@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pay Queries | PCM Tracer</title>
+    <title>Time Sheets | PCM Tracer</title>
     <link rel="icon" href="/static/pcm-lockup-goldc-final.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -44,7 +44,7 @@
                     </a>
                     <a href="/pay-queries" class="{{ 'active' if section == 'pay-queries' else '' }}">
                         <span class="material-symbols-outlined">request_quote</span>
-                        <span>Pay Queries</span>
+                        <span>Time Sheets</span>
                     </a>
                 </nav>
             </div>
@@ -81,7 +81,7 @@
                 <header class="pq-page-header">
                     <div>
                         <p class="pq-eyebrow">Time &amp; Attendance</p>
-                        <h1 class="pq-title">Pay Queries</h1>
+                        <h1 class="pq-title">Time Sheets</h1>
                         <p class="pq-subtitle">Review recorded hours for each employee across a pay period.</p>
                     </div>
                     <div class="pq-controls">
@@ -501,7 +501,7 @@
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `pay_queries_${payQueryData.start_date}_to_${payQueryData.end_date}.csv`;
+            link.download = `time_sheets_${payQueryData.start_date}_to_${payQueryData.end_date}.csv`;
             document.body.appendChild(link);
             link.click();
             link.remove();
