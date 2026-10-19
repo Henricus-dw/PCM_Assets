@@ -288,7 +288,7 @@ body.pay-queries-dashboard #payQueriesTable th {
 body.pay-queries-dashboard #payQueriesTable th .header-filter {
     display: none;
     width: 100%;
-    min-width: 3rem;
+    min-width: 0;
     margin-top: 0.3rem;
     box-sizing: border-box;
     border: 1px solid #c1c8c7;
@@ -302,12 +302,29 @@ body.pay-queries-dashboard #payQueriesTable th .header-filter {
 }
 
 body.pay-queries-dashboard #payQueriesTable th select.header-filter {
-    min-width: 0;
-    width: 100%;
+    display: block;
+    width: calc(100% - 0.4rem);
+    margin-top: 0.3rem;
 }
 
 body.pay-queries-dashboard #payQueriesTable th[data-col="site"],
 body.pay-queries-dashboard #payQueriesTable th[data-col="division"] {
+    width: 10rem;
+    min-width: 10rem;
+    padding-right: 0.5rem;
+}
+
+body.pay-queries-dashboard #payQueriesTable th.pq-identity[data-col="employee_number"].filter-open {
+    width: 12rem;
+    min-width: 12rem;
+}
+
+body.pay-queries-dashboard #payQueriesTable th.pq-identity[data-col="full_name"].filter-open {
+    width: 16rem;
+    min-width: 16rem;
+}
+
+body.pay-queries-dashboard #payQueriesTable th[data-col="total_seconds"].filter-open {
     width: 9rem;
     min-width: 9rem;
 }
@@ -387,7 +404,7 @@ body.pay-queries-dashboard #payQueriesTable .pq-identity:nth-child(1) {
 }
 
 body.pay-queries-dashboard #payQueriesTable .pq-identity:nth-child(2) {
-    left: 7rem;
+    left: var(--pq-employee-column-width, 7rem);
     width: 13rem;
     min-width: 13rem;
 }

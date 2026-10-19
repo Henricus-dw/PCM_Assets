@@ -170,8 +170,8 @@
 
         function buildPayQueryFilterConfig() {
             const config = [
-                { key: 'employee_number', label: 'Employee #', className: 'pq-identity' },
-                { key: 'full_name', label: 'Name & Surname', className: 'pq-identity' },
+                { key: 'employee_number', label: 'Employee #', type: 'text', className: 'pq-identity' },
+                { key: 'full_name', label: 'Name & Surname', type: 'text', className: 'pq-identity' },
                 { key: 'site', label: 'Site', type: 'select' },
                 { key: 'division', label: 'Division', type: 'select' },
             ];
@@ -181,7 +181,6 @@
                 config.push({
                     key: `day:${day}`,
                     label: `${date.toLocaleDateString(undefined, { weekday: 'short' })} ${date.getDate()}`,
-                    type: 'text',
                     day,
                     className: `pq-day${weekday === 5 || weekday === 6 ? ' pq-weekend' : ''}`,
                 });
@@ -233,9 +232,13 @@
                         `#payQueriesTable .header-filter[data-col="${config.key}"]`);
                     const toggle = document.querySelector(
                         `#payQueriesTable .filter-toggle[data-col="${config.key}"]`);
-                    if (control) {
+                    if (control?.tagName === 'SELECT') {
+                        control.value = '';
+                    } else if (control) {
                         control.value = '';
                         control.style.display = 'none';
+                        control.closest('th')?.classList.remove('filter-open');
+                        requestAnimationFrame(updatePayQueryStickyColumns);
                     }
                     if (toggle) toggle.style.display = 'inline-flex';
                     applyPayQueryFilters();
@@ -261,18 +264,19 @@
             updatePayQueryActiveFilters();
         }
 
-        function bindPayQueryColumnFilters() {
-            document.querySelectorAll('#payQueriesTable .filter-toggle').forEach((button) => {
-                const column = button.dataset.col;
-                const header = button.closest('th');
-                const control = header?.querySelector('.header-filter');
-                if (!control) return;
+        function updatePayQueryStickyColumns() {
+            const table = document.getElementById('payQueriesTable');
+            const employeeNumberHeader = table.querySelector('th[data-col="employee_number"]');
+            if (employeeNumberHeader) {
+                table.style.setProperty(
+                    '--pq-employee-column-width',
+                    `${employeeNumberHeader.getBoundingClientRect().width}px`);
+            }
+        }
 
-                button.addEventListener('click', () => {
-                    button.style.display = 'none';
-                    control.style.display = 'inline-block';
-                    control.focus();
-                });
+        function bindPayQueryColumnFilters() {
+            document.querySelectorAll('#payQueriesTable .header-filter').forEach((control) => {
+                const column = control.dataset.col;
                 control.addEventListener(control.tagName === 'SELECT' ? 'change' : 'input', () => {
                     const value = control.value.trim();
                     payQueryColumnFilters[column] = control.tagName === 'SELECT'
@@ -280,10 +284,15 @@
                         : value.toLocaleLowerCase();
                     applyPayQueryFilters();
                 });
+                if (control.tagName === 'SELECT') return;
+
                 control.addEventListener('blur', () => {
                     if (!control.value.trim()) {
                         control.style.display = 'none';
-                        button.style.display = 'inline-flex';
+                        control.closest('th')?.classList.remove('filter-open');
+                        requestAnimationFrame(updatePayQueryStickyColumns);
+                        const toggle = control.parentElement.querySelector('.filter-toggle');
+                        if (toggle) toggle.style.display = 'inline-flex';
                     }
                 });
                 control.addEventListener('keydown', (event) => {
@@ -292,8 +301,25 @@
                         payQueryColumnFilters[column] = '';
                         applyPayQueryFilters();
                         control.style.display = 'none';
-                        button.style.display = 'inline-flex';
+                        control.closest('th')?.classList.remove('filter-open');
+                        requestAnimationFrame(updatePayQueryStickyColumns);
+                        const toggle = control.parentElement.querySelector('.filter-toggle');
+                        if (toggle) toggle.style.display = 'inline-flex';
                     }
+                });
+            });
+
+            document.querySelectorAll('#payQueriesTable .filter-toggle').forEach((button) => {
+                const header = button.closest('th');
+                const control = header?.querySelector('.header-filter');
+                if (!control) return;
+
+                button.addEventListener('click', () => {
+                    header.classList.add('filter-open');
+                    requestAnimationFrame(updatePayQueryStickyColumns);
+                    button.style.display = 'none';
+                    control.style.display = 'block';
+                    control.focus();
                 });
             });
         }
@@ -310,7 +336,6 @@
                     select.className = 'header-filter';
                     select.dataset.col = config.key;
                     select.setAttribute('aria-label', `Filter ${config.label}`);
-                    select.style.display = 'none';
                     const allOption = document.createElement('option');
                     allOption.value = '';
                     allOption.textContent = `All ${config.label.toLocaleLowerCase()}s`;
@@ -327,7 +352,7 @@
                     });
                     select.value = payQueryColumnFilters[config.key] || '';
                     header.appendChild(select);
-                } else {
+                } else if (config.type === 'text') {
                     const input = document.createElement('input');
                     input.type = 'text';
                     input.className = 'header-filter';
@@ -336,20 +361,21 @@
                     input.value = payQueryColumnFilters[config.key] || '';
                     input.style.display = 'none';
                     header.appendChild(input);
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = 'filter-toggle';
+                    button.dataset.col = config.key;
+                    button.setAttribute('aria-label', `Open ${config.label} filter`);
+                    const icon = document.createElement('span');
+                    icon.className = 'material-symbols-outlined';
+                    icon.textContent = 'search';
+                    button.appendChild(icon);
+                    header.appendChild(button);
                 }
-                const button = document.createElement('button');
-                button.type = 'button';
-                button.className = 'filter-toggle';
-                button.dataset.col = config.key;
-                button.setAttribute('aria-label', `Open ${config.label} filter`);
-                const icon = document.createElement('span');
-                icon.className = 'material-symbols-outlined';
-                icon.textContent = config.type === 'select' ? 'arrow_drop_down' : 'search';
-                button.appendChild(icon);
-                header.appendChild(button);
             });
             head.appendChild(headerRow);
             bindPayQueryColumnFilters();
+            updatePayQueryStickyColumns();
         }
 
         function renderPayQueryRows() {
