@@ -112,9 +112,14 @@
 
                 <section class="pq-board" aria-label="Pay period hours by employee">
                     <div class="pq-toolbar">
-                        <label class="pq-search-label" for="employeeSearch">Search employees</label>
-                        <input id="employeeSearch" class="pq-search" type="search"
-                            placeholder="Name, employee number, company or site">
+                        <div class="pq-table-filters">
+                            <button id="pqFilterToolbarBtn" type="button" class="pq-table-filter-btn"
+                                aria-label="Open column filters">
+                                <span class="material-symbols-outlined">search</span>
+                            </button>
+                            <span class="pq-table-filter-label">ACTIVE FILTERS:</span>
+                            <span id="pqActiveFiltersHost" class="pq-table-active-badges"></span>
+                        </div>
                     </div>
                     <div class="pq-table-wrap">
                         <table id="payQueriesTable">
@@ -124,7 +129,6 @@
                             </tbody>
                         </table>
                     </div>
-                    <div id="payQueryEmpty" class="pq-empty" hidden>No employees match this search.</div>
                 </section>
             </div>
         </main>
@@ -134,6 +138,8 @@
     <script>
         let payQueryData = null;
         let visibleRows = [];
+        let payQueryColumnFilters = {};
+        let payQueryFilterConfig = [];
 
         function formatHours(seconds) {
             return (Number(seconds || 0) / 3600).toFixed(2);
@@ -159,50 +165,209 @@
             cell.textContent = label;
             if (className) cell.className = className;
             row.appendChild(cell);
+            return cell;
         }
 
-        function renderPayQueryTable() {
-            const head = document.getElementById('payQueriesHead');
-            const body = document.getElementById('payQueriesBody');
-            const empty = document.getElementById('payQueryEmpty');
-            const query = document.getElementById('employeeSearch').value.trim().toLocaleLowerCase();
-
-            head.replaceChildren();
-            body.replaceChildren();
-            if (!payQueryData) return;
-
-            const header = document.createElement('tr');
-            makeHeaderCell(header, 'Employee #', 'pq-identity');
-            makeHeaderCell(header, 'Surname', 'pq-identity');
-            makeHeaderCell(header, 'Name', 'pq-identity');
-            makeHeaderCell(header, 'Company');
-            makeHeaderCell(header, 'Site');
-            makeHeaderCell(header, 'Division');
+        function buildPayQueryFilterConfig() {
+            const config = [
+                { key: 'employee_number', label: 'Employee #', className: 'pq-identity' },
+                { key: 'full_name', label: 'Name & Surname', className: 'pq-identity' },
+                { key: 'site', label: 'Site', type: 'select' },
+                { key: 'division', label: 'Division', type: 'select' },
+            ];
             payQueryData.days.forEach((day) => {
                 const date = new Date(`${day}T00:00:00`);
-                makeHeaderCell(header, `${date.toLocaleDateString(undefined, { weekday: 'short' })} ${date.getDate()}`, 'pq-day');
+                const weekday = date.getDay();
+                config.push({
+                    key: `day:${day}`,
+                    label: `${date.toLocaleDateString(undefined, { weekday: 'short' })} ${date.getDate()}`,
+                    type: 'text',
+                    day,
+                    className: `pq-day${weekday === 5 || weekday === 6 ? ' pq-weekend' : ''}`,
+                });
             });
-            makeHeaderCell(header, 'Worked', 'pq-total');
-            head.appendChild(header);
+            config.push({
+                key: 'total_seconds',
+                label: 'Worked',
+                type: 'text',
+                className: 'pq-total',
+            });
+            return config;
+        }
 
-            visibleRows = payQueryData.rows.filter((employee) => {
-                const searchable = [
-                    employee.employee_number, employee.name, employee.surname,
-                    employee.company, employee.site, employee.division
-                ].join(' ').toLocaleLowerCase();
-                return searchable.includes(query);
+        function getPayQueryFilterValue(employee, config) {
+            if (config.key === 'employee_number') return employee.employee_number || '';
+            if (config.key === 'full_name') return `${employee.surname || ''} ${employee.name || ''}`.trim();
+            if (config.key === 'site') return employee.site || '';
+            if (config.key === 'division') return employee.division || '';
+            if (config.day) return formatHours(employee.daily_seconds[config.day]);
+            if (config.key === 'total_seconds') return formatHours(employee.total_seconds);
+            return '';
+        }
+
+        function updatePayQueryActiveFilters() {
+            const host = document.getElementById('pqActiveFiltersHost');
+            host.replaceChildren();
+            const activeFilters = payQueryFilterConfig.filter((config) => payQueryColumnFilters[config.key]);
+            if (!activeFilters.length) {
+                const empty = document.createElement('span');
+                empty.className = 'pq-filter-badge pq-filter-badge--empty';
+                empty.textContent = 'None';
+                host.appendChild(empty);
+                return;
+            }
+
+            activeFilters.forEach((config) => {
+                const badge = document.createElement('span');
+                badge.className = 'pq-filter-badge';
+                badge.append(document.createTextNode(
+                    `${config.label}: ${payQueryColumnFilters[config.key]}`));
+                const clear = document.createElement('button');
+                clear.type = 'button';
+                clear.className = 'material-symbols-outlined';
+                clear.textContent = 'close';
+                clear.setAttribute('aria-label', `Clear ${config.label} filter`);
+                clear.addEventListener('click', () => {
+                    payQueryColumnFilters[config.key] = '';
+                    const control = document.querySelector(
+                        `#payQueriesTable .header-filter[data-col="${config.key}"]`);
+                    const toggle = document.querySelector(
+                        `#payQueriesTable .filter-toggle[data-col="${config.key}"]`);
+                    if (control) {
+                        control.value = '';
+                        control.style.display = 'none';
+                    }
+                    if (toggle) toggle.style.display = 'inline-flex';
+                    applyPayQueryFilters();
+                });
+                badge.appendChild(clear);
+                host.appendChild(badge);
             });
+        }
+
+        function applyPayQueryFilters() {
+            if (!payQueryData) return;
+            visibleRows = payQueryData.rows.filter((employee) => {
+                return payQueryFilterConfig.every((config) => {
+                    const filterValue = payQueryColumnFilters[config.key] || '';
+                    if (!filterValue) return true;
+                    const rowValue = getPayQueryFilterValue(employee, config).toLocaleLowerCase();
+                    return config.type === 'select'
+                        ? rowValue === filterValue.toLocaleLowerCase()
+                        : rowValue.includes(filterValue);
+                });
+            });
+            renderPayQueryRows();
+            updatePayQueryActiveFilters();
+        }
+
+        function bindPayQueryColumnFilters() {
+            document.querySelectorAll('#payQueriesTable .filter-toggle').forEach((button) => {
+                const column = button.dataset.col;
+                const header = button.closest('th');
+                const control = header?.querySelector('.header-filter');
+                if (!control) return;
+
+                button.addEventListener('click', () => {
+                    button.style.display = 'none';
+                    control.style.display = 'inline-block';
+                    control.focus();
+                });
+                control.addEventListener(control.tagName === 'SELECT' ? 'change' : 'input', () => {
+                    const value = control.value.trim();
+                    payQueryColumnFilters[column] = control.tagName === 'SELECT'
+                        ? value
+                        : value.toLocaleLowerCase();
+                    applyPayQueryFilters();
+                });
+                control.addEventListener('blur', () => {
+                    if (!control.value.trim()) {
+                        control.style.display = 'none';
+                        button.style.display = 'inline-flex';
+                    }
+                });
+                control.addEventListener('keydown', (event) => {
+                    if (event.key === 'Escape') {
+                        control.value = '';
+                        payQueryColumnFilters[column] = '';
+                        applyPayQueryFilters();
+                        control.style.display = 'none';
+                        button.style.display = 'inline-flex';
+                    }
+                });
+            });
+        }
+
+        function renderPayQueryHeader() {
+            const head = document.getElementById('payQueriesHead');
+            head.replaceChildren();
+            const headerRow = document.createElement('tr');
+            payQueryFilterConfig.forEach((config) => {
+                const header = makeHeaderCell(headerRow, config.label, config.className || '');
+                header.dataset.col = config.key;
+                if (config.key === 'site' || config.key === 'division') {
+                    const select = document.createElement('select');
+                    select.className = 'header-filter';
+                    select.dataset.col = config.key;
+                    select.setAttribute('aria-label', `Filter ${config.label}`);
+                    select.style.display = 'none';
+                    const allOption = document.createElement('option');
+                    allOption.value = '';
+                    allOption.textContent = `All ${config.label.toLocaleLowerCase()}s`;
+                    select.appendChild(allOption);
+                    const options = [...new Set(payQueryData.rows
+                        .map((employee) => employee[config.key])
+                        .filter((value) => value && value.trim()))]
+                        .sort((left, right) => left.localeCompare(right));
+                    options.forEach((value) => {
+                        const option = document.createElement('option');
+                        option.value = value;
+                        option.textContent = value;
+                        select.appendChild(option);
+                    });
+                    select.value = payQueryColumnFilters[config.key] || '';
+                    header.appendChild(select);
+                } else {
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.className = 'header-filter';
+                    input.dataset.col = config.key;
+                    input.setAttribute('aria-label', `Filter ${config.label}`);
+                    input.value = payQueryColumnFilters[config.key] || '';
+                    input.style.display = 'none';
+                    header.appendChild(input);
+                }
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'filter-toggle';
+                button.dataset.col = config.key;
+                button.setAttribute('aria-label', `Open ${config.label} filter`);
+                const icon = document.createElement('span');
+                icon.className = 'material-symbols-outlined';
+                icon.textContent = config.type === 'select' ? 'arrow_drop_down' : 'search';
+                button.appendChild(icon);
+                header.appendChild(button);
+            });
+            head.appendChild(headerRow);
+            bindPayQueryColumnFilters();
+        }
+
+        function renderPayQueryRows() {
+            const body = document.getElementById('payQueriesBody');
+            body.replaceChildren();
 
             visibleRows.forEach((employee) => {
                 const row = document.createElement('tr');
                 appendCell(row, employee.employee_number, 'pq-identity');
-                appendCell(row, employee.surname, 'pq-identity');
-                appendCell(row, employee.name, 'pq-identity');
-                appendCell(row, employee.company);
+                appendCell(row, [employee.surname, employee.name].filter(Boolean).join(', '), 'pq-identity');
                 appendCell(row, employee.site);
                 appendCell(row, employee.division);
                 payQueryData.days.forEach((day) => {
-                    appendCell(row, formatHours(employee.daily_seconds[day]), 'pq-day');
+                    const date = new Date(`${day}T00:00:00`);
+                    const weekendClass = date.getDay() === 5 || date.getDay() === 6
+                        ? ' pq-weekend'
+                        : '';
+                    appendCell(row, formatHours(employee.daily_seconds[day]), `pq-day${weekendClass}`);
                 });
                 appendCell(row, formatHours(employee.total_seconds), 'pq-total');
                 body.appendChild(row);
@@ -210,12 +375,24 @@
 
             if (!visibleRows.length) {
                 const row = document.createElement('tr');
-                const cell = appendCell(row, query ? 'No employees match this search.' : 'No employees or attendance records found for this period.', 'pq-message');
-                cell.colSpan = payQueryData.days.length + 7;
+                const hasFilters = payQueryFilterConfig.some((config) => payQueryColumnFilters[config.key]);
+                const cell = appendCell(row, hasFilters
+                    ? 'No employees match the active filters.'
+                    : 'No employees or attendance records found for this period.', 'pq-message');
+                cell.colSpan = payQueryFilterConfig.length;
                 body.appendChild(row);
             }
-            empty.hidden = true;
             updateSummary();
+        }
+
+        function renderPayQueryTable() {
+            if (!payQueryData) return;
+            payQueryFilterConfig = buildPayQueryFilterConfig();
+            payQueryFilterConfig.forEach((config) => {
+                if (!(config.key in payQueryColumnFilters)) payQueryColumnFilters[config.key] = '';
+            });
+            renderPayQueryHeader();
+            applyPayQueryFilters();
         }
 
         function updateSummary() {
@@ -247,7 +424,7 @@
             body.replaceChildren();
             const loadingRow = document.createElement('tr');
             const loadingCell = appendCell(loadingRow, 'Loading pay period hours…', 'pq-message');
-            loadingCell.colSpan = 7;
+            loadingCell.colSpan = 6;
             body.appendChild(loadingRow);
 
             try {
@@ -280,14 +457,15 @@
                 return;
             }
             const headers = [
-                'Employee number', 'Surname', 'Name', 'Company', 'Site', 'Division',
+                'Employee number', 'Employee name', 'Site', 'Division',
                 ...payQueryData.days, 'Worked hours'
             ];
             const lines = [headers.map(csvCell).join(',')];
             visibleRows.forEach((employee) => {
                 const row = [
-                    employee.employee_number, employee.surname, employee.name,
-                    employee.company, employee.site, employee.division,
+                    employee.employee_number,
+                    [employee.surname, employee.name].filter(Boolean).join(', '),
+                    employee.site, employee.division,
                     ...payQueryData.days.map((day) => formatHours(employee.daily_seconds[day])),
                     formatHours(employee.total_seconds)
                 ];
@@ -306,7 +484,15 @@
 
         document.getElementById('filterStartDate').addEventListener('change', refreshPayQueries);
         document.getElementById('filterEndDate').addEventListener('change', refreshPayQueries);
-        document.getElementById('employeeSearch').addEventListener('input', renderPayQueryTable);
+        document.getElementById('pqFilterToolbarBtn').addEventListener('click', () => {
+            const firstHidden = Array.from(
+                document.querySelectorAll('#payQueriesTable .header-filter')
+            ).find((control) => control.style.display === 'none');
+            const button = firstHidden
+                ? firstHidden.closest('th')?.querySelector('.filter-toggle')
+                : document.querySelector('#payQueriesTable .filter-toggle');
+            button?.click();
+        });
         document.getElementById('export-btn').addEventListener('click', exportPayQueriesCsv);
         refreshPayQueries();
     </script>
